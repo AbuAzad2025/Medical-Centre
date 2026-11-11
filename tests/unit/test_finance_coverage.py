@@ -221,10 +221,11 @@ class TestPaymentProcessGet:
         visit = _mk_visit(db, test_tenant.id, patient.id, archive_status='ARCHIVED')
         db.session.commit()
         resp = client.get(f'/payment/process/{visit.id}', headers={'Accept': 'application/json'})
-        # GET on an archived visit renders no ordinary financial mutation, but
-        # the archive gate applies to writes; GET is allowed to render. This
-        # test documents the actual GET contract: 200 with the form.
-        assert resp.status_code == 200
+        # Archived visits cannot receive ordinary financial mutations/view processing.
+        assert resp.status_code == 422
+        body = resp.get_json()
+        assert body['success'] is False
+        assert 'مؤرشفة' in body['message']
 
     def test_post_archived_visit_json_422(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'fc_pay_archpost', 'accountant')
@@ -233,7 +234,7 @@ class TestPaymentProcessGet:
         db.session.commit()
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '100'},
+            data={'payment_method': 'cash', 'paid_amount': '100'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 422
@@ -272,7 +273,7 @@ class TestPaymentProcessPost:
         _patient, visit, invoice = self._visit_with_invoice(app, db, test_tenant, 'full')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '100'},
+            data={'payment_method': 'cash', 'paid_amount': '100'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 200, resp.get_data(as_text=True)[:300]
@@ -302,7 +303,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'part')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '40'},
+            data={'payment_method': 'cash', 'paid_amount': '40'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 200
@@ -316,7 +317,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'over')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '150'},
+            data={'payment_method': 'cash', 'paid_amount': '150'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -333,7 +334,7 @@ class TestPaymentProcessPost:
         )
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '10'},
+            data={'payment_method': 'cash', 'paid_amount': '10'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -344,7 +345,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'wire')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'check', 'paid_amount': '100'},
+            data={'payment_method': 'check', 'paid_amount': '100'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 200
@@ -357,7 +358,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'card')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'card',
                 'paid_amount': '100',
                 'card_last_digits': '4242',
@@ -379,7 +380,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'cardbad')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'card', 'paid_amount': '100'},
+            data={'payment_method': 'card', 'paid_amount': '100'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -389,7 +390,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'ins')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'insurance',
                 'paid_amount': '20',
                 'insurance_provider': 'Test Insurance Co',
@@ -410,7 +411,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'ins2')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'insurance',
                 'paid_amount': '50',
                 'insurance_provider': 'Test Insurance Co',
@@ -427,7 +428,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'ins3')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'insurance', 'paid_amount': '20'},
+            data={'payment_method': 'insurance', 'paid_amount': '20'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -446,7 +447,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'ins4')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'insurance',
                 'paid_amount': '20',
                 'insurance_policy_number': 'POL-999',
@@ -500,7 +501,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'force3')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'cash',
                 'paid_amount': '100',
                 'is_force_payment': 'on',
@@ -515,7 +516,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'debt1')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'is_debt': 'on', 'paid_amount': '0'},
+            data={'payment_method': 'cash', 'is_debt': 'on', 'paid_amount': '0'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -526,7 +527,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'debt2')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'cash',
                 'is_debt': 'on',
                 'accept_responsibility': 'on',
@@ -547,7 +548,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'debt3')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '0'},
+            data={'payment_method': 'cash', 'paid_amount': '0'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -592,7 +593,7 @@ class TestPaymentProcessPost:
         )
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '0'},
+            data={'payment_method': 'cash', 'paid_amount': '0'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 200, resp.get_data(as_text=True)[:300]
@@ -622,7 +623,7 @@ class TestPaymentProcessPost:
         )
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '40'},
+            data={'payment_method': 'cash', 'paid_amount': '40'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 400
@@ -633,7 +634,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'fx1')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'cash',
                 'paid_amount': '10',
                 'payment_currency': 'USD',
@@ -652,7 +653,7 @@ class TestPaymentProcessPost:
         _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'fx2')
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={
+            data={
                 'payment_method': 'cash',
                 'paid_amount': '10',
                 'payment_currency': 'USD',
@@ -678,14 +679,14 @@ class TestPaymentProcessPost:
         }
         resp1 = client.post(
             f'/payment/process/{visit.id}',
-            json=data,
+            data=data,
             headers={'Accept': 'application/json'},
         )
         assert resp1.status_code == 200
         assert resp1.get_json()['replayed'] is False
         resp2 = client.post(
             f'/payment/process/{visit.id}',
-            json=data,
+            data=data,
             headers={'Accept': 'application/json'},
         )
         assert resp2.status_code == 200
@@ -1569,11 +1570,13 @@ class TestInvoicePdfAndPaymentPlans:
 class TestManagerFinancial:
     def _doctor_and_visit(self, app, db, test_tenant, suffix):
         from models.user import User
+        from werkzeug.security import generate_password_hash
 
         doctor = User(
             tenant_id=test_tenant.id,
             username=f'fc_doc_{suffix}',
             email=f'fc_doc_{suffix}@test.local',
+            password_hash=generate_password_hash('ValidPass123!'),
             full_name=f'طبيب {suffix}',
             role='doctor',
             is_active=True,
@@ -2316,7 +2319,7 @@ class TestPaymentLedgerGlue:
 
         resp = client.post(
             f'/payment/process/{visit.id}',
-            json={'payment_method': 'cash', 'paid_amount': '100'},
+            data={'payment_method': 'cash', 'paid_amount': '100'},
             headers={'Accept': 'application/json'},
         )
         assert resp.status_code == 200
