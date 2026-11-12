@@ -323,6 +323,7 @@ class TestPaymentProcessPost:
         )
         if not cfg:
             cfg = SystemConfig(
+                tenant_id=test_tenant.id,
                 config_key='allow_partial_payment_global',
                 config_type='boolean',
                 config_value='true',
@@ -442,6 +443,7 @@ class TestPaymentProcessPost:
         )
         if not cfg:
             cfg = SystemConfig(
+                tenant_id=test_tenant.id,
                 config_key='allow_partial_payment_global',
                 config_type='boolean',
                 config_value='true',
@@ -495,6 +497,7 @@ class TestPaymentProcessPost:
         )
         if not cfg:
             cfg = SystemConfig(
+                tenant_id=test_tenant.id,
                 config_key='allow_partial_payment_global',
                 config_type='boolean',
                 config_value='true',
