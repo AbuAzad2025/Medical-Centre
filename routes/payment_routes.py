@@ -250,18 +250,43 @@ def process_payment(visit_id):
                     flash(force_message, 'error')
                     return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            sc_partial = (
-                db.session.execute(
-                    select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+            # Tenant-scoped lookups: a SystemConfig row without a tenant belongs
+            # to the legacy/global scope, so it is only honoured when no tenant
+            # context is active. With a tenant in scope we read that tenant's
+            # row, falling back to the global one only if no tenant row exists.
+            tenant_id = getattr(current_user, 'tenant_id', None)
+            if tenant_id is not None:
+                sc_partial = (
+                    db.session.execute(
+                        select(SystemConfig).filter_by(
+                            config_key='allow_partial_payment_global', tenant_id=tenant_id
+                        )
+                    )
+                    .scalars()
+                    .first()
                 )
-                .scalars()
-                .first()
-            )
-            sc_debt = (
-                db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global'))
-                .scalars()
-                .first()
-            )
+                sc_debt = (
+                    db.session.execute(
+                        select(SystemConfig).filter_by(
+                            config_key='allow_debt_global', tenant_id=tenant_id
+                        )
+                    )
+                    .scalars()
+                    .first()
+                )
+            else:
+                sc_partial = (
+                    db.session.execute(
+                        select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+                    )
+                    .scalars()
+                    .first()
+                )
+                sc_debt = (
+                    db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global'))
+                    .scalars()
+                    .first()
+                )
             allow_partial_global = sc_partial.get_value() if sc_partial else False
             allow_debt_global = sc_debt.get_value() if sc_debt else False
 
