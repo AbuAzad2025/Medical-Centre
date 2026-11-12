@@ -300,13 +300,45 @@ class TestPaymentProcessPost:
 
     def test_partial_payment_marks_partial(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'fc_pay_part', 'accountant')
-        _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'part')
+        from models.department import Department
+        from models.queue_management import QueueSettings
+        from models.system_config import SystemConfig
+
+        # Partial payments are opt-in (no debt/partial unless explicitly
+        # configured), so this test enables them for the visit's department.
+        dept = Department(tenant_id=test_tenant.id, name='Partial Dept', name_ar='قسم الجزئي')
+        db.session.add(dept)
+        db.session.flush()
+        db.session.add(
+            QueueSettings(
+                tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True
+            )
+        )
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global'))
+            .scalars()
+            .first()
+        )
+        if not cfg:
+            cfg = SystemConfig(
+                config_key='allow_partial_payment_global',
+                config_type='boolean',
+                config_value='true',
+                category='general',
+            )
+            db.session.add(cfg)
+        cfg.set_value(True)
+        db.session.flush()
+
+        _patient, visit, _invoice = self._visit_with_invoice(
+            app, db, test_tenant, 'part', visit_kwargs={'department_id': dept.id}
+        )
         resp = client.post(
             f'/payment/process/{visit.id}',
             data={'payment_method': 'cash', 'paid_amount': '40'},
             headers={'Accept': 'application/json'},
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 200, resp.get_data(as_text=True)[:300]
         db.session.expire_all()
         v = db.session.get(type(visit), visit.id)
         assert Decimal(str(v.paid_amount)) == Decimal('40.00')
