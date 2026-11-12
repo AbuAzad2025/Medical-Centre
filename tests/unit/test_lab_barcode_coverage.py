@@ -4,18 +4,16 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
 class TestLabBarcodeRoutes:
-    def test_barcode_scan_get_unknown(self, app, client, login_as):
+    def test_barcode_scan_get_unknown(self, app, rollback_db, client, login_as):
         login_as(client, 'lab_bc_get', 'lab')
         resp = client.get('/lab/barcode/scan/UNKNOWN-BARCODE')
         assert resp.status_code in (302, 404, 200)
 
-    def test_barcode_scan_post_unknown(self, app, client, login_as):
+    def test_barcode_scan_post_unknown(self, app, rollback_db, client, login_as):
         login_as(client, 'lab_bc_post', 'lab')
         resp = client.post(
             '/lab/barcode/scan/UNKNOWN-BARCODE',
@@ -26,9 +24,9 @@ class TestLabBarcodeRoutes:
         if data is not None:
             assert data['success'] is False
 
-    def test_barcode_scan_post_collect(self, app, client, login_as, db):
+    def test_barcode_scan_post_collect(self, app, rollback_db, client, login_as, db):
+
         from app.extensions import db as _db
-        from datetime import timedelta
 
         login_as(client, 'lab_bc_collect', 'lab')
 
@@ -57,7 +55,7 @@ class TestLabBarcodeRoutes:
         _db.session.commit()
 
         resp = client.post(
-            f'/lab/barcode/scan/LAB-BARCODE-001',
+            '/lab/barcode/scan/LAB-BARCODE-001',
             json={'action': 'COLLECT'},
         )
         assert resp.status_code in (200, 302, 404)

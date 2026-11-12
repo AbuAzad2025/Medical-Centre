@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from unittest.mock import patch
-
-import pytest
 
 from models.user import User
 from services.mdi_service import MDIService
@@ -44,8 +41,15 @@ def _make_patient(db, tenant_id, first_name='Patient', last_name='Test'):
     return p
 
 
-def _make_tenant_device(db, tenant_id, device_id='DEV-001', device_type='ventilator',
-                         patient_id=None, visit_id=None, status='online'):
+def _make_tenant_device(
+    db,
+    tenant_id,
+    device_id='DEV-001',
+    device_type='ventilator',
+    patient_id=None,
+    visit_id=None,
+    status='online',
+):
     from models.medical_device import MedicalDevice
 
     d = MedicalDevice(
@@ -97,8 +101,9 @@ class TestMDIService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-002',
-                                     device_type='ventilator')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='VENT-002', device_type='ventilator'
+        )
         result = MDIService.record_parameter(
             device_id='VENT-002',
             parameter_name='peep',
@@ -112,8 +117,9 @@ class TestMDIService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-003',
-                                     device_type='ventilator')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='VENT-003', device_type='ventilator'
+        )
         result = MDIService.record_parameter(
             device_id='VENT-003',
             parameter_name='peak_pressure',
@@ -127,8 +133,9 @@ class TestMDIService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-004',
-                                     device_type='ventilator')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='VENT-004', device_type='ventilator'
+        )
         result = MDIService.record_parameter(
             device_id='VENT-004',
             parameter_name='tidal_volume',
@@ -219,7 +226,7 @@ class TestMDIService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-008')
+        _device = _make_tenant_device(db, test_tenant.id, device_id='VENT-008')
 
         result = MDIService.get_device_dashboard(test_tenant.id)
         assert 'total_devices' in result
@@ -234,8 +241,7 @@ class TestMDIService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-009',
-                                     patient_id=None)
+        device = _make_tenant_device(db, test_tenant.id, device_id='VENT-009', patient_id=None)
 
         patient = _make_patient(db, test_tenant.id, first_name='Device', last_name='Patient')
         MDIService.assign_device('VENT-009', patient.id)

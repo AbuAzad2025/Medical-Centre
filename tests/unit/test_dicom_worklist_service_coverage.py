@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from decimal import Decimal
-from unittest.mock import patch
-
-import pytest
 
 pytest_plugins = ['tests._isolated_tenant']
 
 
-def _make_patient(db, tenant_id, first_name='Patient', last_name='Test', gender='M', birth_date=None):
+def _make_patient(
+    db, tenant_id, first_name='Patient', last_name='Test', gender='M', birth_date=None
+):
     from models.patient import Patient
 
     p = Patient(
@@ -27,8 +25,16 @@ def _make_patient(db, tenant_id, first_name='Patient', last_name='Test', gender=
     return p
 
 
-def _make_radiology_request(db, tenant_id, patient_id, modality='CT', status='REQUESTED',
-                            body_part='Chest', notes='Test notes', request_number=None):
+def _make_radiology_request(
+    db,
+    tenant_id,
+    patient_id,
+    modality='CT',
+    status='REQUESTED',
+    body_part='Chest',
+    notes='Test notes',
+    request_number=None,
+):
     from models.radiology_request import RadiologyRequest
 
     r = RadiologyRequest(
@@ -62,7 +68,9 @@ class TestDICOMWorklistService:
         bind_tenant_on_g(test_tenant, db_session=db.session)
         from services.dicom_worklist_service import DICOMWorklistService
 
-        patient = _make_patient(db, test_tenant.id, first_name='MWL', last_name='Patient', gender='M')
+        patient = _make_patient(
+            db, test_tenant.id, first_name='MWL', last_name='Patient', gender='M'
+        )
         _make_radiology_request(db, test_tenant.id, patient.id, modality='CT', status='REQUESTED')
 
         result = DICOMWorklistService.get_worklist()
@@ -116,8 +124,15 @@ class TestDICOMWorklistService:
         from services.dicom_worklist_service import _mwl_item_from_request
 
         patient = _make_patient(db, test_tenant.id, birth_date=datetime(1980, 1, 1).date())
-        req = _make_radiology_request(db, test_tenant.id, patient.id, modality='US', status='REQUESTED',
-                                      body_part='Abdomen', notes='Ultrasound abdomen')
+        req = _make_radiology_request(
+            db,
+            test_tenant.id,
+            patient.id,
+            modality='US',
+            status='REQUESTED',
+            body_part='Abdomen',
+            notes='Ultrasound abdomen',
+        )
 
         item = _mwl_item_from_request(req, patient)
         assert item['Modality'] == 'US'
@@ -134,7 +149,9 @@ class TestDICOMWorklistService:
         from services.dicom_worklist_service import _mwl_item_from_request
 
         patient = _make_patient(db, test_tenant.id)
-        req = _make_radiology_request(db, test_tenant.id, patient.id, modality='CT', status='REQUESTED')
+        req = _make_radiology_request(
+            db, test_tenant.id, patient.id, modality='CT', status='REQUESTED'
+        )
 
         # The patient row is missing (deleted / not yet joined): the entry has to
         # still be produced from the request alone.

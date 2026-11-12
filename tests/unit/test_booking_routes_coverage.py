@@ -15,8 +15,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, time, timedelta
 from unittest.mock import patch
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -99,18 +97,18 @@ def _booking(db, tenant_id, **kwargs):
 class TestUserEmailExists:
     """``_user_email_exists`` — the signup duplicate check."""
 
-    def test_an_empty_address_matches_nothing(self, app, db, test_tenant):
+    def test_an_empty_address_matches_nothing(self, app, rollback_db, db, test_tenant):
         from routes.booking_routes import _user_email_exists
 
         assert _user_email_exists('') is False
         assert _user_email_exists(None) is False
 
-    def test_a_blank_address_matches_nothing(self, app, db, test_tenant):
+    def test_a_blank_address_matches_nothing(self, app, rollback_db, db, test_tenant):
         from routes.booking_routes import _user_email_exists
 
         assert _user_email_exists('   ') is False
 
-    def test_an_existing_address_is_found(self, app, db, test_tenant):
+    def test_an_existing_address_is_found(self, app, rollback_db, db, test_tenant):
         from models.user import User
         from routes.booking_routes import _user_email_exists
 
@@ -129,7 +127,7 @@ class TestUserEmailExists:
         assert _user_email_exists('taken@example.test') is True
         assert _user_email_exists('TAKEN@example.test') is True
 
-    def test_an_unused_address_is_not_found(self, app, db, test_tenant):
+    def test_an_unused_address_is_not_found(self, app, rollback_db, db, test_tenant):
         from routes.booking_routes import _user_email_exists
 
         assert _user_email_exists('free@example.test') is False
@@ -159,31 +157,31 @@ class TestExtractMeetingLink:
 class TestRegister:
     """The patient self-registration."""
 
-    def test_the_form_renders(self, app, client):
+    def test_the_form_renders(self, app, rollback_db, client):
         resp = client.get('/booking/register')
         assert resp.status_code in (200, 302)
 
-    def test_missing_fields_are_refused(self, app, client):
+    def test_missing_fields_are_refused(self, app, rollback_db, client):
         resp = client.post('/booking/register', data={'full_name': ''})
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_phone_is_refused(self, app, client):
+    def test_a_missing_phone_is_refused(self, app, rollback_db, client):
         resp = client.post(
             '/booking/register',
             data={'full_name': 'Jane Doe', 'phone': '', 'password': 'secret123'},
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_password_is_refused(self, app, client):
+    def test_a_missing_password_is_refused(self, app, rollback_db, client):
         resp = client.post(
             '/booking/register',
             data={'full_name': 'Jane Doe', 'phone': '0500000001', 'password': ''},
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_used_email_is_refused(self, app, client, db):
-        from models.user import User
+    def test_a_used_email_is_refused(self, app, rollback_db, client, db):
         from app.extensions import db as _db
+        from models.user import User
         from tests.tenant_context import ensure_default_test_tenant
 
         tenant = ensure_default_test_tenant(app)
@@ -210,7 +208,7 @@ class TestRegister:
         )
         assert resp.status_code in (200, 302)
 
-    def test_registration_creates_the_account(self, app, client, db):
+    def test_registration_creates_the_account(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.patient_account import PatientAccount
         from models.user import User
@@ -227,9 +225,7 @@ class TestRegister:
 
         _db.session.expire_all()
         user = (
-            _db.session.execute(
-                _db.select(User).where(User.username == 'patient_0500000003')
-            )
+            _db.session.execute(_db.select(User).where(User.username == 'patient_0500000003'))
             .scalars()
             .first()
         )
@@ -239,15 +235,13 @@ class TestRegister:
         assert user.email.startswith('patient_0500000003_')
 
         link = (
-            _db.session.execute(
-                _db.select(PatientAccount).where(PatientAccount.user_id == user.id)
-            )
+            _db.session.execute(_db.select(PatientAccount).where(PatientAccount.user_id == user.id))
             .scalars()
             .first()
         )
         assert link is not None
 
-    def test_a_used_username_gets_a_suffix(self, app, client, db):
+    def test_a_used_username_gets_a_suffix(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.user import User
 
@@ -273,7 +267,9 @@ class TestRegister:
         assert len(usernames) == 1
         assert usernames[0] == 'patient_0500000004'
 
-    def test_a_patient_already_linked_to_another_account_is_refused(self, app, client, db):
+    def test_a_patient_already_linked_to_another_account_is_refused(
+        self, app, rollback_db, client, db
+    ):
         from app.extensions import db as _db
         from models.patient_account import PatientAccount
         from models.user import User
@@ -311,7 +307,7 @@ class TestRegister:
 class TestDashboardPortal:
     """The patient's own booking dashboard."""
 
-    def test_a_patient_sees_their_bookings(self, app, client, login_as, db):
+    def test_a_patient_sees_their_bookings(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.patient_account import PatientAccount
         from models.user import User
@@ -320,9 +316,7 @@ class TestDashboardPortal:
         patient = _patient(_db, None, username='dash_patient')
         _db.session.flush()
         user = (
-            _db.session.execute(
-                _db.select(User).where(User.username == 'book_patient_user')
-            )
+            _db.session.execute(_db.select(User).where(User.username == 'book_patient_user'))
             .scalars()
             .first()
         )
@@ -332,7 +326,7 @@ class TestDashboardPortal:
         resp = client.get('/booking/dashboard')
         assert resp.status_code in (200, 302)
 
-    def test_another_role_is_refused(self, app, client, login_as):
+    def test_another_role_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'book_lab_user', 'lab')
         resp = client.get('/booking/dashboard')
         assert resp.status_code in (302, 200, 403)
@@ -341,12 +335,12 @@ class TestDashboardPortal:
 class TestCancelBooking:
     """Cancelling a booking, as staff and as the patient."""
 
-    def test_staff_cancelling_an_unknown_booking(self, app, client, login_as):
+    def test_staff_cancelling_an_unknown_booking(self, app, rollback_db, client, login_as):
         login_as(client, 'book_cancel_staff', 'reception')
         resp = client.post('/booking/cancel/999999')
         assert resp.status_code in (302, 404)
 
-    def test_staff_cancelling_an_unknown_booking_as_json(self, app, client, login_as):
+    def test_staff_cancelling_an_unknown_booking_as_json(self, app, rollback_db, client, login_as):
         login_as(client, 'book_cancel_staff_json', 'reception')
         resp = client.post(
             '/booking/cancel/999999',
@@ -355,7 +349,7 @@ class TestCancelBooking:
         assert resp.status_code == 404
         assert resp.get_json()['success'] is False
 
-    def test_a_patient_without_the_right_role_is_refused(self, app, client, login_as):
+    def test_a_patient_without_the_right_role_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'book_cancel_pharmacist', 'pharmacist')
         resp = client.post(
             '/booking/cancel/1',
@@ -363,7 +357,7 @@ class TestCancelBooking:
         )
         assert resp.status_code == 403
 
-    def test_a_patient_without_a_linked_record_is_refused(self, app, client, login_as):
+    def test_a_patient_without_a_linked_record_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'book_cancel_no_link', 'patient')
         resp = client.post(
             '/booking/cancel/1',
@@ -371,7 +365,9 @@ class TestCancelBooking:
         )
         assert resp.status_code == 403
 
-    def test_a_patient_cancelling_someone_elses_booking(self, app, client, login_as, db):
+    def test_a_patient_cancelling_someone_elses_booking(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
         from models.patient_account import PatientAccount
         from models.user import User
@@ -380,9 +376,7 @@ class TestCancelBooking:
         patient = _patient(_db, None, username='cancel_other_patient')
         _db.session.flush()
         user = (
-            _db.session.execute(
-                _db.select(User).where(User.username == 'book_cancel_other')
-            )
+            _db.session.execute(_db.select(User).where(User.username == 'book_cancel_other'))
             .scalars()
             .first()
         )
@@ -396,7 +390,9 @@ class TestCancelBooking:
         )
         assert resp.status_code == 404
 
-    def test_a_booking_that_can_no_longer_be_cancelled(self, app, client, login_as, db):
+    def test_a_booking_that_can_no_longer_be_cancelled(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
 
         login_as(client, 'book_cancel_locked', 'reception')
@@ -409,7 +405,7 @@ class TestCancelBooking:
         )
         assert resp.status_code == 409
 
-    def test_staff_cancelling_a_booking(self, app, client, login_as, db):
+    def test_staff_cancelling_a_booking(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
 
         login_as(client, 'book_cancel_ok', 'reception')
@@ -428,9 +424,7 @@ class TestCancelBooking:
         assert refreshed.status == 'cancelled'
         assert refreshed.cancelled_at is not None
 
-    def test_a_failing_notification_does_not_undo_the_cancellation(
-        self, app, client, login_as, db
-    ):
+    def test_a_failing_notification_does_not_undo_the_cancellation(self, app, client, login_as, db):
         from app.extensions import db as _db
 
         login_as(client, 'book_cancel_notify_fail', 'reception')
@@ -451,11 +445,11 @@ class TestCancelBooking:
 class TestBookingIndex:
     """The public booking landing page."""
 
-    def test_it_renders(self, app, client):
+    def test_it_renders(self, app, rollback_db, client):
         resp = client.get('/booking/')
         assert resp.status_code in (200, 302)
 
-    def test_a_failing_query_redirects(self, app, client):
+    def test_a_failing_query_redirects(self, app, rollback_db, client):
         def boom(*a, **k):
             raise RuntimeError('database down')
 
@@ -468,15 +462,15 @@ class TestBookingIndex:
 class TestCreateBooking:
     """The booking form."""
 
-    def test_the_form_renders(self, app, client):
+    def test_the_form_renders(self, app, rollback_db, client):
         resp = client.get('/booking/create')
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_patient_name_is_refused(self, app, client):
+    def test_a_missing_patient_name_is_refused(self, app, rollback_db, client):
         resp = client.post('/booking/create', data={})
         assert resp.status_code in (200, 302)
 
-    def test_a_single_word_name_fills_the_first_name(self, app, client, db):
+    def test_a_single_word_name_fills_the_first_name(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from tests.tenant_context import ensure_default_test_tenant
@@ -501,7 +495,7 @@ class TestCreateBooking:
         assert booking.first_name == 'Cher'
         assert booking.last_name == '-'
 
-    def test_a_two_word_name_splits(self, app, client, db):
+    def test_a_two_word_name_splits(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from tests.tenant_context import ensure_default_test_tenant
@@ -526,7 +520,7 @@ class TestCreateBooking:
         assert booking.first_name == 'Cher'
         assert booking.last_name == 'Suleiman'
 
-    def test_a_missing_phone_is_refused(self, app, client, db):
+    def test_a_missing_phone_is_refused(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -544,7 +538,7 @@ class TestCreateBooking:
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_department_is_refused(self, app, client):
+    def test_a_missing_department_is_refused(self, app, rollback_db, client):
         resp = client.post(
             '/booking/create',
             data={
@@ -556,7 +550,7 @@ class TestCreateBooking:
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_date_is_refused(self, app, client, db):
+    def test_a_missing_date_is_refused(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -574,7 +568,7 @@ class TestCreateBooking:
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_missing_time_is_refused(self, app, client, db):
+    def test_a_missing_time_is_refused(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -592,7 +586,7 @@ class TestCreateBooking:
         )
         assert resp.status_code in (200, 302)
 
-    def test_seconds_in_the_time_are_accepted(self, app, client, db):
+    def test_seconds_in_the_time_are_accepted(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from tests.tenant_context import ensure_default_test_tenant
@@ -616,7 +610,7 @@ class TestCreateBooking:
         booking = _db.session.get(OnlineBooking, _booking_id_from(resp))
         assert booking.appointment_time == time(9, 30, 15)
 
-    def test_an_unknown_visit_type_falls_back_to_first(self, app, client, db):
+    def test_an_unknown_visit_type_falls_back_to_first(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from tests.tenant_context import ensure_default_test_tenant
@@ -641,7 +635,7 @@ class TestCreateBooking:
         booking = _db.session.get(OnlineBooking, _booking_id_from(resp))
         assert booking.visit_type == 'first'
 
-    def test_a_telemedicine_booking_carries_a_meeting_link(self, app, client, db):
+    def test_a_telemedicine_booking_carries_a_meeting_link(self, app, rollback_db, client, db):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from tests.tenant_context import ensure_default_test_tenant
@@ -668,7 +662,9 @@ class TestCreateBooking:
         assert booking is not None
         assert 'MEET:' in booking.notes
 
-    def test_a_patient_booking_is_linked_to_their_record(self, app, client, login_as, db):
+    def test_a_patient_booking_is_linked_to_their_record(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
         from models.online_booking import OnlineBooking
         from models.patient_account import PatientAccount
@@ -678,9 +674,7 @@ class TestCreateBooking:
         patient = _patient(_db, None, username='create_link_patient')
         _db.session.flush()
         user = (
-            _db.session.execute(
-                _db.select(User).where(User.username == 'book_create_patient')
-            )
+            _db.session.execute(_db.select(User).where(User.username == 'book_create_patient'))
             .scalars()
             .first()
         )
@@ -711,7 +705,7 @@ class TestCreateBooking:
 class TestBookingConfirmation:
     """The confirmation page."""
 
-    def test_it_renders(self, app, client, login_as, db):
+    def test_it_renders(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
 
         login_as(client, 'book_confirm_user', 'reception')
@@ -721,7 +715,7 @@ class TestBookingConfirmation:
         resp = client.get(f'/booking/confirmation/{booking.id}')
         assert resp.status_code in (200, 302)
 
-    def test_an_unknown_booking_is_404(self, app, client, login_as):
+    def test_an_unknown_booking_is_404(self, app, rollback_db, client, login_as):
         login_as(client, 'book_confirm_missing', 'reception')
         resp = client.get('/booking/confirmation/999999')
         assert resp.status_code in (404, 302)
@@ -730,7 +724,7 @@ class TestBookingConfirmation:
 class TestTelemedicineRoom:
     """The telemedicine room."""
 
-    def test_it_renders(self, app, client, login_as, db):
+    def test_it_renders(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
 
         login_as(client, 'book_tele_user', 'reception')
@@ -740,7 +734,7 @@ class TestTelemedicineRoom:
         resp = client.get(f'/booking/telemedicine/{booking.id}')
         assert resp.status_code in (200, 302)
 
-    def test_an_unknown_booking_is_404(self, app, client, login_as):
+    def test_an_unknown_booking_is_404(self, app, rollback_db, client, login_as):
         login_as(client, 'book_tele_missing', 'reception')
         resp = client.get('/booking/telemedicine/999999')
         assert resp.status_code in (404, 302)

@@ -12,10 +12,8 @@ Each test class is named after the behaviour it covers.
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, time, timedelta
+from datetime import UTC, date, datetime, time
 from unittest.mock import patch
-
-import pytest
 
 pytest_plugins = ['tests._isolated_tenant']
 
@@ -108,23 +106,25 @@ class _FakeG:
 class TestUnitControl:
     """The module control page."""
 
-    def test_it_lists_the_registry(self, app, client, login_as):
+    def test_it_lists_the_registry(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_unit_ctrl', 'manager')
         resp = client.get('/manager/unit-control')
         assert resp.status_code in (200, 302)
 
-    def test_without_a_clinic_it_redirects(self, app, client, login_as):
+    def test_without_a_clinic_it_redirects(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_unit_no_tenant', 'manager')
-        with patch('routes.manager.staff.g', _FakeG(tenant_id=None)), patch(
-            'routes.manager.staff.current_user', _FakeUser(tenant_id=None)
+        with (
+            patch('routes.manager.staff.g', _FakeG(tenant_id=None)),
+            patch('routes.manager.staff.current_user', _FakeUser(tenant_id=None)),
         ):
             resp = client.get('/manager/unit-control')
         assert resp.status_code in (302, 200)
 
-    def test_a_toggle_without_a_clinic_is_refused(self, app, client, login_as):
+    def test_a_toggle_without_a_clinic_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_toggle_no_tenant', 'manager')
-        with patch('routes.manager.staff.g', _FakeG(tenant_id=None)), patch(
-            'routes.manager.staff.current_user', _FakeUser(tenant_id=None)
+        with (
+            patch('routes.manager.staff.g', _FakeG(tenant_id=None)),
+            patch('routes.manager.staff.current_user', _FakeUser(tenant_id=None)),
         ):
             resp = client.post(
                 '/manager/api/units/toggle',
@@ -133,7 +133,7 @@ class TestUnitControl:
         assert resp.status_code == 400
         assert resp.get_json()['success'] is False
 
-    def test_the_stale_module_cache_is_dropped(self, app, client, login_as, db):
+    def test_the_stale_module_cache_is_dropped(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -154,7 +154,7 @@ class TestUnitControl:
         # The cached module scope is dropped so the next request sees the change.
         assert '_tenant_enabled_modules' not in fake_g.cache
 
-    def test_a_failing_registry_redirects(self, app, client, login_as):
+    def test_a_failing_registry_redirects(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_unit_fail', 'manager')
         with patch(
             'routes.manager.staff.get_active_modules_for_tenant',
@@ -168,7 +168,7 @@ class TestUnitControl:
 class TestUnitToggle:
     """Switching a module on and off for the clinic."""
 
-    def test_an_unknown_module_is_refused(self, app, client, login_as):
+    def test_an_unknown_module_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_toggle_unknown', 'manager')
         resp = client.post(
             '/manager/api/units/toggle',
@@ -177,7 +177,9 @@ class TestUnitToggle:
         assert resp.status_code == 400
         assert resp.get_json()['success'] is False
 
-    def test_a_module_outside_the_subscription_is_refused(self, app, client, login_as, db):
+    def test_a_module_outside_the_subscription_is_refused(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -200,7 +202,7 @@ class TestUnitToggle:
         assert resp.status_code == 403
         assert 'not included' in resp.get_json()['error']
 
-    def test_toggling_a_module_switches_it_off(self, app, client, login_as, db):
+    def test_toggling_a_module_switches_it_off(self, app, rollback_db, client, login_as, db):
         from app.core.module.models import TenantModule
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
@@ -228,7 +230,7 @@ class TestUnitToggle:
         assert refreshed.is_active is False
         assert refreshed.deactivated_at is not None
 
-    def test_toggling_a_module_switches_it_on(self, app, client, login_as, db):
+    def test_toggling_a_module_switches_it_on(self, app, rollback_db, client, login_as, db):
         from app.core.module.models import TenantModule
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
@@ -288,7 +290,7 @@ class TestUnitToggle:
         assert created is not None
         assert created.is_active is True
 
-    def test_a_failing_toggle_answers_500(self, app, client, login_as):
+    def test_a_failing_toggle_answers_500(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_toggle_fail', 'manager')
 
         def boom(*a, **k):
@@ -306,12 +308,12 @@ class TestUnitToggle:
 class TestUserManagement:
     """The user list."""
 
-    def test_it_renders(self, app, client, login_as):
+    def test_it_renders(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_user_mgmt', 'manager')
         resp = client.get('/manager/user-management')
         assert resp.status_code in (200, 302)
 
-    def test_a_failing_query_redirects(self, app, client, login_as):
+    def test_a_failing_query_redirects(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_user_mgmt_fail', 'manager')
 
         def boom(*a, **k):
@@ -326,18 +328,18 @@ class TestUserManagement:
 class TestStaffSchedule:
     """The work-schedule editor."""
 
-    def test_it_lists_the_clinical_staff(self, app, client, login_as):
+    def test_it_lists_the_clinical_staff(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_sched_list', 'manager')
         resp = client.get('/manager/staff/schedule')
         assert resp.status_code in (200, 302)
 
-    def test_missing_fields_are_refused(self, app, client, login_as):
+    def test_missing_fields_are_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_sched_missing', 'manager')
         resp = client.post('/manager/staff/schedule', data={})
         assert resp.status_code == 302
         assert '/manager/staff/schedule' in resp.headers['Location']
 
-    def test_saving_a_new_day_creates_the_schedule(self, app, client, login_as, db):
+    def test_saving_a_new_day_creates_the_schedule(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.user import StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
@@ -376,7 +378,9 @@ class TestStaffSchedule:
         assert schedule.end_time == time(16, 0)
         assert schedule.is_active is True
 
-    def test_saving_an_existing_day_updates_the_schedule(self, app, client, login_as, db):
+    def test_saving_an_existing_day_updates_the_schedule(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
         from models.user import StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
@@ -417,7 +421,7 @@ class TestStaffSchedule:
         assert refreshed.end_time == time(18, 0)
         assert refreshed.is_active is False
 
-    def test_an_unparsable_time_is_reported(self, app, client, login_as, db):
+    def test_an_unparsable_time_is_reported(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -437,9 +441,10 @@ class TestStaffSchedule:
         )
         assert resp.status_code in (200, 302)
 
-    def test_the_schedule_of_one_staff_member_is_shown(self, app, client, login_as, db):
+    def test_the_schedule_of_one_staff_member_is_shown(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
-        from models.user import StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
 
         tenant = ensure_default_test_tenant(app)
@@ -454,18 +459,18 @@ class TestStaffSchedule:
 class TestStaffAbsence:
     """The absence log."""
 
-    def test_it_lists_the_clinical_staff(self, app, client, login_as):
+    def test_it_lists_the_clinical_staff(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_abs_list', 'manager')
         resp = client.get('/manager/staff/absence')
         assert resp.status_code in (200, 302)
 
-    def test_missing_fields_are_refused(self, app, client, login_as):
+    def test_missing_fields_are_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_abs_missing', 'manager')
         resp = client.post('/manager/staff/absence', data={})
         assert resp.status_code == 302
         assert '/manager/staff/absence' in resp.headers['Location']
 
-    def test_recording_an_absence(self, app, client, login_as, db):
+    def test_recording_an_absence(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.user import StaffAbsence
         from tests.tenant_context import ensure_default_test_tenant
@@ -488,9 +493,7 @@ class TestStaffAbsence:
 
         _db.session.expire_all()
         absence = (
-            _db.session.execute(
-                _db.select(StaffAbsence).where(StaffAbsence.user_id == doctor.id)
-            )
+            _db.session.execute(_db.select(StaffAbsence).where(StaffAbsence.user_id == doctor.id))
             .scalars()
             .first()
         )
@@ -499,7 +502,7 @@ class TestStaffAbsence:
         assert absence.end_date == date(2026, 3, 3)
         assert absence.reason == 'annual leave'
 
-    def test_an_unparsable_date_is_reported(self, app, client, login_as, db):
+    def test_an_unparsable_date_is_reported(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from tests.tenant_context import ensure_default_test_tenant
 
@@ -518,7 +521,7 @@ class TestStaffAbsence:
         )
         assert resp.status_code in (200, 302)
 
-    def test_the_absence_of_one_staff_member_is_shown(self, app, client, login_as, db):
+    def test_the_absence_of_one_staff_member_is_shown(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.user import StaffAbsence
         from tests.tenant_context import ensure_default_test_tenant
@@ -544,29 +547,31 @@ class TestStaffAbsence:
 class TestStaffCapacity:
     """The capacity report."""
 
-    def test_it_renders_for_the_default_window(self, app, client, login_as):
+    def test_it_renders_for_the_default_window(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_cap_default', 'manager')
         resp = client.get('/manager/staff/capacity')
         assert resp.status_code in (200, 302)
 
-    def test_it_renders_for_an_explicit_window(self, app, client, login_as):
+    def test_it_renders_for_an_explicit_window(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_cap_window', 'manager')
         resp = client.get(
             '/manager/staff/capacity?start_date=2026-03-01&end_date=2026-03-07&days=7'
         )
         assert resp.status_code in (200, 302)
 
-    def test_an_unparsable_start_date_falls_back_to_today(self, app, client, login_as):
+    def test_an_unparsable_start_date_falls_back_to_today(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_cap_bad_start', 'manager')
         resp = client.get('/manager/staff/capacity?start_date=not-a-date')
         assert resp.status_code in (200, 302)
 
-    def test_an_unparsable_end_date_falls_back_to_the_window(self, app, client, login_as):
+    def test_an_unparsable_end_date_falls_back_to_the_window(
+        self, app, rollback_db, client, login_as
+    ):
         login_as(client, 'staff_cap_bad_end', 'manager')
         resp = client.get('/manager/staff/capacity?start_date=2026-03-01&end_date=not-a-date')
         assert resp.status_code in (200, 302)
 
-    def test_absences_cost_the_department_its_slots(self, app, client, login_as, db):
+    def test_absences_cost_the_department_its_slots(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.user import StaffAbsence, StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
@@ -607,7 +612,7 @@ class TestStaffCapacity:
         )
         assert resp.status_code in (200, 302)
 
-    def test_an_inactive_schedule_is_not_counted(self, app, client, login_as, db):
+    def test_an_inactive_schedule_is_not_counted(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.user import StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
@@ -638,7 +643,9 @@ class TestStaffCapacity:
         )
         assert resp.status_code in (200, 302)
 
-    def test_an_available_doctor_contributes_its_slots(self, app, client, login_as, db):
+    def test_an_available_doctor_contributes_its_slots(
+        self, app, rollback_db, client, login_as, db
+    ):
         from app.extensions import db as _db
         from models.user import StaffWorkSchedule
         from tests.tenant_context import ensure_default_test_tenant
@@ -669,7 +676,7 @@ class TestStaffCapacity:
         )
         assert resp.status_code in (200, 302)
 
-    def test_a_failing_report_redirects(self, app, client, login_as):
+    def test_a_failing_report_redirects(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_cap_fail', 'manager')
 
         def boom(*a, **k):
@@ -684,12 +691,12 @@ class TestStaffCapacity:
 class TestStaffList:
     """The staff list."""
 
-    def test_it_renders(self, app, client, login_as):
+    def test_it_renders(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_list_ok', 'manager')
         resp = client.get('/manager/staff')
         assert resp.status_code in (200, 302)
 
-    def test_a_failing_query_redirects(self, app, client, login_as):
+    def test_a_failing_query_redirects(self, app, rollback_db, client, login_as):
         login_as(client, 'staff_list_fail', 'manager')
 
         def boom(*a, **k):

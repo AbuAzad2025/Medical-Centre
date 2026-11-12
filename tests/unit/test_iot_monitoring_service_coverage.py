@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
-
-import pytest
+from datetime import UTC, datetime
 
 from models.user import User
 from services.iot_monitoring_service import IoTMonitoringService
@@ -43,8 +41,15 @@ def _make_patient(db, tenant_id, first_name='Patient', last_name='Test'):
     return p
 
 
-def _make_tenant_device(db, tenant_id, device_id='IOT-001', device_type='heart_monitor',
-                         patient_id=None, visit_id=None, status='online'):
+def _make_tenant_device(
+    db,
+    tenant_id,
+    device_id='IOT-001',
+    device_type='heart_monitor',
+    patient_id=None,
+    visit_id=None,
+    status='online',
+):
     from models.iot_device import IoTDevice
 
     d = IoTDevice(
@@ -95,8 +100,9 @@ class TestIoTMonitoringService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='HR-002',
-                                     device_type='heart_monitor')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='HR-002', device_type='heart_monitor'
+        )
         result = IoTMonitoringService.record_reading(
             device_id='HR-002',
             reading_type='heart_rate',
@@ -110,8 +116,9 @@ class TestIoTMonitoringService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='HR-003',
-                                     device_type='heart_monitor')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='HR-003', device_type='heart_monitor'
+        )
         result = IoTMonitoringService.record_reading(
             device_id='HR-003',
             reading_type='heart_rate',
@@ -125,8 +132,9 @@ class TestIoTMonitoringService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='HR-004',
-                                     device_type='heart_monitor')
+        _device = _make_tenant_device(
+            db, test_tenant.id, device_id='HR-004', device_type='heart_monitor'
+        )
         result = IoTMonitoringService.record_reading(
             device_id='HR-004',
             reading_type='heart_rate',
@@ -140,7 +148,7 @@ class TestIoTMonitoringService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='HR-005')
+        _device = _make_tenant_device(db, test_tenant.id, device_id='HR-005')
 
         result = IoTMonitoringService.get_device_status('HR-005')
         assert result is not None
@@ -189,8 +197,7 @@ class TestIoTMonitoringService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        device = _make_tenant_device(db, test_tenant.id, device_id='HR-007',
-                                     patient_id=None)
+        device = _make_tenant_device(db, test_tenant.id, device_id='HR-007', patient_id=None)
         patient = _make_patient(db, test_tenant.id, first_name='IoT', last_name='Patient')
 
         IoTMonitoringService.assign_device_to_patient('HR-007', patient.id)

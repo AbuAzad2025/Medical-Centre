@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from models.user import User
 from services.permission_scope_service import PermissionScopeService
 
@@ -13,8 +11,15 @@ pytest_plugins = ['tests._isolated_tenant']
 _NOT_PROVIDED = object()
 
 
-def _make_user(db, tenant_id, username, role='doctor', is_active=True,
-               department_id=None, tenant_id_col=_NOT_PROVIDED):
+def _make_user(
+    db,
+    tenant_id,
+    username,
+    role='doctor',
+    is_active=True,
+    department_id=None,
+    tenant_id_col=_NOT_PROVIDED,
+):
     actual_tenant_id = tenant_id if tenant_id_col is _NOT_PROVIDED else tenant_id_col
     u = User(
         username=username,

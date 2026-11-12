@@ -1,4 +1,4 @@
-﻿"""Coverage for the small app-level helpers that had branches nobody exercised.
+"""Coverage for the small app-level helpers that had branches nobody exercised.
 
 These modules are the shared plumbing between the routes and the platform:
 field validation, role policy, search indexing, navigation registries and the
@@ -162,8 +162,6 @@ class TestOwnerDecorators:
             return 'never reached'
 
         with app.test_request_context('/owner/api/thing', headers={'Accept': 'application/json'}):
-            from flask_login import current_user
-
             with patch('app.modules.owner.decorators.current_user') as user:
                 user.is_authenticated = False
                 response = protected()
@@ -225,9 +223,7 @@ class TestEscposPrinter:
 class TestAppointmentWorkflow:
     """app/modules/workflows/appointment.py"""
 
-    def test_check_double_booking_finds_an_overlapping_appointment(
-        self, app, db, test_tenant
-    ):
+    def test_check_double_booking_finds_an_overlapping_appointment(self, app, db, test_tenant):
         from app.modules.workflows.appointment import AppointmentService
         from models.patient import Patient
         from models.user import User
@@ -268,14 +264,9 @@ class TestAppointmentWorkflow:
             db.session.flush()
 
             # The same window for the same doctor is a double booking.
-            assert (
-                AppointmentService.check_double_booking(doctor.id, start, end) is True
-            )
+            assert AppointmentService.check_double_booking(doctor.id, start, end) is True
             # A different doctor is not.
-            assert (
-                AppointmentService.check_double_booking(doctor.id + 999, start, end)
-                is False
-            )
+            assert AppointmentService.check_double_booking(doctor.id + 999, start, end) is False
             # A window that does not overlap is not either.
             assert (
                 AppointmentService.check_double_booking(
@@ -291,9 +282,7 @@ class TestAppointmentWorkflow:
                 is False
             )
 
-    def test_check_double_booking_ignores_a_cancelled_appointment(
-        self, app, db, test_tenant
-    ):
+    def test_check_double_booking_ignores_a_cancelled_appointment(self, app, db, test_tenant):
         from app.modules.workflows.appointment import AppointmentService
         from models.patient import Patient
         from models.user import User
@@ -334,17 +323,13 @@ class TestAppointmentWorkflow:
             )
             db.session.flush()
 
-            assert (
-                AppointmentService.check_double_booking(doctor.id, start, end) is False
-            )
+            assert AppointmentService.check_double_booking(doctor.id, start, end) is False
 
 
 class TestPharmacyWorkflow:
     """app/modules/workflows/pharmacy.py"""
 
-    def test_low_stock_signal_failure_does_not_break_the_adjustment(
-        self, app, db, test_tenant
-    ):
+    def test_low_stock_signal_failure_does_not_break_the_adjustment(self, app, db, test_tenant):
         from app.modules.workflows.pharmacy import PharmacyStockService
         from models.medication import Medication
 
@@ -473,13 +458,13 @@ class TestSearchIndexWithoutEncryption:
     """app/shared/search_index.py"""
 
     def test_digest_is_none_without_a_service(self):
-        import app.shared.search_index as search_index
+        from app.shared import search_index
 
         with patch.object(search_index, '_service', return_value=None):
             assert search_index.ngram_digest('abc') is None
 
     def test_digests_are_empty_without_a_service(self):
-        import app.shared.search_index as search_index
+        from app.shared import search_index
 
         with patch.object(search_index, '_service', return_value=None):
             assert search_index.digests_for('0123456789') == []
@@ -607,7 +592,7 @@ class TestUserPreferences:
 
         user = self._User({'theme': 'light', 'density': 'normal', 'radius': 'md'})
         with app.test_request_context():
-            with patch('app.shared.user_preferences.safe_commit', lambda *a, **k: True):
+            with patch('app.shared.user_preferences.safe_commit', lambda *_a, **_k: True):
                 assert save_user_preferences(user, {'theme': 'dark'}) is True
         assert user.preferences['theme'] == 'dark'
 
@@ -616,7 +601,7 @@ class TestUserPreferences:
 
         user = self._User({'theme': 'light', 'density': 'normal', 'radius': 'md'})
         with app.test_request_context():
-            with patch('app.shared.user_preferences.safe_commit', lambda *a, **k: True):
+            with patch('app.shared.user_preferences.safe_commit', lambda *_a, **_k: True):
                 assert save_user_preferences(user, {'theme': 'rainbow'}) is True
         assert user.preferences['theme'] == 'light'
 
@@ -625,11 +610,9 @@ class TestUserPreferences:
 
         user = self._User({'theme': 'light', 'density': 'normal', 'radius': 'md'})
         with app.test_request_context():
-            with patch('app.shared.user_preferences.safe_commit', lambda *a, **k: True):
+            with patch('app.shared.user_preferences.safe_commit', lambda *_a, **_k: True):
                 assert (
-                    save_user_preferences(
-                        user, {'dashboard': {'pinned_routes': ['/a', '', '/b']}}
-                    )
+                    save_user_preferences(user, {'dashboard': {'pinned_routes': ['/a', '', '/b']}})
                     is True
                 )
         assert user.preferences['dashboard']['pinned_routes'] == ['/a', '/b']
@@ -742,7 +725,7 @@ class TestCacheConfig:
     def test_redis_url_is_added_for_the_redis_cache(self, monkeypatch):
         import importlib
 
-        import utils.caching as caching
+        from utils import caching
 
         monkeypatch.setenv('CACHE_TYPE', 'RedisCache')
         monkeypatch.setenv('REDIS_URL', 'redis://localhost:6379/1')
@@ -789,12 +772,10 @@ class TestRbacSeed:
         db.session.flush()
 
         with app.test_request_context():
-            with patch(
-                'models.permissions.create_default_permissions', lambda *a, **k: None
-            ), patch(
-                'models.permissions.create_default_roles', lambda *a, **k: None
-            ), patch(
-                'models.permissions.assign_super_admin_permissions', lambda *a, **k: None
+            with (
+                patch('models.permissions.create_default_permissions', lambda *_a, **_k: None),
+                patch('models.permissions.create_default_roles', lambda *_a, **_k: None),
+                patch('models.permissions.assign_super_admin_permissions', lambda *_a, **_k: None),
             ):
                 result = seed_rbac_and_catalogs(db, inspector=self._Inspector())
 
@@ -809,9 +790,9 @@ class TestRbacSeed:
         from models.permissions import Permission, RolePermission
 
         db = rollback_db
-        permission = db.session.execute(
-            select(Permission).filter_by(name='user_read')
-        ).scalars().first()
+        permission = (
+            db.session.execute(select(Permission).filter_by(name='user_read')).scalars().first()
+        )
         db.session.execute(
             delete(RolePermission).where(RolePermission.permission_id == permission.id)
         )
@@ -819,12 +800,10 @@ class TestRbacSeed:
         db.session.flush()
 
         with app.test_request_context():
-            with patch(
-                'models.permissions.create_default_permissions', lambda *a, **k: None
-            ), patch(
-                'models.permissions.create_default_roles', lambda *a, **k: None
-            ), patch(
-                'models.permissions.assign_super_admin_permissions', lambda *a, **k: None
+            with (
+                patch('models.permissions.create_default_permissions', lambda *_a, **_k: None),
+                patch('models.permissions.create_default_roles', lambda *_a, **_k: None),
+                patch('models.permissions.assign_super_admin_permissions', lambda *_a, **_k: None),
             ):
                 result = seed_rbac_and_catalogs(db, inspector=self._Inspector())
 

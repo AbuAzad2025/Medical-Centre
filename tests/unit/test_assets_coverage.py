@@ -6,9 +6,7 @@ import json
 import os
 import tempfile
 
-import pytest
-
-from utils.assets import asset_url, register_asset_helpers, _load_manifest
+from utils.assets import _load_manifest, asset_url, register_asset_helpers
 
 pytest_plugins = ['tests._isolated_tenant']
 

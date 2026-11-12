@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -90,8 +88,9 @@ class TestDICOMStoreSCP:
         mock_event.dataset = mock_ds
         mock_event.file_meta = mock_file_meta
 
-        with patch('os.makedirs'), patch.object(
-            mock_ds, 'save_as', side_effect=Exception('save failed')
+        with (
+            patch('os.makedirs'),
+            patch.object(mock_ds, 'save_as', side_effect=Exception('save failed')),
         ):
             result = svc._handle_store(mock_event)
             assert result == 0xC000  # Failure

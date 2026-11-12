@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

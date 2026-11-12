@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from decimal import Decimal
 
-import pytest
-
 from models.user import User
 from services.insurance_claim_service import InsuranceClaimService
 
@@ -112,7 +110,9 @@ def _make_insurance_company(db, tenant_id, name='Test Insurance'):
     return c
 
 
-def _make_claim(db, tenant_id, visit, invoice, company, status='DRAFT', total_claim=Decimal('100.00')):
+def _make_claim(
+    db, tenant_id, visit, invoice, company, status='DRAFT', total_claim=Decimal('100.00')
+):
     from models.insurance import InsuranceClaim
 
     claim = InsuranceClaim(
@@ -168,8 +168,11 @@ class TestInsuranceClaimService:
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
         ok, result = InsuranceClaimService.create_claim(
-            visit_id=None, invoice_id=None, company_id=1,
-            total_claim=Decimal('100'), tenant_id=test_tenant.id
+            visit_id=None,
+            invoice_id=None,
+            company_id=1,
+            total_claim=Decimal('100'),
+            tenant_id=test_tenant.id,
         )
         assert ok is False
         assert 'error' in result
@@ -181,12 +184,15 @@ class TestInsuranceClaimService:
         dept = _make_department(db, test_tenant.id)
         patient = _make_patient(db, test_tenant.id)
         visit = _make_visit(db, test_tenant.id, patient, dept)
-        invoice = _make_invoice(db, test_tenant.id, visit, Decimal('200.00'))
+        _invoice = _make_invoice(db, test_tenant.id, visit, Decimal('200.00'))
         company = _make_insurance_company(db, test_tenant.id)
 
         ok, result = InsuranceClaimService.create_claim(
-            visit_id=visit.id, invoice_id=None, company_id=company.id,
-            total_claim=Decimal('200.00'), tenant_id=test_tenant.id
+            visit_id=visit.id,
+            invoice_id=None,
+            company_id=company.id,
+            total_claim=Decimal('200.00'),
+            tenant_id=test_tenant.id,
         )
         assert ok is True
         assert 'id' in result
@@ -205,8 +211,11 @@ class TestInsuranceClaimService:
         company = _make_insurance_company(db, test_tenant.id)
 
         ok, result = InsuranceClaimService.create_claim(
-            visit_id=None, invoice_id=invoice.id, company_id=company.id,
-            total_claim=Decimal('200.00'), tenant_id=test_tenant.id
+            visit_id=None,
+            invoice_id=invoice.id,
+            company_id=company.id,
+            total_claim=Decimal('200.00'),
+            tenant_id=test_tenant.id,
         )
         assert ok is True
         assert result['status'] == 'DRAFT'
@@ -224,11 +233,15 @@ class TestInsuranceClaimService:
             return False
 
         import services.insurance_claim_service as ics_module
+
         monkeypatch.setattr(ics_module, 'safe_commit', commit_false)
 
         ok, result = InsuranceClaimService.create_claim(
-            visit_id=visit.id, invoice_id=None, company_id=company.id,
-            total_claim=Decimal('200.00'), tenant_id=test_tenant.id
+            visit_id=visit.id,
+            invoice_id=None,
+            company_id=company.id,
+            total_claim=Decimal('200.00'),
+            tenant_id=test_tenant.id,
         )
         assert ok is False
         assert 'error' in result
@@ -290,9 +303,12 @@ class TestInsuranceClaimService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        ok, result = InsuranceClaimService.adjudicate_claim(
-            claim_id=99999, approved_amount=Decimal('50'), status='APPROVED',
-            notes='ok', tenant_id=test_tenant.id
+        ok, _result = InsuranceClaimService.adjudicate_claim(
+            claim_id=99999,
+            approved_amount=Decimal('50'),
+            status='APPROVED',
+            notes='ok',
+            tenant_id=test_tenant.id,
         )
         assert ok is False
 
@@ -307,9 +323,12 @@ class TestInsuranceClaimService:
         company = _make_insurance_company(db, test_tenant.id)
         claim = _make_claim(db, test_tenant.id, visit, invoice, company, status='SUBMITTED')
 
-        ok, result = InsuranceClaimService.adjudicate_claim(
-            claim_id=claim.id, approved_amount=Decimal('50'), status='APPROVED',
-            notes='ok', tenant_id=99999
+        ok, _result = InsuranceClaimService.adjudicate_claim(
+            claim_id=claim.id,
+            approved_amount=Decimal('50'),
+            status='APPROVED',
+            notes='ok',
+            tenant_id=99999,
         )
         assert ok is False
 
@@ -325,15 +344,18 @@ class TestInsuranceClaimService:
         claim = _make_claim(db, test_tenant.id, visit, invoice, company, status='DRAFT')
 
         ok, result = InsuranceClaimService.adjudicate_claim(
-            claim_id=claim.id, approved_amount=Decimal('50'), status='INVALID_STATUS',
-            notes='ok', tenant_id=test_tenant.id
+            claim_id=claim.id,
+            approved_amount=Decimal('50'),
+            status='INVALID_STATUS',
+            notes='ok',
+            tenant_id=test_tenant.id,
         )
         assert ok is False
         assert 'invalid status' in result['error']
 
     def test_adjudicate_claim_success(self, app, db, test_tenant):
-        from tests.tenant_context import bind_tenant_on_g
         from app.shared.enums import InsuranceClaimStatus
+        from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
         dept = _make_department(db, test_tenant.id)
@@ -344,8 +366,11 @@ class TestInsuranceClaimService:
         claim = _make_claim(db, test_tenant.id, visit, invoice, company, status='SUBMITTED')
 
         ok, result = InsuranceClaimService.adjudicate_claim(
-            claim_id=claim.id, approved_amount=Decimal('150.00'), status='APPROVED',
-            notes='Approved', tenant_id=test_tenant.id
+            claim_id=claim.id,
+            approved_amount=Decimal('150.00'),
+            status='APPROVED',
+            notes='Approved',
+            tenant_id=test_tenant.id,
         )
         assert ok is True
         assert result['status'] == InsuranceClaimStatus.APPROVED.value
@@ -354,7 +379,7 @@ class TestInsuranceClaimService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        ok, result = InsuranceClaimService.settle_claim(
+        ok, _result = InsuranceClaimService.settle_claim(
             claim_id=99999, settled_amount=Decimal('50'), tenant_id=test_tenant.id
         )
         assert ok is False
@@ -370,7 +395,7 @@ class TestInsuranceClaimService:
         company = _make_insurance_company(db, test_tenant.id)
         claim = _make_claim(db, test_tenant.id, visit, invoice, company, status='SUBMITTED')
 
-        ok, result = InsuranceClaimService.settle_claim(
+        ok, _result = InsuranceClaimService.settle_claim(
             claim_id=claim.id, settled_amount=Decimal('50'), tenant_id=99999
         )
         assert ok is False
@@ -404,8 +429,11 @@ class TestInsuranceClaimService:
         claim = _make_claim(db, test_tenant.id, visit, invoice, company, status='SETTLED')
 
         ok, result = InsuranceClaimService.record_payout(
-            claim_id=claim.id, amount=Decimal('150.00'), method='WIRE',
-            reference='REF-123', tenant_id=test_tenant.id
+            claim_id=claim.id,
+            amount=Decimal('150.00'),
+            method='WIRE',
+            reference='REF-123',
+            tenant_id=test_tenant.id,
         )
         assert ok is True
         assert 'id' in result
@@ -421,11 +449,15 @@ class TestInsuranceClaimService:
             return False
 
         import services.insurance_claim_service as ics_module
+
         monkeypatch.setattr(ics_module, 'safe_commit', commit_false)
 
         ok, result = InsuranceClaimService.record_payout(
-            claim_id=1, amount=Decimal('150.00'), method='WIRE',
-            reference='REF-123', tenant_id=test_tenant.id
+            claim_id=1,
+            amount=Decimal('150.00'),
+            method='WIRE',
+            reference='REF-123',
+            tenant_id=test_tenant.id,
         )
         assert ok is False
         assert 'error' in result

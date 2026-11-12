@@ -33,7 +33,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 from dataclasses import dataclass
 
 # The floors the repository holds itself to. They are read from

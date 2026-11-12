@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-import pytest
-
 from app.core.permission.decorators import permission_required
 
 pytest_plugins = ['tests._isolated_tenant']
@@ -39,10 +37,8 @@ class TestPermissionDecorators:
                     'app.core.permission.service.PermissionService.has_permission',
                     return_value=False,
                 ):
-                    from flask import abort
-
                     try:
                         protected_view()
-                        assert False, 'Should have raised 403'
+                        raise AssertionError('Should have raised 403')
                     except Exception:
                         pass  # 403 abort expected

@@ -790,7 +790,7 @@ class TestMedicalDevice:
     """models/medical_device.py"""
 
     def test_to_dicts(self, app, db, test_tenant):
-        from models.medical_device import DeviceAlarm, DeviceParameter, MedicalDevice
+        from models.medical_device import DeviceParameter, MedicalDevice
 
         device = MedicalDevice(
             tenant_id=test_tenant.id,

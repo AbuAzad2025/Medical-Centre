@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
-
 import pytest
 
 from utils.db_safety import safe_commit, safe_rollback, safe_transaction

@@ -7,10 +7,7 @@ executed. Each test class is named after the module it covers.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 from decimal import Decimal
-
-import pytest
 
 pytest_plugins = ['tests._isolated_tenant']
 
@@ -100,9 +97,7 @@ class TestAiImaging:
     def test_repr(self):
         from models.ai_imaging import AIImagingAnalysis
 
-        analysis = AIImagingAnalysis(
-            patient_id=5, analysis_type='TRIAGE', status='COMPLETED'
-        )
+        analysis = AIImagingAnalysis(patient_id=5, analysis_type='TRIAGE', status='COMPLETED')
         assert repr(analysis) == '<AIImagingAnalysis patient=5 type=TRIAGE status=COMPLETED>'
 
 

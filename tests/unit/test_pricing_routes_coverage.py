@@ -2,20 +2,16 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
-
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
 class TestPricingRoutes:
-    def test_pricing_page(self, app, client, login_as):
+    def test_pricing_page(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_user', 'manager')
         resp = client.get('/manager/pricing')
         assert resp.status_code in (200, 302)
 
-    def test_get_services_api_empty(self, app, client, login_as):
+    def test_get_services_api_empty(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_api_user', 'manager')
         resp = client.get('/manager/api/pricing/services')
         assert resp.status_code == 200
@@ -23,7 +19,7 @@ class TestPricingRoutes:
         assert data['success'] is True
         assert 'data' in data
 
-    def test_add_service_api_missing_fields(self, app, client, login_as):
+    def test_add_service_api_missing_fields(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_add_user', 'manager')
         resp = client.post(
             '/manager/api/pricing/services',
@@ -33,7 +29,7 @@ class TestPricingRoutes:
         data = resp.get_json()
         assert data['success'] is False
 
-    def test_add_service_api_success(self, app, client, login_as):
+    def test_add_service_api_success(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_add_success', 'manager')
         resp = client.post(
             '/manager/api/pricing/services',
@@ -51,7 +47,7 @@ class TestPricingRoutes:
         assert data['success'] is True
         assert 'id' in data
 
-    def test_add_service_api_duplicate_code(self, app, client, login_as):
+    def test_add_service_api_duplicate_code(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_dup', 'manager')
         # First add
         client.post(
@@ -77,7 +73,7 @@ class TestPricingRoutes:
         data = resp.get_json()
         assert data['success'] is False
 
-    def test_update_service_api_not_found(self, app, client, login_as):
+    def test_update_service_api_not_found(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_update_nf', 'manager')
         resp = client.put(
             '/manager/api/pricing/services/99999',
@@ -85,7 +81,7 @@ class TestPricingRoutes:
         )
         assert resp.status_code == 404
 
-    def test_update_service_api_success(self, app, client, login_as):
+    def test_update_service_api_success(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_update_ok', 'manager')
         # First add a service
         resp = client.post(
@@ -109,12 +105,12 @@ class TestPricingRoutes:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_delete_service_api_not_found(self, app, client, login_as):
+    def test_delete_service_api_not_found(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_del_nf', 'manager')
         resp = client.delete('/manager/api/pricing/services/99999')
         assert resp.status_code == 404
 
-    def test_delete_service_api_success(self, app, client, login_as):
+    def test_delete_service_api_success(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_del_ok', 'manager')
         # First add a service
         resp = client.post(
@@ -135,7 +131,7 @@ class TestPricingRoutes:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_seed_pricing(self, app, client, login_as):
+    def test_seed_pricing(self, app, rollback_db, client, login_as):
         login_as(client, 'pricing_seed', 'manager')
         resp = client.post('/manager/seed-pricing')
         assert resp.status_code in (200, 400, 500)

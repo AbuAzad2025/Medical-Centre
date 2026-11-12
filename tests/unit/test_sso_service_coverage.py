@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import sys
 
-import pytest
-
 from models.user import User
 from services.sso_service import SSOService
 
@@ -85,7 +83,7 @@ class TestSSOService:
         bind_tenant_on_g(test_tenant, db_session=db.session)
         try:
             SSOService.get_config(99999)
-            assert False, 'Should have raised TenantContextError'
+            raise AssertionError('Should have raised TenantContextError')
         except TenantContextError:
             pass  # Expected - get_config doesn't catch TenantContextError
 

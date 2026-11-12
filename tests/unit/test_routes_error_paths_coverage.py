@@ -13,15 +13,15 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from unittest.mock import patch
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
 class TestManagerDashboard:
     """routes/manager/dashboard.py"""
 
-    def test_a_failing_command_center_renders_the_error_page(self, app, client, login_as):
+    def test_a_failing_command_center_renders_the_error_page(
+        self, app, rollback_db, client, login_as
+    ):
         login_as(client, 'mgr_dash_err', 'manager')
         with patch(
             'app.shared.dashboard_service.render_command_center',
@@ -35,7 +35,7 @@ class TestManagerDashboard:
 class TestManagerDepartments:
     """routes/manager/departments.py"""
 
-    def test_a_failing_query_redirects_to_the_dashboard(self, app, client, login_as):
+    def test_a_failing_query_redirects_to_the_dashboard(self, app, rollback_db, client, login_as):
         login_as(client, 'mgr_dept_err', 'manager')
 
         def boom(*a, **k):
@@ -51,7 +51,7 @@ class TestManagerDepartments:
 class TestAccountantErpExport:
     """routes/accountant/erp.py"""
 
-    def test_a_failing_export_answers_500(self, app, client, login_as):
+    def test_a_failing_export_answers_500(self, app, rollback_db, client, login_as):
         login_as(client, 'acct_erp_err', 'accountant')
 
         def boom(*a, **k):
@@ -67,7 +67,7 @@ class TestAccountantErpExport:
 class TestApiDashboardSnapshot:
     """routes/api_dashboard.py"""
 
-    def test_a_failing_snapshot_answers_500(self, app, client, login_as):
+    def test_a_failing_snapshot_answers_500(self, app, rollback_db, client, login_as):
         login_as(client, 'api_dash_err', 'doctor')
         with patch(
             'routes.api_dashboard.snapshot_metrics',
@@ -84,7 +84,7 @@ class TestApiDashboardSnapshot:
 class TestApiUserPreferences:
     """routes/api_user.py"""
 
-    def test_a_failed_save_answers_500(self, app, client, login_as):
+    def test_a_failed_save_answers_500(self, app, rollback_db, client, login_as):
         login_as(client, 'api_user_err', 'doctor')
         with patch('routes.api_user.save_user_preferences', return_value=False):
             resp = client.post('/api/user/preferences', json={'theme': 'dark'})
@@ -92,7 +92,7 @@ class TestApiUserPreferences:
         assert resp.status_code == 500
         assert resp.get_json()['success'] is False
 
-    def test_an_update_without_known_fields_is_refused(self, app, client, login_as):
+    def test_an_update_without_known_fields_is_refused(self, app, rollback_db, client, login_as):
         login_as(client, 'api_user_nofields', 'doctor')
         resp = client.post('/api/user/preferences', json={'unknown': 'x'})
         assert resp.status_code == 400
@@ -102,7 +102,7 @@ class TestApiUserPreferences:
 class TestCdsPatientAlerts:
     """routes/cds_alert_routes.py"""
 
-    def test_patient_alerts_are_rendered(self, app, client, login_as, db):
+    def test_patient_alerts_are_rendered(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.patient import Patient
 
@@ -124,12 +124,12 @@ class TestCdsPatientAlerts:
 class TestIheRoutes:
     """routes/ihe_routes.py"""
 
-    def test_pix_query_requires_a_patient_id(self, app, client, login_as):
+    def test_pix_query_requires_a_patient_id(self, app, rollback_db, client, login_as):
         login_as(client, 'ihe_pix_user', 'doctor')
         resp = client.get('/ihe/pix/query')
         assert resp.status_code == 400
 
-    def test_pix_query_answers_the_service_result(self, app, client, login_as):
+    def test_pix_query_answers_the_service_result(self, app, rollback_db, client, login_as):
         login_as(client, 'ihe_pix_ok', 'doctor')
         with patch('routes.ihe_routes.ihe_service') as service:
             service.pix_query.return_value = {'found': True, 'patient': {'id': '1'}}
@@ -139,7 +139,7 @@ class TestIheRoutes:
         assert resp.get_json()['found'] is True
         assert service.atna_audit.called
 
-    def test_atna_audit_records_the_event(self, app, client, login_as):
+    def test_atna_audit_records_the_event(self, app, rollback_db, client, login_as):
         login_as(client, 'ihe_atna_user', 'admin')
         with patch('routes.ihe_routes.ihe_service') as service:
             resp = client.post(
@@ -155,7 +155,7 @@ class TestIheRoutes:
 class TestKioskCheckIn:
     """routes/kiosk.py"""
 
-    def test_an_unknown_national_id_answers_404(self, app, client, login_as):
+    def test_an_unknown_national_id_answers_404(self, app, rollback_db, client, login_as):
         login_as(client, 'kiosk_unknown', 'reception')
         with patch(
             'routes.kiosk.perform_kiosk_checkin',
@@ -165,7 +165,7 @@ class TestKioskCheckIn:
 
         assert resp.status_code == 404
 
-    def test_a_failed_check_in_answers_400(self, app, client, login_as):
+    def test_a_failed_check_in_answers_400(self, app, rollback_db, client, login_as):
         login_as(client, 'kiosk_failed', 'reception')
         with patch(
             'routes.kiosk.perform_kiosk_checkin',
@@ -179,7 +179,7 @@ class TestKioskCheckIn:
 class TestReferralDetail:
     """routes/referral_routes.py"""
 
-    def test_the_detail_page_renders(self, app, client, login_as, db):
+    def test_the_detail_page_renders(self, app, rollback_db, client, login_as, db):
         from app.extensions import db as _db
         from models.patient import Patient
         from models.referral import Referral
@@ -209,7 +209,7 @@ class TestReferralDetail:
         resp = client.get(f'/referral/detail/{referral.id}')
         assert resp.status_code in (200, 302, 403, 404)
 
-    def test_an_unknown_referral_is_404(self, app, client, login_as):
+    def test_an_unknown_referral_is_404(self, app, rollback_db, client, login_as):
         login_as(client, 'referral_missing_user', 'doctor')
         resp = client.get('/referral/detail/999999')
         assert resp.status_code == 404
@@ -218,7 +218,9 @@ class TestReferralDetail:
 class TestSsoToggle:
     """routes/sso_routes.py"""
 
-    def test_toggling_flips_the_configuration(self, app, client, login_as, db, monkeypatch):
+    def test_toggling_flips_the_configuration(
+        self, app, rollback_db, client, login_as, db, monkeypatch
+    ):
         from app.extensions import db as _db
         from models import SSOConfiguration
         from tests.tenant_context import activate_tenant_modules, ensure_default_test_tenant

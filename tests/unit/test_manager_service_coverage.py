@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-import sys
 
-import pytest
 from sqlalchemy.orm import Session as SA_Session
 
 from models.user import User
@@ -163,11 +162,18 @@ class TestManagerService:
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
         dept = _make_department(db, test_tenant.id)
-        user = _make_user(db, test_tenant.id, 'mgr_stats_user')
+        _user = _make_user(db, test_tenant.id, 'mgr_stats_user')
         patient = _make_patient(db, test_tenant.id)
         today = datetime.now(UTC)
         _make_visit(db, test_tenant.id, patient, dept, status='WAITING', created_at=today)
-        _make_visit(db, test_tenant.id, patient, dept, status='INPATIENT', created_at=today - timedelta(days=1))
+        _make_visit(
+            db,
+            test_tenant.id,
+            patient,
+            dept,
+            status='INPATIENT',
+            created_at=today - timedelta(days=1),
+        )
 
         result = ManagerService.get_organization_stats()
         assert 'total_patients' in result
@@ -189,7 +195,7 @@ class TestManagerService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        _make_invoice(db, test_tenant.id, Decimal('500.00'))
+        _invoice = _make_invoice(db, test_tenant.id, Decimal('500.00'))
         _make_payment(db, test_tenant.id, Decimal('300.00'))
         _make_expense(db, test_tenant.id, Decimal('100.00'))
 
@@ -212,9 +218,9 @@ class TestManagerService:
         from tests.tenant_context import bind_tenant_on_g
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
-        _make_user(db, test_tenant.id, 'staff_active', role='doctor', is_active=True)
-        _make_user(db, test_tenant.id, 'staff_inactive', role='doctor', is_active=False)
-        _make_user(db, test_tenant.id, 'staff_patient', role='patient', is_active=True)
+        _user = _make_user(db, test_tenant.id, 'staff_active', role='doctor', is_active=True)
+        _user = _make_user(db, test_tenant.id, 'staff_inactive', role='doctor', is_active=False)
+        _user = _make_user(db, test_tenant.id, 'staff_patient', role='patient', is_active=True)
 
         result = ManagerService.get_staff_stats()
         assert 'total' in result
@@ -233,7 +239,9 @@ class TestManagerService:
 
         bind_tenant_on_g(test_tenant, db_session=db.session)
         _make_audit_trail(db, test_tenant.id, action='login')
-        _make_audit_trail(db, test_tenant.id, action='logout', created_at=datetime.now(UTC) - timedelta(hours=1))
+        _make_audit_trail(
+            db, test_tenant.id, action='logout', created_at=datetime.now(UTC) - timedelta(hours=1)
+        )
 
         result = ManagerService.get_recent_activities(limit=5)
         assert isinstance(result, list)
@@ -338,12 +346,17 @@ class TestManagerService:
     def test_approve_request_expense(self, app, db, test_tenant):
         from tests.tenant_context import bind_tenant_on_g
 
+        approver = _make_user(db, test_tenant.id, 'mgr_approver', role='manager')
         exp = _make_expense(db, test_tenant.id, Decimal('100.00'))
 
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
-            result = ManagerService.approve_request('expense', exp.id, approved_by=1)
+            result = ManagerService.approve_request('expense', exp.id, approved_by=approver.id)
             assert result is True
+
+        db.session.refresh(exp)
+        assert exp.status == 'APPROVED'
+        assert exp.approved_by == approver.id
 
     def test_approve_request_unknown_type(self, app, db, test_tenant):
         from tests.tenant_context import bind_tenant_on_g

@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
 class TestBarcodeRoutes:
-    def test_scan_page(self, app, client, login_as):
+    def test_scan_page(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_scan_user', 'nurse')
         resp = client.get('/barcode/scan')
         assert resp.status_code in (200, 302)
 
-    def test_api_scan_missing_barcode(self, app, client, login_as):
+    def test_api_scan_missing_barcode(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_scan2_user', 'nurse')
         resp = client.post(
             '/barcode/api/scan',
@@ -23,7 +21,7 @@ class TestBarcodeRoutes:
         data = resp.get_json()
         assert data['success'] is False
 
-    def test_api_scan_not_found(self, app, client, login_as):
+    def test_api_scan_not_found(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_scan3_user', 'nurse')
         resp = client.post(
             '/barcode/api/scan',
@@ -33,10 +31,10 @@ class TestBarcodeRoutes:
         data = resp.get_json()
         assert data['success'] is False
 
-    def test_api_scan_success(self, app, client, login_as):
+    def test_api_scan_success(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_scan4_user', 'nurse')
-        from models.barcode_tracking import BarcodeRegistry
         from app.extensions import db
+        from models.barcode_tracking import BarcodeRegistry
 
         registry = BarcodeRegistry(
             barcode_value='TEST-BARCODE-001',
@@ -59,7 +57,7 @@ class TestBarcodeRoutes:
         data = resp.get_json()
         assert data['success'] is True
 
-    def test_api_scan_defaults_action_to_verify(self, app, client, login_as):
+    def test_api_scan_defaults_action_to_verify(self, app, rollback_db, client, login_as):
         """A scan without an explicit action is recorded as a VERIFY."""
         from app.extensions import db
         from models.barcode_tracking import BarcodeScanLog
@@ -77,9 +75,7 @@ class TestBarcodeRoutes:
 
         log = (
             db.session.execute(
-                db.select(BarcodeScanLog).where(
-                    BarcodeScanLog.verification_result == 'NOT_FOUND'
-                )
+                db.select(BarcodeScanLog).where(BarcodeScanLog.verification_result == 'NOT_FOUND')
             )
             .scalars()
             .first()
@@ -87,12 +83,12 @@ class TestBarcodeRoutes:
         assert log is not None
         assert log.scan_action == 'VERIFY'
 
-    def test_registry_page(self, app, client, login_as):
+    def test_registry_page(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_reg_user', 'admin')
         resp = client.get('/barcode/registry')
         assert resp.status_code in (200, 302)
 
-    def test_registry_with_filter(self, app, client, login_as):
+    def test_registry_with_filter(self, app, rollback_db, client, login_as):
         login_as(client, 'bc_reg2_user', 'admin')
         resp = client.get('/barcode/registry?entity_type=patient')
         assert resp.status_code in (200, 302)

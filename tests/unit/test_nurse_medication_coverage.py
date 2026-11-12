@@ -157,12 +157,12 @@ def _make_nurse(db, tenant_id, user):
 
 
 class TestNurseMedicationRoutes:
-    def test_medication_administration_page(self, app, client, login_as):
+    def test_medication_administration_page(self, app, rollback_db, client, login_as):
         login_as(client, 'nurse_med_page', 'nurse')
         resp = client.get('/nurse/medication-administration')
         assert resp.status_code in (200, 302)
 
-    def test_medication_administration_with_visit(self, app, client, login_nurse, db):
+    def test_medication_administration_with_visit(self, app, rollback_db, client, login_nurse, db):
         from app.extensions import db as _db
 
         tenant, _user = login_nurse(client, 'nurse_med_visit')
@@ -173,17 +173,17 @@ class TestNurseMedicationRoutes:
         resp = client.get(f'/nurse/medication-administration?visit_id={visit.id}')
         assert resp.status_code in (200, 302)
 
-    def test_medications_alias(self, app, client, login_as):
+    def test_medications_alias(self, app, rollback_db, client, login_as):
         login_as(client, 'nurse_meds_alias', 'nurse')
         resp = client.get('/nurse/medications')
         assert resp.status_code in (200, 302)
 
-    def test_administer_medication_no_nurse_profile(self, app, client, login_nurse):
-        tenant, _user = login_nurse(client, 'nurse_admin_no_profile')
+    def test_administer_medication_no_nurse_profile(self, app, rollback_db, client, login_nurse):
+        _tenant, _user = login_nurse(client, 'nurse_admin_no_profile')
         resp = client.post('/nurse/administer-medication/1')
         assert resp.status_code in (302, 200)
 
-    def test_administer_medication_item_not_found(self, app, client, login_nurse, db):
+    def test_administer_medication_item_not_found(self, app, rollback_db, client, login_nurse, db):
         from app.extensions import db as _db
 
         tenant, user = login_nurse(client, 'nurse_admin_nf')
@@ -192,7 +192,9 @@ class TestNurseMedicationRoutes:
         resp = client.post('/nurse/administer-medication/99999')
         assert resp.status_code in (302, 200)
 
-    def test_administer_medication_prescription_without_visit(self, app, client, login_nurse, db):
+    def test_administer_medication_prescription_without_visit(
+        self, app, rollback_db, client, login_nurse, db
+    ):
         from app.extensions import db as _db
 
         tenant, user = login_nurse(client, 'nurse_admin_no_visit')
@@ -206,7 +208,7 @@ class TestNurseMedicationRoutes:
         resp = client.post(f'/nurse/administer-medication/{item.id}')
         assert resp.status_code in (302, 200)
 
-    def test_administer_medication_success(self, app, client, login_nurse, db):
+    def test_administer_medication_success(self, app, rollback_db, client, login_nurse, db):
         from app.extensions import db as _db
         from models.nurse import MedicationAdministrationLog
 
