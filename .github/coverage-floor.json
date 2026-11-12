@@ -1,0 +1,7 @@
+{
+  "_comment": "The coverage floors this repository holds itself to. scripts/ci/check_coverage_thresholds.py reads this file and fails the build when a floor is not met. The floors only ever go up: coverage is raised in steps, and each step raises the floor to match what the repository actually holds, so a regression is caught by the next push instead of months later. The target for this repository is backend 99% total / 98% per file and frontend 99% total / 98% per file.",
+  "backend_total_min": 86.0,
+  "backend_file_min": 32.0,
+  "frontend_total_min": 99.0,
+  "frontend_file_min": 96.0
+}

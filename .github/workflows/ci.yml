@@ -1027,6 +1027,7 @@ jobs:
       - name: Enforce coverage floors
         run: |
           python scripts/ci/check_coverage_thresholds.py \
+            --floors .github/coverage-floor.json \
             --backend coverage.json \
             --frontend covdata/coverage-final.json
 
