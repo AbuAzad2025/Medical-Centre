@@ -122,12 +122,22 @@ def read_frontend(path: str) -> tuple[list[FileCoverage], float]:
     return rows, overall
 
 
-def _report(label: str, rows: list[FileCoverage], overall: float, total_min: float, file_min: float) -> bool:
+def _report(
+    label: str,
+    rows: list[FileCoverage],
+    overall: float,
+    total_min: float,
+    file_min: float,
+    source: str | None = None,
+) -> bool:
     failing = [r for r in rows if r.pct < file_min]
     failing.sort(key=lambda r: (r.pct, -r.total))
     ok = True
 
     print(f'\n## {label}')
+    if source:
+        print(f'  source: {source}')
+    print(f'  files measured: {len(rows)}')
     print(f'  total: {overall:.2f}%  (floor {total_min:.1f}%)')
     if overall < total_min:
         print(f'  FAIL: total coverage is below the {total_min:.1f}% floor')
@@ -213,6 +223,7 @@ def main(argv: list[str] | None = None) -> int:
             overall,
             floors['frontend_total_min'],
             floors['frontend_file_min'],
+            source=frontend_path,
         )
     else:
         print('\n## Frontend coverage (JavaScript)\n  SKIP: no vitest coverage-final.json found')
