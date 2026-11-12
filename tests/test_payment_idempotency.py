@@ -72,9 +72,23 @@ def pay_visit(app, test_tenant, pay_patient, pay_accountant):
     cfg.set_value(True)
     _db.session.commit()
 
+    from models.department import Department
+    from models.queue_management import QueueSettings
+
+    dept = Department(tenant_id=test_tenant.id, name='Idempotency Dept', name_ar='قسم التكرار')
+    _db.session.add(dept)
+    _db.session.flush()
+    _db.session.add(
+        QueueSettings(
+            tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True
+        )
+    )
+    _db.session.flush()
+
     v = Visit(
         tenant_id=test_tenant.id,
         patient_id=pay_patient.id,
+        department_id=dept.id,
         total_amount=100,
         paid_amount=0,
         payment_status='PENDING',
