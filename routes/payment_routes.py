@@ -262,7 +262,7 @@ def process_payment(visit_id):
                 .scalars()
                 .first()
             )
-            allow_partial_global = sc_partial.get_value() if sc_partial else True
+            allow_partial_global = sc_partial.get_value() if sc_partial else False
             allow_debt_global = sc_debt.get_value() if sc_debt else False
 
             qs = None
@@ -274,7 +274,7 @@ def process_payment(visit_id):
                     .scalars()
                     .first()
                 )
-            allow_partial_dept = qs.allow_partial_payment if qs is not None else True
+            allow_partial_dept = qs.allow_partial_payment if qs is not None else False
             allow_debt_dept = qs.allow_debt if qs is not None else False
 
             allow_partial = bool(allow_partial_global) and bool(allow_partial_dept)

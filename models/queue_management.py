@@ -169,7 +169,9 @@ class QueueSettings(TenantMixin, db.Model):
     payment_required = db.Column(db.Boolean, default=True)
     payment_amount = db.Column(db.Numeric(12, 2), default=0.0)
     emergency_payment_waived = db.Column(db.Boolean, default=True)
-    allow_partial_payment = db.Column(db.Boolean, default=True)
+    # Partial payment is opt-in (see routes/payment_routes.py): no debt and no
+    # partial payment unless explicitly configured.
+    allow_partial_payment = db.Column(db.Boolean, default=False)
     allow_debt = db.Column(db.Boolean, default=False)
 
     # إعدادات الإشعارات
