@@ -11,7 +11,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # The migration chain continues from s2_011_clean_schema through s3_* and s4_* migrations.
 # Bump alongside scripts/ci/verify_migrations.py when a revision is appended.
 EXPECTED_HEADS = {
-    's4_005_backup_schema_type',
+    's4_006_barcode_scan_log_nullable_registry',
 }
 
 
