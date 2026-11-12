@@ -54,8 +54,37 @@ def _mk_completed_visit(db, tenant_id: int, patient_id: int, total: str, paid: s
 @pytest.mark.usefixtures('rollback_db')
 class TestPaymentReplaySingleCredit:
     def test_replay_same_key_credits_once_and_marks_replayed(self, app, client, db, test_tenant):
+        from models.department import Department
+        from models.queue_management import QueueSettings
+        from models.system_config import SystemConfig
+
+        dept = Department(tenant_id=test_tenant.id, name='Replay Dept', name_ar='قسم التكرار')
+        db.session.add(dept)
+        db.session.flush()
+        db.session.add(
+            QueueSettings(tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True)
+        )
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global', tenant_id=test_tenant.id))
+            .scalars()
+            .first()
+        )
+        if not cfg:
+            cfg = SystemConfig(
+                tenant_id=test_tenant.id,
+                config_key='allow_partial_payment_global',
+                config_type='boolean',
+                config_value='true',
+                category='general',
+            )
+            db.session.add(cfg)
+        cfg.set_value(True)
+        db.session.flush()
+
         p = _mk_patient(db, test_tenant.id, 'RPLNAT000001')
         v = _mk_completed_visit(db, test_tenant.id, p.id, total='100', paid='0')
+        v.department_id = dept.id
+        db.session.flush()
 
         u = ensure_test_user(db, test_tenant, username='rpl_acct', role='accountant')
         login_test_client(client, u, test_tenant)

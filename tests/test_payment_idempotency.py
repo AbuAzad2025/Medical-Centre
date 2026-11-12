@@ -56,7 +56,9 @@ def pay_visit(app, test_tenant, pay_patient, pay_accountant):
 
     cfg = (
         db.session.execute(
-            select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+            select(SystemConfig).filter_by(
+                config_key='allow_partial_payment_global', tenant_id=test_tenant.id
+            )
         )
         .scalars()
         .first()
@@ -80,9 +82,7 @@ def pay_visit(app, test_tenant, pay_patient, pay_accountant):
     _db.session.add(dept)
     _db.session.flush()
     _db.session.add(
-        QueueSettings(
-            tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True
-        )
+        QueueSettings(tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True)
     )
     _db.session.flush()
 
