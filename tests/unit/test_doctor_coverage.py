@@ -212,7 +212,7 @@ class TestDoctorDashboard:
         resp = client.get('/doctor/dashboard/99999999')
         assert resp.status_code == 302
 
-    def test_api_dashboard_stats_exact_counts(self, app, client, db, test_tenant, rollback_db):
+    def test_api_dashboard_stats_exact_counts(self, app, client, db, test_tenant):
         doc = _doctor_client(client, db, test_tenant)
         p = _patient(db)
         d = _department(db)
