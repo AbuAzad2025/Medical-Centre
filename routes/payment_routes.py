@@ -283,7 +283,9 @@ def process_payment(visit_id):
                     .first()
                 )
                 sc_debt = (
-                    db.session.execute(select(SystemConfig).filter_by(config_key='allow_debt_global'))
+                    db.session.execute(
+                        select(SystemConfig).filter_by(config_key='allow_debt_global')
+                    )
                     .scalars()
                     .first()
                 )

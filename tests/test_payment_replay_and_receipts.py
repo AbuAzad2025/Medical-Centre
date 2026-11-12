@@ -62,10 +62,16 @@ class TestPaymentReplaySingleCredit:
         db.session.add(dept)
         db.session.flush()
         db.session.add(
-            QueueSettings(tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True)
+            QueueSettings(
+                tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True
+            )
         )
         cfg = (
-            db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global', tenant_id=test_tenant.id))
+            db.session.execute(
+                select(SystemConfig).filter_by(
+                    config_key='allow_partial_payment_global', tenant_id=test_tenant.id
+                )
+            )
             .scalars()
             .first()
         )
