@@ -4,7 +4,7 @@ AppointmentService — booking, reschedule, no-show, convert-to-visit
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 from app.extensions import db
 from app.shared.enums import AppointmentWorkflowStatus as AppointmentStatus
@@ -42,12 +42,33 @@ class AppointmentService:
     def check_double_booking(
         doctor_id: int, start_time: datetime, end_time: datetime, exclude_id: int | None = None
     ) -> bool:
+        """True when the doctor already has an appointment overlapping the window.
+
+        Two appointments overlap when the second one starts before the first
+        one ends. An appointment with no end time runs to the end of the day,
+        so it overlaps every window that starts after it.
+
+        This used to be ``q.first()`` on a ``select()``, which is not a method
+        SQLAlchemy 2.0 offers on a Select -- every call raised
+        ``AttributeError: 'Select' object has no attribute 'first'`` -- and it
+        ignored the doctor and the times it was given, so it could not have
+        detected a double booking even if it had run.
+        """
         from models.appointment import Appointment
 
-        q = select(Appointment)
+        q = select(Appointment.id).filter(
+            Appointment.doctor_id == doctor_id,
+            Appointment.starts_at < end_time,
+            or_(Appointment.ends_at.is_(None), Appointment.ends_at > start_time),
+            # A cancelled appointment is not a booking and must not block one.
+            or_(
+                Appointment.status.is_(None),
+                Appointment.status.notin_(('CANCELLED', 'cancelled')),
+            ),
+        )
         if exclude_id:
             q = q.filter(Appointment.id != exclude_id)
-        return q.first() is not None
+        return db.session.execute(q).first() is not None
 
     @staticmethod
     def convert_to_visit(appointment, created_by: int | None = None) -> object:
