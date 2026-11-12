@@ -315,7 +315,9 @@ class TestPaymentProcessPost:
             )
         )
         cfg = (
-            db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global'))
+            db.session.execute(
+                select(SystemConfig).filter_by(config_key='allow_partial_payment_global')
+            )
             .scalars()
             .first()
         )
@@ -419,7 +421,37 @@ class TestPaymentProcessPost:
 
     def test_insurance_payment_within_patient_share(self, app, client, db, test_tenant):
         _login(client, db, test_tenant, 'fc_pay_ins', 'accountant')
-        _patient, visit, _invoice = self._visit_with_invoice(app, db, test_tenant, 'ins')
+        from models.department import Department
+        from models.queue_management import QueueSettings
+        from models.system_config import SystemConfig
+
+        dept = Department(tenant_id=test_tenant.id, name='Ins Dept', name_ar='قسم التأمين')
+        db.session.add(dept)
+        db.session.flush()
+        db.session.add(
+            QueueSettings(
+                tenant_id=test_tenant.id, department_id=dept.id, allow_partial_payment=True
+            )
+        )
+        cfg = (
+            db.session.execute(select(SystemConfig).filter_by(config_key='allow_partial_payment_global'))
+            .scalars()
+            .first()
+        )
+        if not cfg:
+            cfg = SystemConfig(
+                config_key='allow_partial_payment_global',
+                config_type='boolean',
+                config_value='true',
+                category='general',
+            )
+            db.session.add(cfg)
+        cfg.set_value(True)
+        db.session.flush()
+
+        _patient, visit, _invoice = self._visit_with_invoice(
+            app, db, test_tenant, 'ins', visit_kwargs={'department_id': dept.id}
+        )
         resp = client.post(
             f'/payment/process/{visit.id}',
             data={
