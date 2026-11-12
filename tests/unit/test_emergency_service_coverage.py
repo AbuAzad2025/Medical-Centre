@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
-from unittest.mock import patch
-
-import pytest
+from datetime import UTC, datetime
 
 pytest_plugins = ['tests._isolated_tenant']
 

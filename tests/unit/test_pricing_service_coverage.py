@@ -14,13 +14,19 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from unittest.mock import patch
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
-def _service_price(db, tenant_id, name='Consultation', service_type='consultation',
-                   base_price=100.0, insurance_price=80.0, cash_price=90.0, vip_price=70.0):
+def _service_price(
+    db,
+    tenant_id,
+    name='Consultation',
+    service_type='consultation',
+    base_price=100.0,
+    insurance_price=80.0,
+    cash_price=90.0,
+    vip_price=70.0,
+):
     from models.pricing import ServicePrice
 
     price = ServicePrice(
@@ -99,7 +105,9 @@ class TestGetServicePrice:
     def test_a_failing_lookup_returns_zero(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        with patch('services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')):
+        with patch(
+            'services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')
+        ):
             assert PricingService.get_service_price('Consultation', 'consultation') == 0.0
 
 
@@ -158,7 +166,9 @@ class TestGetDoctorPrice:
     def test_a_failing_lookup_returns_zero(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        with patch('services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')):
+        with patch(
+            'services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')
+        ):
             assert PricingService.get_doctor_price(1) == 0.0
 
 
@@ -224,9 +234,7 @@ class TestCreateDoctorPricing:
         doctor = _doctor(db, test_tenant.id, username='pricing_doc_fail')
 
         with patch('services.pricing_service.safe_commit', return_value=False):
-            result = PricingService.create_doctor_pricing(
-                doctor.id, {'consultation_price': 200.0}
-            )
+            result = PricingService.create_doctor_pricing(doctor.id, {'consultation_price': 200.0})
         assert result['success'] is False
 
 
@@ -276,7 +284,9 @@ class TestPricingSummary:
     def test_a_failing_lookup_returns_an_empty_summary(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        with patch('services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')):
+        with patch(
+            'services.pricing_service.db.session.execute', side_effect=RuntimeError('db down')
+        ):
             summary = PricingService.get_pricing_summary()
         assert isinstance(summary, dict)
 
@@ -287,9 +297,7 @@ class TestCalculateVisitCost:
     def test_a_visit_without_services_costs_nothing(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        result = PricingService.calculate_visit_cost(
-            {'payment_method': 'cash'}
-        )
+        result = PricingService.calculate_visit_cost({'payment_method': 'cash'})
         assert result['success'] is True
         assert result['total_cost'] == 0.0
 

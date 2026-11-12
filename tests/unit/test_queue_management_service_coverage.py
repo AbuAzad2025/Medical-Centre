@@ -5,8 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from unittest.mock import patch
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -69,28 +67,28 @@ class TestQueueEntryConditions:
         from services.queue_management_service import QueueManagementService
 
         service = QueueManagementService()
-        allowed, reason = service._check_queue_entry_conditions(1, 2, 'PENDING', True)
+        allowed, _reason = service._check_queue_entry_conditions(1, 2, 'PENDING', True)
         assert allowed is True
 
     def test_a_paid_visit_enters(self):
         from services.queue_management_service import QueueManagementService
 
         service = QueueManagementService()
-        allowed, reason = service._check_queue_entry_conditions(1, 2, 'PAID', False)
+        allowed, _reason = service._check_queue_entry_conditions(1, 2, 'PAID', False)
         assert allowed is True
 
     def test_a_pending_visit_is_blocked(self):
         from services.queue_management_service import QueueManagementService
 
         service = QueueManagementService()
-        allowed, reason = service._check_queue_entry_conditions(1, 2, 'PENDING', False)
+        allowed, _reason = service._check_queue_entry_conditions(1, 2, 'PENDING', False)
         assert allowed is False
 
     def test_a_partial_visit_is_blocked(self):
         from services.queue_management_service import QueueManagementService
 
         service = QueueManagementService()
-        allowed, reason = service._check_queue_entry_conditions(1, 2, 'PARTIAL', False)
+        allowed, _reason = service._check_queue_entry_conditions(1, 2, 'PARTIAL', False)
         assert allowed is False
 
 
@@ -105,9 +103,7 @@ class TestAddPatientToQueue:
         visit = _visit(db, test_tenant.id, patient, department, payment_status='PAID')
 
         service = QueueManagementService()
-        ok, message = service.add_patient_to_queue(
-            patient.id, department.id, visit_id=visit.id
-        )
+        ok, message = service.add_patient_to_queue(patient.id, department.id, visit_id=visit.id)
         assert ok is True
         assert 'Q' in message
 
@@ -119,9 +115,7 @@ class TestAddPatientToQueue:
         visit = _visit(db, test_tenant.id, patient, department, payment_status='PENDING')
 
         service = QueueManagementService()
-        ok, message = service.add_patient_to_queue(
-            patient.id, department.id, visit_id=visit.id
-        )
+        ok, _message = service.add_patient_to_queue(patient.id, department.id, visit_id=visit.id)
         assert ok is False
 
     def test_an_emergency_visit_joins_the_queue(self, app, db, test_tenant):
@@ -134,9 +128,7 @@ class TestAddPatientToQueue:
         db.session.flush()
 
         service = QueueManagementService()
-        ok, message = service.add_patient_to_queue(
-            patient.id, department.id, visit_id=visit.id
-        )
+        ok, _message = service.add_patient_to_queue(patient.id, department.id, visit_id=visit.id)
         assert ok is True
 
     def test_a_failing_write_is_reported(self, app, db, test_tenant):
@@ -148,7 +140,7 @@ class TestAddPatientToQueue:
 
         with patch('services.queue_management_service.safe_commit', return_value=False):
             service = QueueManagementService()
-            ok, message = service.add_patient_to_queue(
+            ok, _message = service.add_patient_to_queue(
                 patient.id, department.id, visit_id=visit.id
             )
         assert ok is False
@@ -182,7 +174,10 @@ class TestQueueStatus:
     def test_a_failing_query_returns_an_empty_status(self, app, db, test_tenant):
         from services.queue_management_service import QueueManagementService
 
-        with patch('services.queue_management_service.db.session.execute', side_effect=RuntimeError('db down')):
+        with patch(
+            'services.queue_management_service.db.session.execute',
+            side_effect=RuntimeError('db down'),
+        ):
             service = QueueManagementService()
             status = service.get_queue_status(1)
         assert status is None
@@ -202,7 +197,10 @@ class TestWaitMetrics:
     def test_a_failing_query_returns_an_empty_metrics(self, app, db, test_tenant):
         from services.queue_management_service import QueueManagementService
 
-        with patch('services.queue_management_service.db.session.execute', side_effect=RuntimeError('db down')):
+        with patch(
+            'services.queue_management_service.db.session.execute',
+            side_effect=RuntimeError('db down'),
+        ):
             service = QueueManagementService()
             metrics = service.get_wait_metrics_today([1])
         assert isinstance(metrics, dict)
@@ -243,49 +241,47 @@ class TestTicketLifecycle:
         patient = _patient(db, tenant_id)
         visit = _visit(db, tenant_id, patient, department, payment_status='PAID')
         service = QueueManagementService()
-        ok, message = service.add_patient_to_queue(patient.id, department.id, visit_id=visit.id)
+        ok, _message = service.add_patient_to_queue(patient.id, department.id, visit_id=visit.id)
         assert ok is True
         from models.queue_management import QueueManagement
 
         ticket = (
-            db.session.execute(
-                db.select(QueueManagement).filter_by(patient_id=patient.id)
-            )
+            db.session.execute(db.select(QueueManagement).filter_by(patient_id=patient.id))
             .scalars()
             .first()
         )
         return service, department, patient, ticket
 
     def test_calling_next_patient(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
-        ok, message = service.call_next_patient(department.id)
+        service, department, _patient, _ticket = self._queued_ticket(db, test_tenant.id)
+        _ok, message = service.call_next_patient(department.id)
         assert isinstance(message, str)
 
     def test_starting_treatment(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
+        service, department, _patient, ticket = self._queued_ticket(db, test_tenant.id)
         service.call_next_patient(department.id)
         result = service.start_treatment(ticket.id)
         assert result is not None
 
     def test_completing_treatment(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
+        service, department, _patient, ticket = self._queued_ticket(db, test_tenant.id)
         service.call_next_patient(department.id)
         service.start_treatment(ticket.id)
         result = service.complete_treatment(ticket.id)
         assert result is not None
 
     def test_skipping_a_patient(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
+        service, _department, _patient, ticket = self._queued_ticket(db, test_tenant.id)
         result = service.skip_patient(ticket.id, reason='patient absent')
         assert result is not None
 
     def test_cancelling_a_ticket(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
+        service, _department, _patient, ticket = self._queued_ticket(db, test_tenant.id)
         result = service.cancel_ticket(ticket.id, reason='no show')
         assert result is not None
 
     def test_returning_a_ticket_to_the_queue(self, app, db, test_tenant):
-        service, department, patient, ticket = self._queued_ticket(db, test_tenant.id)
+        service, department, _patient, ticket = self._queued_ticket(db, test_tenant.id)
         service.call_next_patient(department.id)
         result = service.return_to_queue(ticket.id, reason='back')
         assert result is not None

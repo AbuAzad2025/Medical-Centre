@@ -9,8 +9,6 @@ Each test class is named after the method it covers.
 
 from __future__ import annotations
 
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -45,8 +43,8 @@ class TestSeedDoctors:
     def test_seeding_is_idempotent(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        departments = PricingService.seed_departments()
-        result = PricingService.seed_doctors(departments)
+        PricingService.seed_departments()
+        result = PricingService.seed_doctors(PricingService.seed_departments())
         assert result is not None
 
 
@@ -56,7 +54,7 @@ class TestSeedTechnicians:
     def test_seeding_is_idempotent(self, app, db, test_tenant):
         from services.pricing_service import PricingService
 
-        departments = PricingService.seed_departments()
+        PricingService.seed_departments()
         result = PricingService.seed_technicians()
         assert result is not None
 

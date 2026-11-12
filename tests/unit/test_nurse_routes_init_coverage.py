@@ -172,12 +172,16 @@ class TestWorkloadForecast:
 class TestNursingProtocols:
     """``_get_nursing_protocols`` — the stored protocol list."""
 
-    def test_the_defaults_are_stored_when_there_is_no_config(self, app, client, db, test_tenant, login_as):
+    def test_the_defaults_are_stored_when_there_is_no_config(
+        self, app, client, db, test_tenant, login_as
+    ):
         login_as(client, 'nursing_protocols_default', 'nurse')
 
         from routes.nurse_routes import _get_nursing_protocols
 
-        with patch('routes.nurse_routes._nursing_protocols_key', return_value='nursing_protocols_default'):
+        with patch(
+            'routes.nurse_routes._nursing_protocols_key', return_value='nursing_protocols_default'
+        ):
             with app.test_request_context():
                 protocols = _get_nursing_protocols()
                 assert isinstance(protocols, list)
@@ -187,11 +191,7 @@ class TestNursingProtocols:
         from models.system_config import SystemConfig
 
         stored = (
-            db.session.execute(
-                db.select(SystemConfig).filter_by(config_key=key)
-            )
-            .scalars()
-            .first()
+            db.session.execute(db.select(SystemConfig).filter_by(config_key=key)).scalars().first()
         )
         assert stored is not None
         assert stored.config_type == 'json'
