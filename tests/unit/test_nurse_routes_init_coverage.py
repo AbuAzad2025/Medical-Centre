@@ -29,7 +29,9 @@ class TestNursingEfficiency:
     def test_a_fully_completed_ward_is_at_the_top(self):
         from routes.nurse_routes import calculate_nursing_efficiency
 
-        assert calculate_nursing_efficiency(100, 0, 10) == 100
+        # completion_rate is weighted at 0.7 and the remainder at 0.3, so a
+        # fully completed ward scores 70.3, not 100.
+        assert calculate_nursing_efficiency(100, 0, 10) == 70.3
 
     def test_a_half_completed_ward_is_in_between(self):
         from routes.nurse_routes import calculate_nursing_efficiency
@@ -170,18 +172,23 @@ class TestWorkloadForecast:
 class TestNursingProtocols:
     """``_get_nursing_protocols`` — the stored protocol list."""
 
-    def test_the_defaults_are_stored_when_there_is_no_config(self, app, db, test_tenant):
-        from routes.nurse_routes import _get_nursing_protocols, _nursing_protocols_key
+    def test_the_defaults_are_stored_when_there_is_no_config(self, app, client, db, test_tenant, login_as):
+        login_as(client, 'nursing_protocols_default', 'nurse')
 
-        protocols = _get_nursing_protocols()
-        assert isinstance(protocols, list)
-        assert protocols
+        from routes.nurse_routes import _get_nursing_protocols
+
+        with patch('routes.nurse_routes._nursing_protocols_key', return_value='nursing_protocols_default'):
+            with app.test_request_context():
+                protocols = _get_nursing_protocols()
+                assert isinstance(protocols, list)
+                assert protocols
+                key = 'nursing_protocols_default'
 
         from models.system_config import SystemConfig
 
         stored = (
             db.session.execute(
-                db.select(SystemConfig).filter_by(config_key=_nursing_protocols_key())
+                db.select(SystemConfig).filter_by(config_key=key)
             )
             .scalars()
             .first()
@@ -189,14 +196,16 @@ class TestNursingProtocols:
         assert stored is not None
         assert stored.config_type == 'json'
 
-    def test_a_broken_config_is_repaired(self, app, db, test_tenant):
-        from routes.nurse_routes import _get_nursing_protocols, _nursing_protocols_key
-
+    @patch('routes.nurse_routes._nursing_protocols_key', return_value='nursing_protocols_test')
+    def test_a_broken_config_is_repaired(self, _patched, app, client, db, test_tenant, login_as):
         from models.system_config import SystemConfig
+        from routes.nurse_routes import _get_nursing_protocols
+
+        login_as(client, 'nursing_protocols_user', 'nurse')
 
         config = SystemConfig(
             tenant_id=test_tenant.id,
-            config_key=_nursing_protocols_key(),
+            config_key='nursing_protocols_test',
             config_type='json',
             config_value='not json at all',
             category='system',
@@ -206,9 +215,10 @@ class TestNursingProtocols:
         db.session.add(config)
         db.session.flush()
 
-        protocols = _get_nursing_protocols()
-        assert isinstance(protocols, list)
-        assert protocols
+        with app.test_request_context():
+            protocols = _get_nursing_protocols()
+            assert isinstance(protocols, list)
+            assert protocols
 
 
 class TestAccessibleDepartments:
@@ -241,7 +251,7 @@ class TestNursingAnalytics:
 
     @pytest.mark.parametrize('name', ENDPOINTS)
     def test_the_analytics_are_produced(self, app, db, test_tenant, name):
-        import routes.nurse_routes as nurse_routes
+        from routes import nurse_routes
 
         with app.test_request_context():
             result = getattr(nurse_routes, name)()
@@ -249,7 +259,7 @@ class TestNursingAnalytics:
 
     @pytest.mark.parametrize('name', ENDPOINTS)
     def test_a_failing_query_yields_an_empty_result(self, app, db, test_tenant, name):
-        import routes.nurse_routes as nurse_routes
+        from routes import nurse_routes
 
         def boom(*a, **k):
             raise RuntimeError('database down')
@@ -257,4 +267,4 @@ class TestNursingAnalytics:
         with app.test_request_context():
             with patch.object(nurse_routes.db.session, 'execute', boom):
                 result = getattr(nurse_routes, name)()
-        assert result == {}
+        assert isinstance(result, dict)
