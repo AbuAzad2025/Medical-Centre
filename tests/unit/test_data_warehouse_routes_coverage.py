@@ -1,8 +1,5 @@
 """Coverage tests for routes/data_warehouse_routes.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

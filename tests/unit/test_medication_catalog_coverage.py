@@ -1,8 +1,5 @@
 """Coverage tests for routes/medication_routes/catalog.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

@@ -1,6 +1,10 @@
 """Coverage tests for services/visit_workflow_validator.py"""
 
-from services.visit_workflow_validator import VisitStage, VisitWorkflowValidator, resolve_visit_status_badge_class
+from services.visit_workflow_validator import (
+    VisitStage,
+    VisitWorkflowValidator,
+    resolve_visit_status_badge_class,
+)
 
 
 class TestVisitWorkflowValidator:

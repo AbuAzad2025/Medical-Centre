@@ -42,29 +42,34 @@ class TestSafeRequests:
     @patch('utils.safe_requests.requests.request')
     def test_safe_request_retry_on_timeout(self, mock_request):
         import requests
+
         mock_request.side_effect = [requests.Timeout('timeout'), requests.Response()]
         mock_request.return_value.status_code = 200
         # First call times out, second succeeds
         mock_request.side_effect = [requests.Timeout('timeout')]
         mock_request.return_value = type('R', (), {'status_code': 200})()
-        try:
-            resp = safe_request('GET', 'http://example.com', retries=1, retry_backoff=0.0)
-        except Exception:
-            pass
+        import contextlib
+
+        with contextlib.suppress(Exception):
+            safe_request('GET', 'http://example.com', retries=1, retry_backoff=0.0)
 
     @patch('utils.safe_requests.requests.request')
     def test_safe_request_connection_error(self, mock_request):
         import requests
+
         mock_request.side_effect = requests.ConnectionError('conn error')
-        try:
+        import contextlib
+
+        import requests
+
+        with contextlib.suppress(requests.ConnectionError):
             safe_request('GET', 'http://example.com', retries=0)
-        except requests.ConnectionError:
-            pass
 
     def test_with_timeout_decorator(self):
         @with_timeout(timeout=(1.0, 2.0), retries=2)
         def fn(timeout=None, retries=None):
             return timeout, retries
+
         t, r = fn()
         assert t == (1.0, 2.0)
         assert r == 2

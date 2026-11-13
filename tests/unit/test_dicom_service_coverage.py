@@ -34,9 +34,15 @@ class TestDICOMService:
 
     def test_serialize_study(self, app, db, test_tenant):
         from types import SimpleNamespace
+
         study = SimpleNamespace(
-            id=1, modality='CT', status='ACTIVE', study_date=None,
-            study_instance_uid='uid', study_description='desc', series_count=2,
+            id=1,
+            modality='CT',
+            status='ACTIVE',
+            study_date=None,
+            study_instance_uid='uid',
+            study_description='desc',
+            series_count=2,
         )
         result = dicom_service.serialize_study(study)
         assert isinstance(result, dict)

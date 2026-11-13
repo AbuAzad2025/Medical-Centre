@@ -1,8 +1,5 @@
 """Coverage tests for routes/patient_education_routes.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

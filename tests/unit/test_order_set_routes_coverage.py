@@ -1,8 +1,5 @@
 """Coverage tests for routes/order_set_routes.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

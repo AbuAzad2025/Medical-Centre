@@ -1,14 +1,13 @@
 """Coverage tests for routes/saas_billing_routes.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
 class TestSaasBillingRoutes:
     def test_webhook_no_payload(self, app, client):
-        resp = client.post('/api/billing/stripe/webhook', data=b'{}', content_type='application/json')
+        resp = client.post(
+            '/api/billing/stripe/webhook', data=b'{}', content_type='application/json'
+        )
         assert resp.status_code in (200, 400, 401, 403, 404, 500)
 
     def test_checkout_unauth(self, app, client):
