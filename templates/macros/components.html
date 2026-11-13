@@ -74,7 +74,7 @@
 {% endmacro %}
 
 {# Empty State Component #}
-{% macro empty_state(title, description=None, icon='fas fa-inbox', action=None, action_text=None) %}
+{% macro empty_state(title, description=None, subtitle=None, icon='fas fa-inbox', action=None, action_text=None) %}
 <div class="empty-state text-center py-5">
     <i class="{{ icon }} fa-3x text-muted mb-3" aria-hidden="true"></i>
     <h5 class="text-muted">{{ title }}</h5>
