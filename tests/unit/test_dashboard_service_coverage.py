@@ -1,12 +1,12 @@
 """
-Service-level coverage for app/shared/dashboard_service.py — the Command Center
+Service-level coverage for app/shared/dashboard_service.py â€” the Command Center
 data + render helper.
 
 Every DB-writing test runs under ``rollback_db`` so the session-scoped test
 database stays pristine. Where count assertions would otherwise be polluted by
 rows other tests committed to the shared default tenant, each test builds its
-own tenant (``_fresh_tenant``) and binds it via ``tenant_test_context`` — the
-same pattern the bundle-isolation suite uses — so every count is exact and
+own tenant (``_fresh_tenant``) and binds it via ``tenant_test_context`` â€” the
+same pattern the bundle-isolation suite uses â€” so every count is exact and
 independent of test order. Read-only/pure helpers are exercised with plain
 fakes.
 
@@ -85,16 +85,16 @@ def _patient(tenant):
 
 
 class _Raiser:
-    """Session.execute replacement that always fails — drives the
+    """Session.execute replacement that always fails â€” drives the
     ``except Exception`` fallback branches in the loaders."""
 
     def __call__(self, *args, **kwargs):
         raise RuntimeError('boom')
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# build_hero_context — pure
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# build_hero_context â€” pure
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def _fake_datetime(hour: int):
@@ -109,35 +109,43 @@ def _fake_datetime(hour: int):
 class TestBuildHeroContext:
     def test_morning_shift(self, monkeypatch):
         monkeypatch.setattr('app.shared.dashboard_service.datetime', _fake_datetime(9))
-        user = SimpleNamespace(full_name='أحمد', username='ahmed', role='doctor')
+        user = SimpleNamespace(full_name='Ø£Ø­Ù…Ø¯', username='ahmed', role='doctor')
         ctx = ds.build_hero_context(user)
-        assert ctx['shift_label'] == 'صباح'
-        assert ctx['greeting_name'] == 'أحمد'
+        assert ctx['shift_label'] == 'ØµØ¨Ø§Ø­'
+        assert ctx['greeting_name'] == 'Ø£Ø­Ù…Ø¯'
         assert ctx['role_label'] == 'doctor'
 
     def test_noon_shift(self, monkeypatch):
         monkeypatch.setattr('app.shared.dashboard_service.datetime', _fake_datetime(13))
         ctx = ds.build_hero_context(SimpleNamespace(full_name=None, username='sam', role='nurse'))
-        assert ctx['shift_label'] == 'ظهر'
+        assert ctx['shift_label'] == 'Ø¸Ù‡Ø±'
         # full_name missing -> username is used
         assert ctx['greeting_name'] == 'sam'
 
     def test_evening_shift(self, monkeypatch):
         monkeypatch.setattr('app.shared.dashboard_service.datetime', _fake_datetime(19))
-        ctx = ds.build_hero_context(SimpleNamespace(full_name='س', username='u', role='lab'))
-        assert ctx['shift_label'] == 'مساء'
+        ctx = ds.build_hero_context(SimpleNamespace(full_name='Ø³', username='u', role='lab'))
+        assert ctx['shift_label'] == 'Ù…Ø³Ø§Ø¡'
 
     def test_date_label_uses_arabic_weekday_and_gregorian_date(self, monkeypatch):
         monkeypatch.setattr('app.shared.dashboard_service.datetime', _fake_datetime(9))
-        weekdays = ['الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد']
+        weekdays = [
+            'Ø§Ù„Ø§Ø«Ù†ÙŠÙ†',
+            'Ø§Ù„Ø«Ù„Ø§Ø«Ø§Ø¡',
+            'Ø§Ù„Ø£Ø±Ø¨Ø¹Ø§Ø¡',
+            'Ø§Ù„Ø®Ù…ÙŠØ³',
+            'Ø§Ù„Ø¬Ù…Ø¹Ø©',
+            'Ø§Ù„Ø³Ø¨Øª',
+            'Ø§Ù„Ø£Ø­Ø¯',
+        ]
         d = date(2026, 11, 10)
         ctx = ds.build_hero_context(SimpleNamespace(full_name='x', username='x', role='r'))
         assert ctx['date_label'] == f'{weekdays[d.weekday()]} {d.day}/{d.month}/{d.year}'
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# _enabled_modules / _user_hidden_widgets / _tenant_id — helpers with g
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# _enabled_modules / _user_hidden_widgets / _tenant_id â€” helpers with g
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestEnabledModules:
@@ -196,9 +204,9 @@ class TestTenantId:
         assert ds._tenant_id(SimpleNamespace(tenant_id=None)) is None
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # _module_active
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestModuleActive:
@@ -223,9 +231,9 @@ class TestModuleActive:
         assert ds._module_active(123, 'lab') is True
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Reception loader — real rows
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Reception loader â€” real rows
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestLoadReceptionData:
@@ -346,9 +354,9 @@ class TestLoadReceptionData:
         assert data['metrics']['total_patients'] == 0
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Manager loader — real rows
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Manager loader â€” real rows
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @pytest.mark.parametrize('role', ['manager', 'admin', 'super_admin', 'owner'])
@@ -391,9 +399,9 @@ class TestLoadManagerData:
         assert m['visits_today'] == 1
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Accountant loader — real rows
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Accountant loader â€” real rows
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestLoadAccountantData:
@@ -445,9 +453,9 @@ class TestLoadAccountantData:
         assert [p.id for p in lst['recent_payments']][0] == pay_today.id
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Error fallbacks — db.session.execute raises everywhere
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Error fallbacks â€” db.session.execute raises everywhere
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 _RAISER_EXPECT = [
     (
@@ -555,9 +563,9 @@ def test_load_role_data_unknown_role_returns_empty_schema(rollback_db, app):
     assert data == {'metrics': {}, 'lists': {}}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Doctor loader — real rows, module gating on lab/radiology
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Doctor loader â€” real rows, module gating on lab/radiology
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def _doctor_rows(t, doctor, other_doctor):
@@ -645,7 +653,7 @@ class TestLoadDoctorData:
         with tenant_test_context(app, t):
             doctor = _make_user(t, 'doctor')
             other = _make_user(t, 'doctor')
-            patient, visits, appts = _doctor_rows(t, doctor, other)
+            patient, visits, _appts = _doctor_rows(t, doctor, other)
             lab_req = LabRequest(
                 tenant_id=t.id,
                 patient_id=patient.id,
@@ -714,9 +722,9 @@ class TestLoadDoctorData:
         assert data['lists']['pending_radiology'] == []
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Lab / technician loader — service path and fallback path
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Lab / technician loader â€” service path and fallback path
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 @pytest.mark.parametrize('role', ['lab', 'technician'])
@@ -760,9 +768,9 @@ class TestLoadLabData:
         assert {r.id for r in data['lists']['lab_pending']} == {r1.id, r2.id}
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Radiology loader — real rows + module gating
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Radiology loader â€” real rows + module gating
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestLoadRadiologyData:
@@ -795,9 +803,9 @@ class TestLoadRadiologyData:
         assert 'pending_radiology' not in data['lists']
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Emergency loader — real rows + module gating
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Emergency loader â€” real rows + module gating
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def _case(t, patient, severity, status='IN_PROGRESS'):
@@ -853,9 +861,9 @@ class TestLoadEmergencyData:
         assert 'emergency_cases' not in data['lists']
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Nurse loader — real rows + module gating
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Nurse loader â€” real rows + module gating
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestLoadNurseData:
@@ -910,9 +918,9 @@ class TestLoadNurseData:
         assert 'assigned' not in data['lists']
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Pharmacist loader — real rows + module gating on pharmacy and doctor
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Pharmacist loader â€” real rows + module gating on pharmacy and doctor
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestLoadPharmacistData:
@@ -1016,15 +1024,15 @@ class TestLoadPharmacistData:
         assert 'low_stock' not in data['lists']
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# build_now_cards — pure widget -> card mapping
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# build_now_cards â€” pure widget -> card mapping
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 def _w(wid, priority=1, action_url=None, action_label=None):
     return WidgetMeta(
         id=wid,
-        title_ar=f'عنوان {wid}',
+        title_ar=f'Ø¹Ù†ÙˆØ§Ù† {wid}',
         roles=('x',),
         modules=(),
         size='md',
@@ -1049,7 +1057,7 @@ class TestBuildNowCards:
         )
         assert cards[0]['value'] == 7
         assert cards[0]['id'] == 'queue_live'
-        assert cards[0]['title'] == 'عنوان queue_live'
+        assert cards[0]['title'] == 'Ø¹Ù†ÙˆØ§Ù† queue_live'
         assert cards[0]['icon'] == 'fa-x'
 
     def test_my_queue_and_patients_waiting(self):
@@ -1191,16 +1199,22 @@ class TestBuildNowCards:
 
     def test_unknown_widget_id_renders_dash(self):
         cards = ds.build_now_cards([_w('bogus_widget')], {'metrics': {}}, role='manager')
-        assert cards[0]['value'] == '—'
+        assert cards[0]['value'] == 'â€”'
 
     def test_action_url_resolves_to_href(self, app):
         cards = ds.build_now_cards(
-            [_w('queue_live', action_url='reception.queue_management', action_label='الطابور')],
+            [
+                _w(
+                    'queue_live',
+                    action_url='reception.queue_management',
+                    action_label='Ø§Ù„Ø·Ø§Ø¨ÙˆØ±',
+                )
+            ],
             {'metrics': {'queue_count': 1}},
             role='reception',
         )
         assert cards[0]['action_href']
-        assert cards[0]['action_label'] == 'الطابور'
+        assert cards[0]['action_label'] == 'Ø§Ù„Ø·Ø§Ø¨ÙˆØ±'
 
     def test_action_url_build_failure_yields_none(self, app):
         cards = ds.build_now_cards(
@@ -1232,9 +1246,9 @@ class TestBuildNowCards:
         assert cards[0]['value'] == 0
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# build_command_center_context — the assembled page context
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# build_command_center_context â€” the assembled page context
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestBuildCommandCenterContext:
@@ -1307,7 +1321,7 @@ class TestBuildCommandCenterContext:
             user = _make_user(t, 'reception')
             ctx = ds.build_command_center_context(user, role='bogus_role_xyz')
 
-        assert ctx['dashboard_title'] == 'لوحة القيادة'
+        assert ctx['dashboard_title'] == 'Ù„ÙˆØ­Ø© Ø§Ù„Ù‚ÙŠØ§Ø¯Ø©'
         assert [item['id'] for item in ctx['customizable_widgets']] == [
             'kpi_strip',
             'manager_finance',
@@ -1342,9 +1356,9 @@ class TestBuildCommandCenterContext:
         assert ctx['widgets'] == []
 
 
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # render_command_center / snapshot_metrics
-# ──────────────────────────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 
 class TestRenderAndSnapshot:
