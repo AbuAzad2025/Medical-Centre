@@ -72,7 +72,7 @@ class FHIRService:
         from models.patient import Patient
 
         return (
-            db.session.execute(select(Patient).filter_by(status='ACTIVE').limit(limit))
+            db.session.execute(select(Patient).limit(limit))
             .scalars()
             .all()
         )
