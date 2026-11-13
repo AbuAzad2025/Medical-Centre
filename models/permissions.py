@@ -40,12 +40,16 @@ class Role(TenantMixin, db.Model):
     """جدول الأدوار"""
 
     __tablename__ = 'roles'
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = (
+        db.UniqueConstraint('tenant_id', 'slug', name='uq_role_tenant_slug'),
+        {'extend_existing': True},
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     name_ar = db.Column(db.String(100), nullable=True)
     display_name = db.Column(db.String(100), nullable=True)
+    slug = db.Column(db.String(50), nullable=True)  # role slug for per-tenant uniqueness
     description = db.Column(db.Text)
     is_system_role = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
