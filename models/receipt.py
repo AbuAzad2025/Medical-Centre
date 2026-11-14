@@ -6,6 +6,7 @@ Medical System Receipt Model
 import base64
 import io
 from datetime import UTC, datetime
+from decimal import Decimal
 
 import qrcode
 from sqlalchemy import CheckConstraint, Index, select
@@ -167,7 +168,7 @@ class Receipt(TenantMixin, db.Model):
         if insurance_type and insurance_coverage > 0:
             self.insurance_type = insurance_type
             self.insurance_coverage = insurance_coverage
-            self.insurance_amount = self.total_amount * (insurance_coverage / 100)
+            self.insurance_amount = self.total_amount * (Decimal(str(insurance_coverage)) / Decimal(100))
             self.patient_share = self.total_amount - self.insurance_amount
         else:
             self.insurance_type = None
