@@ -8,6 +8,7 @@ from app.core.rate_limiter import IdempotencyLock, RateLimiter, _get_redis, _get
 class TestRateLimiterRedis:
     def test_get_redis_returns_none_without_url(self):
         import app.core.rate_limiter as rl_mod
+
         rl_mod._redis_pool = None
         with patch('app.core.rate_limiter.current_app', None):
             with patch('os.getenv', return_value=None):
