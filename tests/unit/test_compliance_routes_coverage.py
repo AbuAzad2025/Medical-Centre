@@ -50,12 +50,22 @@ class TestComplianceRoutes:
             assert resp.status_code in (200, 302, 401, 403, 404)
 
     def test_data_export_get(self, app, client):
-        for path in ['/compliance/data-export', '/compliance/data_export', '/compliance/patient-data-export', '/compliance/export-patient-data']:
+        for path in [
+            '/compliance/data-export',
+            '/compliance/data_export',
+            '/compliance/patient-data-export',
+            '/compliance/export-patient-data',
+        ]:
             resp = client.get(path)
             assert resp.status_code in (200, 302, 401, 403, 404)
 
     def test_data_export_post(self, app, client):
-        for path in ['/compliance/data-export', '/compliance/data_export', '/compliance/patient-data-export', '/compliance/export-patient-data']:
+        for path in [
+            '/compliance/data-export',
+            '/compliance/data_export',
+            '/compliance/patient-data-export',
+            '/compliance/export-patient-data',
+        ]:
             resp = client.post(path, data={})
             assert resp.status_code in (200, 302, 400, 401, 403, 404)
 
