@@ -1,8 +1,5 @@
 """Coverage tests for routes/mfa_routes.py"""
 
-import pyotp
-import pytest
-
 pytest_plugins = ['tests._isolated_tenant']
 
 

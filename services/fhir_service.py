@@ -71,11 +71,7 @@ class FHIRService:
     def get_all_patients(limit: int = 100) -> list:
         from models.patient import Patient
 
-        return (
-            db.session.execute(select(Patient).limit(limit))
-            .scalars()
-            .all()
-        )
+        return db.session.execute(select(Patient).limit(limit)).scalars().all()
 
     @staticmethod
     def get_patient(patient_id: int) -> Any | None:

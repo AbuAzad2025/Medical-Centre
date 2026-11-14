@@ -1,7 +1,6 @@
 """Coverage tests for services/workflow_orchestrator.py"""
 
-from app.shared.enums import VisitState
-from services.workflow_orchestrator import WorkflowOrchestrator, QueueService
+from services.workflow_orchestrator import WorkflowOrchestrator
 
 
 class TestWorkflowOrchestrator:

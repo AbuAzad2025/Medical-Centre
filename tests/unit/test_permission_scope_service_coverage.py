@@ -14,7 +14,10 @@ class TestPermissionScopeService:
 
     def test_get_accessible_module_names_with_tenant(self, app, db, test_tenant):
         from tests.tenant_context import bind_tenant_on_g
+
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
-            result = PermissionScopeService.get_accessible_module_names(999999, tenant_id=test_tenant.id)
+            result = PermissionScopeService.get_accessible_module_names(
+                999999, tenant_id=test_tenant.id
+            )
         assert isinstance(result, list)
