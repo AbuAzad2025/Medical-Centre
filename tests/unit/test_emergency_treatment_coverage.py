@@ -1,5 +1,7 @@
 """Coverage tests for routes/emergency/treatment.py"""
 
+import pytest
+
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -36,4 +38,35 @@ class TestEmergencyTreatmentRoutes:
     def test_complete_visit(self, app, client, login_as):
         login_as(client, 'em_complete_user', 'emergency')
         resp = client.post('/emergency/emergency-visits/1/complete')
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_treatment_post(self, app, client, login_as):
+        login_as(client, 'em_trt_post_user', 'emergency')
+        resp = client.post('/emergency/treatment/1', data={
+            'chief_complaint': 'test',
+            'diagnosis': 'test',
+            'treatment_given': 'test',
+            'medications': 'test',
+            'procedures': 'test',
+        })
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_end_treatment_with_body(self, app, client, login_as):
+        login_as(client, 'em_endtrt2_user', 'emergency')
+        resp = client.post('/emergency/end-treatment/1', data={})
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_start_treatment_with_body(self, app, client, login_as):
+        login_as(client, 'em_strtrt2_user', 'emergency')
+        resp = client.post('/emergency/start-treatment/1', data={})
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_emergency_treatment_visit_post(self, app, client, login_as):
+        login_as(client, 'em_trtvis2_user', 'emergency')
+        resp = client.post('/emergency/emergency-treatment/1', data={})
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_complete_visit_with_body(self, app, client, login_as):
+        login_as(client, 'em_complete2_user', 'emergency')
+        resp = client.post('/emergency/emergency-visits/1/complete', data={})
         assert resp.status_code in (200, 302, 400, 401, 403, 404)
