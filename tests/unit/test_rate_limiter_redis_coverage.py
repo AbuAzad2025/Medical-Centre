@@ -2,11 +2,13 @@
 
 from unittest.mock import MagicMock, patch
 
-from app.core.rate_limiter import RateLimiter, IdempotencyLock, _get_redis, _get_redis_pool
+from app.core.rate_limiter import IdempotencyLock, RateLimiter, _get_redis, _get_redis_pool
 
 
 class TestRateLimiterRedis:
     def test_get_redis_returns_none_without_url(self):
+        import app.core.rate_limiter as rl_mod
+        rl_mod._redis_pool = None
         with patch('app.core.rate_limiter.current_app', None):
             with patch('os.getenv', return_value=None):
                 result = _get_redis()
@@ -75,19 +77,23 @@ class TestRateLimiterRedis:
             mock_redis.delete.assert_called()
 
     def test_rate_limit_decorator_with_limit(self):
-        from app.core.rate_limiter import rate_limit
         from flask import Flask
+
+        from app.core.rate_limiter import rate_limit
 
         app = Flask(__name__)
         with app.test_request_context():
+
             @rate_limit(max_requests=5, window_seconds=60)
             def test_func():
                 return 'ok'
+
             result = test_func()
             assert result == 'ok'
 
     def test_check_rate_limit_function(self):
         from app.core.rate_limiter import check_rate_limit
+
         result = check_rate_limit('test_key', max_requests=5, window_seconds=60)
         assert isinstance(result, bool)
 
