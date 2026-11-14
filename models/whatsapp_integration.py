@@ -188,7 +188,7 @@ class WhatsAppTemplate(TenantMixin, db.Model):
 
     def is_approved(self):
         """هل القالب معتمد"""
-        return self.status == 'approved' and self.is_active
+        return self.status == 'approved' and bool(self.is_active)
 
     def to_dict(self):
         """تحويل إلى قاموس"""
