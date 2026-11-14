@@ -1,36 +1,74 @@
 """Coverage tests for services/fhir_service.py"""
 
-from types import SimpleNamespace
 from datetime import datetime
+from types import SimpleNamespace
 
 from services.fhir_service import fhir_service
 
 
 def _patient():
-    return SimpleNamespace(id=1, full_name='John Doe', national_id='123', gender='M',
-                          phone='123', email='a@b.com', birth_date=None, address='Addr')
+    return SimpleNamespace(
+        id=1,
+        full_name='John Doe',
+        national_id='123',
+        gender='M',
+        phone='123',
+        email='a@b.com',
+        birth_date=None,
+        address='Addr',
+    )
 
 
 def _visit():
-    return SimpleNamespace(id=1, visit_date=None, status='OPEN', visit_type='REGULAR',
-                          patient_id=1, doctor_id=1, created_at=datetime.now(), updated_at=datetime.now())
+    return SimpleNamespace(
+        id=1,
+        visit_date=None,
+        status='OPEN',
+        visit_type='REGULAR',
+        patient_id=1,
+        doctor_id=1,
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
 
 
 def _lab():
-    return SimpleNamespace(id=1, test_name='CBC', result_value='5.0', unit='mg/dL',
-                          status='COMPLETED', created_at=datetime.now(), patient_id=1,
-                          visit_id=1, value='5.0', interpretation='normal')
+    return SimpleNamespace(
+        id=1,
+        test_name='CBC',
+        result_value='5.0',
+        unit='mg/dL',
+        status='COMPLETED',
+        created_at=datetime.now(),
+        patient_id=1,
+        visit_id=1,
+        value='5.0',
+        interpretation='normal',
+    )
 
 
 def _rad():
-    return SimpleNamespace(id=1, modality='CT', findings='normal', status='COMPLETED',
-                          created_at=datetime.now(), patient_id=1, test_name='CT',
-                          impressions='normal')
+    return SimpleNamespace(
+        id=1,
+        modality='CT',
+        findings='normal',
+        status='COMPLETED',
+        created_at=datetime.now(),
+        patient_id=1,
+        test_name='CT',
+        impressions='normal',
+    )
 
 
 def _doc():
-    return SimpleNamespace(id=1, title='Doc', content='content', created_at=datetime.now(),
-                          patient_id=1, document_type='General')
+    return SimpleNamespace(
+        id=1,
+        title='Doc',
+        content='content',
+        created_at=datetime.now(),
+        patient_id=1,
+        document_type='General',
+    )
 
 
 class TestFHIRService:
@@ -71,7 +109,6 @@ class TestFHIRService:
         assert isinstance(result, dict)
 
     def test_log_access(self, app, db):
-        try:
+        import contextlib
+        with contextlib.suppress(Exception):
             fhir_service.log_access('read', 'Patient', '1')
-        except Exception:
-            pass
