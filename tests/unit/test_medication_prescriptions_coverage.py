@@ -35,13 +35,23 @@ class TestMedicationPrescriptionsRoutes:
         assert resp.status_code in (200, 302, 400, 401, 403, 404)
 
     def test_refills_get(self, app, client):
-        for path in ['/medication/refills', '/medication/prescription-refills', '/medication/api/refills', '/medication/api/prescription-refills']:
+        for path in [
+            '/medication/refills',
+            '/medication/prescription-refills',
+            '/medication/api/refills',
+            '/medication/api/prescription-refills',
+        ]:
             resp = client.get(path)
             assert resp.status_code in (200, 302, 401, 403, 404)
 
     def test_refills_get_auth(self, app, client, login_as):
         login_as(client, 'med_rx_refills_user', 'pharmacist')
-        for path in ['/medication/refills', '/medication/prescription-refills', '/medication/api/refills', '/medication/api/prescription-refills']:
+        for path in [
+            '/medication/refills',
+            '/medication/prescription-refills',
+            '/medication/api/refills',
+            '/medication/api/prescription-refills',
+        ]:
             resp = client.get(path)
             assert resp.status_code in (200, 302, 401, 403, 404)
 

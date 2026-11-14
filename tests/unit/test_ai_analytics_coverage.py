@@ -9,6 +9,7 @@ class TestAIAnalyticsModels:
     def test_ai_recommendation_repr(self, app, db, test_tenant):
         from models.ai_analytics import AIRecommendation
         from tests.tenant_context import bind_tenant_on_g
+
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = AIRecommendation(
@@ -31,6 +32,7 @@ class TestAIAnalyticsModels:
     def test_disease_pattern(self, app, db, test_tenant):
         from models.ai_analytics import DiseasePattern
         from tests.tenant_context import bind_tenant_on_g
+
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = DiseasePattern(
@@ -51,6 +53,7 @@ class TestAIAnalyticsModels:
     def test_performance_analytics(self, app, db, test_tenant):
         from models.ai_analytics import PerformanceAnalytics
         from tests.tenant_context import bind_tenant_on_g
+
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = PerformanceAnalytics(
@@ -73,6 +76,7 @@ class TestAIAnalyticsModels:
     def test_patient_insight(self, app, db, test_tenant):
         from models.ai_analytics import PatientInsight
         from tests.tenant_context import bind_tenant_on_g
+
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = PatientInsight(
