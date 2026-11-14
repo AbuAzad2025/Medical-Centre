@@ -37,8 +37,8 @@ class TestAIAnalyticsModels:
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = DiseasePattern(
                 tenant_id=test_tenant.id,
-                pattern_name='Test Pattern',
-                disease_code='A00',
+                disease_name='Test Pattern',
+                icd_code='A00',
                 severity_level='high',
             )
             db.session.add(obj)
@@ -58,6 +58,7 @@ class TestAIAnalyticsModels:
             bind_tenant_on_g(test_tenant, db_session=db.session)
             obj = PerformanceAnalytics(
                 tenant_id=test_tenant.id,
+                metric_name='Revenue',
                 metric_type='revenue',
                 metric_value=100.0,
                 period_start=date(2024, 1, 1),
@@ -79,9 +80,19 @@ class TestAIAnalyticsModels:
 
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
+            from models.patient import Patient
+
+            patient = Patient(
+                tenant_id=test_tenant.id,
+                full_name='Test Patient',
+                date_of_birth=date(1990, 1, 1),
+                gender='male',
+            )
+            db.session.add(patient)
+            db.session.flush()
             obj = PatientInsight(
                 tenant_id=test_tenant.id,
-                patient_id=1,
+                patient_id=patient.id,
                 insight_type='risk',
                 title='Test Insight',
                 description='Test desc',
