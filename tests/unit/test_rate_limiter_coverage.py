@@ -21,7 +21,7 @@ class TestRateLimiter:
         assert rl.is_allowed('test_key') is True
 
     def test_rate_limiter_exceeded(self):
-        rl = RateLimiter(max_requests=1, window_seconds=60)
+        rl = RateLimiter(max_requests=1, window_seconds=60, use_redis=False)
         assert rl.is_allowed('test_key') is True
         assert rl.is_allowed('test_key') is False
 

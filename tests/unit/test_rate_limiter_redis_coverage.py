@@ -8,8 +8,9 @@ from app.core.rate_limiter import RateLimiter, IdempotencyLock, _get_redis, _get
 class TestRateLimiterRedis:
     def test_get_redis_returns_none_without_url(self):
         with patch('app.core.rate_limiter.current_app', None):
-            result = _get_redis()
-            assert result is None
+            with patch('os.getenv', return_value=None):
+                result = _get_redis()
+                assert result is None
 
     def test_rate_limiter_with_redis_mock(self):
         mock_redis = MagicMock()
