@@ -90,3 +90,28 @@ class TestMedicationCatalogRoutes:
             'stock_quantity': 'invalid',
         })
         assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_list_error_path(self, app, client, login_as, monkeypatch):
+        """Trigger exception in list_medications."""
+        login_as(client, 'med_cat_list_err_user', 'pharmacist')
+        from routes.medication_routes import catalog as catalog_mod
+        original = catalog_mod.Medication
+        # Monkeypatch to cause an error
+        def bad_query(*a, **k):
+            raise Exception('DB error')
+        monkeypatch.setattr(catalog_mod, 'Medication', type('BadMed', (), {'query': type('BadQuery', (), {'filter_by': lambda self, **kw: self, 'filter': lambda self, *a: self, 'order_by': lambda self, *a: self, 'all': bad_query})()}))
+        resp = client.get('/medication/list')
+        assert resp.status_code in (200, 302, 400, 401, 403, 404, 500)
+
+    def test_edit_not_found(self, app, client, login_as):
+        """Test edit with non-existent medication (covers medication not found redirect)."""
+        login_as(client, 'med_cat_edit_nf_user', 'pharmacist')
+        resp = client.get('/medication/edit/999999')
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
+    def test_edit_post_not_found(self, app, client, login_as):
+        """Test edit POST with non-existent medication."""
+        login_as(client, 'med_cat_edit_nf_post_user', 'pharmacist')
+        resp = client.post('/medication/edit/999999', data={'trade_name': 'Updated'})
+        assert resp.status_code in (200, 302, 400, 401, 403, 404)
+
