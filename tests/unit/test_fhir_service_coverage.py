@@ -110,5 +110,6 @@ class TestFHIRService:
 
     def test_log_access(self, app, db):
         import contextlib
+
         with contextlib.suppress(Exception):
             fhir_service.log_access('read', 'Patient', '1')
