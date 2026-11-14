@@ -1,6 +1,11 @@
 """Coverage tests for app/core/rate_limiter.py"""
 
-from app.core.rate_limiter import RateLimiter, IdempotencyLock, _cleanup_expired, _cleanup_idempotency_locks
+from app.core.rate_limiter import (
+    IdempotencyLock,
+    RateLimiter,
+    _cleanup_expired,
+    _cleanup_idempotency_locks,
+)
 
 
 class TestRateLimiter:
@@ -55,17 +60,19 @@ class TestRateLimiter:
 
     def test_get_redis(self):
         from app.core.rate_limiter import _get_redis
+
         result = _get_redis()
         assert result is None or result is not None
 
     def test_get_redis_pool(self):
         from app.core.rate_limiter import _get_redis_pool
+
         result = _get_redis_pool()
         assert result is None or result is not None
 
     def test_rate_limit_decorator(self, app):
+
         from app.core.rate_limiter import rate_limit
-        from flask import Flask
 
         @rate_limit(max_requests=5, window_seconds=60)
         def test_func():
@@ -76,5 +83,6 @@ class TestRateLimiter:
 
     def test_check_rate_limit(self, app):
         from app.core.rate_limiter import check_rate_limit
+
         result = check_rate_limit('test_key', max_requests=5, window_seconds=60)
         assert result is True or result is False

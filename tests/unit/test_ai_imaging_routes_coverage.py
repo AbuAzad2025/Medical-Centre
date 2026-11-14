@@ -1,8 +1,5 @@
 """Coverage tests for routes/ai_imaging_routes.py"""
 
-import pytest
-
-
 pytest_plugins = ['tests._isolated_tenant']
 
 
@@ -27,8 +24,9 @@ class TestAIImagingRoutes:
 
     def test_request_with_study(self, app, client, login_as, db, test_tenant):
         login_as(client, 'ai_img_study_user', 'doctor')
-        from models.patient import Patient
         from models.dicom_pacs import DICOMStudy
+        from models.patient import Patient
+
         patient = Patient(tenant_id=test_tenant.id, first_name='Test', last_name='Patient')
         db.session.add(patient)
         db.session.flush()
@@ -42,11 +40,14 @@ class TestAIImagingRoutes:
         )
         db.session.add(study)
         db.session.flush()
-        resp = client.post('/ai-imaging/request', data={
-            'study_id': study.id,
-            'analysis_type': 'detection',
-            'provider': 'internal',
-        })
+        resp = client.post(
+            '/ai-imaging/request',
+            data={
+                'study_id': study.id,
+                'analysis_type': 'detection',
+                'provider': 'internal',
+            },
+        )
         assert resp.status_code in (200, 302, 400, 401, 403, 404)
 
     def test_review(self, app, client, login_as):

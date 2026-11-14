@@ -3,18 +3,18 @@
 from sqlalchemy import create_engine
 
 from services.postgres_admin_service import (
-    require_postgresql_engine,
     get_database_health,
+    require_postgresql_engine,
 )
 
 
 class TestPostgresAdminServiceExtra:
     def test_require_postgresql_engine_sqlite(self):
         engine = create_engine('sqlite:///test.db')
-        try:
+        import contextlib
+
+        with contextlib.suppress(RuntimeError):
             require_postgresql_engine(engine)
-        except RuntimeError:
-            pass
 
     def test_get_database_health_sqlite(self):
         engine = create_engine('sqlite:///test.db')

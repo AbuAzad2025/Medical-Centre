@@ -1,7 +1,8 @@
 """Coverage tests for models/file_management.py"""
 
-from datetime import datetime, UTC
-from models.file_management import FileUpload, FileCategory, FilePermission
+from datetime import UTC, datetime
+
+from models.file_management import FileCategory, FilePermission, FileUpload
 
 
 class TestFileManagement:

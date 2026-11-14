@@ -58,12 +58,28 @@ class TestSMSProvider:
         assert isinstance(provider, LogSMSProvider)
 
     def test_get_sms_provider_tenant_twilio_complete(self, app, db, test_tenant):
-        tenant = type('Tenant', (), {'settings': {'sms': {'enabled': True, 'provider': 'twilio', 'twilio_account_sid': 'sid', 'twilio_auth_token': 'token', 'twilio_phone_number': 'num'}}})()
+        tenant = type(
+            'Tenant',
+            (),
+            {
+                'settings': {
+                    'sms': {
+                        'enabled': True,
+                        'provider': 'twilio',
+                        'twilio_account_sid': 'sid',
+                        'twilio_auth_token': 'token',
+                        'twilio_phone_number': 'num',
+                    }
+                }
+            },
+        )()
         provider = get_sms_provider(tenant=tenant)
         assert isinstance(provider, TwilioSMSProvider)
 
     def test_get_sms_provider_tenant_twilio_incomplete(self, app, db, test_tenant):
-        tenant = type('Tenant', (), {'settings': {'sms': {'enabled': True, 'provider': 'twilio'}}})()
+        tenant = type(
+            'Tenant', (), {'settings': {'sms': {'enabled': True, 'provider': 'twilio'}}}
+        )()
         provider = get_sms_provider(tenant=tenant)
         assert isinstance(provider, UnconfiguredSMSProvider)
 
@@ -78,7 +94,7 @@ class TestSMSProvider:
 
     def test_sms_provider_base(self):
         p = SMSProvider()
-        try:
+        import contextlib
+
+        with contextlib.suppress(NotImplementedError):
             p.send('123', 'msg')
-        except NotImplementedError:
-            pass

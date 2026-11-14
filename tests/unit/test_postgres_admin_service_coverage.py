@@ -1,17 +1,18 @@
 """Coverage tests for services/postgres_admin_service.py"""
 
 import os
+
 from sqlalchemy import create_engine
 
 from services.postgres_admin_service import (
+    format_byte_size,
+    get_active_connection_count,
+    get_database_health,
+    get_database_size_bytes,
+    get_database_size_display,
+    get_postgres_server_version,
     is_postgresql_uri,
     require_postgresql_engine,
-    get_database_size_bytes,
-    format_byte_size,
-    get_database_size_display,
-    get_active_connection_count,
-    get_postgres_server_version,
-    get_database_health,
 )
 
 
@@ -38,31 +39,43 @@ class TestPostgresAdminService:
         assert format_byte_size(2 * 1024 * 1024 * 1024) == '2.00 GB'
 
     def test_require_postgresql_engine_valid(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         # Should not raise
         require_postgresql_engine(engine)
 
     def test_get_database_size_bytes(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         result = get_database_size_bytes(engine)
         assert isinstance(result, int)
 
     def test_get_database_size_display(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         result = get_database_size_display(engine)
         assert isinstance(result, str)
 
     def test_get_active_connection_count(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         result = get_active_connection_count(engine)
         assert isinstance(result, int)
 
     def test_get_postgres_server_version(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         result = get_postgres_server_version(engine)
         assert isinstance(result, str)
 
     def test_get_database_health(self, app):
-        engine = create_engine(os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test'))
+        engine = create_engine(
+            os.environ.get('DATABASE_URL', 'postgresql://postgres:@127.0.0.1:5432/medical_test')
+        )
         result = get_database_health(engine)
         assert isinstance(result, dict)

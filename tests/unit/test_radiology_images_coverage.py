@@ -2,9 +2,7 @@
 
 import os
 import tempfile
-from datetime import datetime, UTC
-
-import pytest
+from datetime import UTC, datetime
 
 pytest_plugins = ['tests._isolated_tenant']
 
@@ -57,15 +55,16 @@ class TestRadiologyImagesRoutes:
         assert resp.status_code in (200, 302, 401, 403, 404, 500)
 
         # Cleanup
-        try:
+        import contextlib
+
+        with contextlib.suppress(OSError):
             os.remove(path)
-        except OSError:
-            pass
 
     def test_file_auth_expired(self, app, client, login_as, db, test_tenant):
         login_as(client, 'rad_file_exp_user', 'radiology')
-        from models.file_management import FileUpload
         from datetime import timedelta
+
+        from models.file_management import FileUpload
 
         f = FileUpload(
             tenant_id=test_tenant.id,

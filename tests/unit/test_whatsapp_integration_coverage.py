@@ -1,8 +1,8 @@
 """Coverage tests for models/whatsapp_integration.py"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from models.whatsapp_integration import WhatsAppMessage, WhatsAppTemplate, WhatsAppConfig
+from models.whatsapp_integration import WhatsAppConfig, WhatsAppMessage, WhatsAppTemplate
 
 
 class TestWhatsAppMessage:

@@ -38,7 +38,9 @@ class TestMainRoutesExtra:
 
     def test_health_redis_ping_error(self, app, client):
         """Test health check when Redis ping fails."""
-        fake_redis = type('FakeRedis', (), {'ping': lambda self: (_ for _ in ()).throw(Exception('ping failed'))})()
+        fake_redis = type(
+            'FakeRedis', (), {'ping': lambda _self: (_ for _ in ()).throw(Exception('ping failed'))}
+        )()
         with patch('app.core.rate_limiter._get_redis', return_value=fake_redis):
             resp = client.get('/health')
             assert resp.status_code in (200, 503)
@@ -70,7 +72,11 @@ class TestMainRoutesExtra:
 
     def test_health_twilio_error(self, app, client):
         """Test health check when Twilio fails."""
-        fake_provider = type('FakeProvider', (), {'check_connection': lambda self: (_ for _ in ()).throw(Exception('Twilio error'))})()
+        fake_provider = type(
+            'FakeProvider',
+            (),
+            {'check_connection': lambda _self: (_ for _ in ()).throw(Exception('Twilio error'))},
+        )()
         with patch('app.integrations.sms.provider.get_sms_provider', return_value=fake_provider):
             resp = client.get('/health')
             assert resp.status_code in (200, 503)
@@ -100,13 +106,17 @@ class TestMainRoutesExtra:
 
     def test_health_smtp_error(self, app, client):
         """Test health check when SMTP connection fails."""
-        with patch.object(app.config, 'get', side_effect=lambda k, default=None: {
-            'MAIL_SERVER': 'smtp.example.com',
-            'MAIL_PORT': 587,
-            'MAIL_USERNAME': 'user',
-            'MAIL_PASSWORD': 'pass',
-            'MAIL_USE_TLS': True,
-        }.get(k, default)):
+        with patch.object(
+            app.config,
+            'get',
+            side_effect=lambda k, default=None: {
+                'MAIL_SERVER': 'smtp.example.com',
+                'MAIL_PORT': 587,
+                'MAIL_USERNAME': 'user',
+                'MAIL_PASSWORD': 'pass',
+                'MAIL_USE_TLS': True,
+            }.get(k, default),
+        ):
             with patch('smtplib.SMTP', side_effect=Exception('SMTP error')):
                 resp = client.get('/health')
                 assert resp.status_code in (200, 503)

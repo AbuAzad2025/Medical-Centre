@@ -1,21 +1,21 @@
 """Coverage tests for models/receipt.py"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from models.receipt import Receipt
 
 
 def _receipt(**kw):
-    defaults = dict(
-        receipt_number='R-001',
-        visit_id=1,
-        patient_id=1,
-        total_amount=Decimal('100.00'),
-        paid_amount=Decimal('100.00'),
-        payment_method='cash',
-        created_at=datetime.now(UTC),
-    )
+    defaults = {
+        'receipt_number': 'R-001',
+        'visit_id': 1,
+        'patient_id': 1,
+        'total_amount': Decimal('100.00'),
+        'paid_amount': Decimal('100.00'),
+        'payment_method': 'cash',
+        'created_at': datetime.now(UTC),
+    }
     defaults.update(kw)
     return Receipt(**defaults)
 

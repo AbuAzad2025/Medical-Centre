@@ -1,6 +1,7 @@
 """Coverage tests for models/backup.py"""
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
+
 from models.backup import Backup, BackupLog
 
 
