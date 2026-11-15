@@ -68,7 +68,21 @@ document.addEventListener('DOMContentLoaded', function() {
                                 } else {
                                     staffSelect.innerHTML += '<option value="" disabled>لا يوجد موظفون في هذا القسم</option>';
                                 }
-                                // select2 not available (no jQuery); native select used
+                                if (window.$ && typeof window.$.fn !== 'undefined' && window.$.fn.select2) {
+                                    if ($('#staff_id').hasClass('select2-hidden-accessible')) {
+                                        $('#staff_id').select2('destroy');
+                                    }
+                                    $('#staff_id').select2({
+                                        placeholder: 'ابحث أو اختر الطبيب/الموظف...',
+                                        allowClear: true,
+                                        dir: 'rtl',
+                                        width: '100%',
+                                        language: {
+                                            noResults: function() { return 'لا توجد نتائج'; },
+                                            searching: function() { return 'جاري البحث...'; }
+                                        }
+                                    });
+                                }
                             })
                             .catch(error => {
                                 staffSelect.innerHTML = '<option value="">خطأ في التحميل</option>';
