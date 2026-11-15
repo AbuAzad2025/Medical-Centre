@@ -63,11 +63,11 @@ class PermissionScopeService:
             return []
 
         features = (
-            db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tid, is_active=True))
+            db.session.execute(select(TenantFeatureFlag).filter_by(tenant_id=tid, is_enabled=True))
             .scalars()
             .all()
         )
-        enabled_modules = [f.module for f in features if f.module]
+        enabled_modules = [f.module_name for f in features if f.module_name]
 
         role_id = user.role_id if hasattr(user, 'role_id') else None
         if not role_id:
