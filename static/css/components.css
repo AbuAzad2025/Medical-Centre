@@ -200,10 +200,12 @@
   align-items: center;
   justify-content: center;
   padding: 0.6rem 1.25rem;
-  overflow: hidden;
+  overflow: visible;
   font-family: var(--font-family);
   font-size: 0.875rem;
   font-weight: 600;
+  line-height: 1.5;
+  min-height: calc(1.5em + 1.2rem + 2px);
   color: var(--text-primary);
   text-decoration: none;
   cursor: pointer;
