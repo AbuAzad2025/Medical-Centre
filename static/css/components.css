@@ -2021,7 +2021,8 @@ tr[data-href]:hover {
 
 select.form-control,
 select.form-select {
-    max-height: 40px;
+    max-height: none;
+    min-height: calc(1.5em + 1.5rem + 2px);
 }
 
 .select2-results__options {
