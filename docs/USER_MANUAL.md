@@ -3,7 +3,7 @@
 ## Getting Started
 
 ### Login
-1. Open your browser and navigate to `http://localhost:8000`
+1. Open your browser and navigate to `http://localhost:8080` (or the configured PORT)
 2. Enter your username and password
 3. Click "تسجيل الدخول" (Login)
 
