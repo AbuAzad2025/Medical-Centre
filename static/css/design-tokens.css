@@ -64,6 +64,14 @@
   --sidebar-width: 260px;
   --navbar-height: 64px;
   --touch-target: 44px;
+
+  /* Missing variables (used but undefined) */
+  --color-bg-subtle: #f1f5f9;
+  --color-surface-alt: #f8fafc;
+  --surface-base: #f8fafc;
+  --primary: #0f4c81;
+  --owner-surface-hover: #f1f5f9;
+  --stat-accent: var(--color-primary);
 }
 
 /* Dark mode tokens (ready for [data-theme="dark"]) */

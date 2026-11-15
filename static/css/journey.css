@@ -7,6 +7,15 @@
    a template edit, and a step colour can no longer drift between the circle
    and its label. */
 
+:root {
+  --journey-stage: #0ea5e9;
+  --journey-triage: #f59e0b;
+  --journey-clinical: #10b981;
+  --journey-labs: #0ea5e9;
+  --journey-pharmacy: #10b981;
+  --journey-discharge: #2563eb;
+}
+
 .journey-tracker {
   padding: 1.25rem 1.5rem;
   background: var(--color-surface);
