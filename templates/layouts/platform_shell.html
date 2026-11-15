@@ -29,7 +29,7 @@
     {% include 'partials/_owner_navbar.html' %}
     {% include 'partials/_flash.html' %}
     <div class="main-layout">
-        {% include 'partials/_owner_sidebar.html' %}
+        {% block owner_sidebar %}{% include 'partials/_owner_sidebar.html' %}{% endblock %}
         <main class="main-container" id="mainContent" role="main">
             {% block content %}{% endblock %}
         </main>
