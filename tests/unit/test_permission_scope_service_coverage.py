@@ -9,8 +9,8 @@ class TestPermissionScopeService:
         assert isinstance(result, list)
 
     def test_get_accessible_tenant_ids_with_context(self, app, db, test_tenant):
-        from tests.tenant_context import bind_tenant_on_g
         from models.user import User
+        from tests.tenant_context import bind_tenant_on_g
 
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
@@ -45,9 +45,9 @@ class TestPermissionScopeService:
         assert isinstance(result, list)
 
     def test_get_accessible_module_names_with_user(self, app, db, test_tenant):
-        from tests.tenant_context import bind_tenant_on_g
-        from models.user import User
         from app.core.tenant.models import TenantFeatureFlag
+        from models.user import User
+        from tests.tenant_context import bind_tenant_on_g
 
         with app.test_request_context():
             bind_tenant_on_g(test_tenant, db_session=db.session)
