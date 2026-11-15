@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 } else {
                                     staffSelect.innerHTML += '<option value="" disabled>لا يوجد موظفون في هذا القسم</option>';
                                 }
-                                if (window.$ && typeof window.$.fn !== 'undefined' && window.$.fn.select2) {
+                                if (window.$) {
                                     if ($('#staff_id').hasClass('select2-hidden-accessible')) {
                                         $('#staff_id').select2('destroy');
                                     }
