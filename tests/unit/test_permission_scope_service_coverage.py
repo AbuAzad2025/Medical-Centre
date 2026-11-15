@@ -54,6 +54,7 @@ class TestPermissionScopeService:
             # Create feature flag
             flag = TenantFeatureFlag(
                 tenant_id=test_tenant.id,
+                feature_key='reception',
                 module_name='reception',
                 is_enabled=True,
             )
