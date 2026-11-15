@@ -190,9 +190,13 @@
 /* Collapsed sidebar */
 
 .owner-shell.sidebar-collapsed .owner-sidebar {
-  transform: translateX(-100%);
+  transform: translateX(100%);
   width: 0;
   overflow: hidden;
+}
+
+[dir="ltr"] .owner-shell.sidebar-collapsed .owner-sidebar {
+  transform: translateX(-100%);
 }
 
 .owner-shell.sidebar-collapsed .owner-main {
