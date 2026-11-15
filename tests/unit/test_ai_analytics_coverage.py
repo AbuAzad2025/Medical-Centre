@@ -86,7 +86,7 @@ class TestAIAnalyticsModels:
                 tenant_id=test_tenant.id,
                 first_name='Test',
                 last_name='Patient',
-                date_of_birth=date(1990, 1, 1),
+                birth_date=date(1990, 1, 1),
                 gender='male',
             )
             db.session.add(patient)
