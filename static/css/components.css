@@ -9,7 +9,7 @@
 
 .card {
   margin-bottom: 1.5rem;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
   border: none;
   border-radius: var(--radius-lg);
