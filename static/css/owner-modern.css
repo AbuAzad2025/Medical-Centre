@@ -55,9 +55,9 @@
   width: var(--owner-sidebar-width);
   overflow: hidden auto;
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
   border-inline-start: 1px solid var(--owner-glass-border);
   box-shadow: var(--owner-shadow-lg);
+  backdrop-filter: blur(20px) saturate(180%);
   transition: transform var(--owner-transition), width var(--owner-transition);
 }
 
@@ -73,8 +73,8 @@
   align-items: center;
   padding: 1.5rem;
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--owner-border);
+  backdrop-filter: blur(20px);
 }
 
 .owner-sidebar-brand img { height: 40px; border-radius: 0.5rem; }
@@ -172,8 +172,8 @@
   padding: 1rem 1.5rem;
   margin-top: auto;
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(20px);
   border-top: 1px solid var(--owner-border);
+  backdrop-filter: blur(20px);
 }
 
 /* Main Content Area */
@@ -199,8 +199,8 @@
   height: 72px;
   padding: 0 2rem;
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--owner-glass-border);
+  backdrop-filter: blur(20px) saturate(180%);
 }
 
 .owner-header-breadcrumb {
@@ -422,8 +422,8 @@
 .owner-table td {
   padding: 1rem 1.25rem;
   font-size: 0.9rem;
-  color: var(--owner-text);
   vertical-align: middle;
+  color: var(--owner-text);
   border-bottom: 1px solid var(--owner-border);
 }
 
@@ -520,8 +520,8 @@
 }
 
 .owner-input:focus {
-  border-color: var(--owner-primary);
   outline: none;
+  border-color: var(--owner-primary);
   box-shadow: 0 0 0 4px rgb(37 99 235 / 0.1);
 }
 .owner-input::placeholder { color: var(--owner-text-muted); opacity: 0.6; }
@@ -582,10 +582,10 @@
 
 .owner-modal .modal-content {
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(20px);
   border: 1px solid var(--owner-glass-border);
   border-radius: var(--owner-radius);
   box-shadow: var(--owner-shadow-lg);
+  backdrop-filter: blur(20px);
 }
 
 .owner-modal .modal-header {
@@ -602,10 +602,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(12px);
   border: 1px solid var(--owner-glass-border);
   border-radius: var(--owner-radius-sm);
   box-shadow: var(--owner-shadow-lg);
+  backdrop-filter: blur(12px);
 }
 
 /* ─── Empty State ─── */
@@ -643,8 +643,8 @@
     z-index: 1035;
     pointer-events: none;
     background: rgb(0 0 0 / 0.4);
-    backdrop-filter: blur(4px);
     opacity: 0;
+    backdrop-filter: blur(4px);
     transition: opacity 0.3s;
   }
   .owner-sidebar-overlay.active { pointer-events: all; opacity: 1; }
@@ -692,8 +692,8 @@
 .owner-table tbody td {
   padding: 1rem 1.25rem;
   font-size: 0.9rem;
-  color: var(--owner-text);
   vertical-align: middle;
+  color: var(--owner-text);
   border-bottom: 1px solid var(--owner-border);
 }
 
@@ -732,8 +732,8 @@
 }
 
 .owner-input:focus, .owner-select:focus {
-  border-color: var(--owner-primary);
   outline: none;
+  border-color: var(--owner-primary);
   box-shadow: 0 0 0 4px rgb(37 99 235 / 0.1);
 }
 
@@ -781,8 +781,8 @@
 
 .owner-card.owner-card-glass {
   background: var(--owner-glass-bg);
-  backdrop-filter: blur(16px);
   border: 1px solid var(--owner-glass-border);
+  backdrop-filter: blur(16px);
 }
 
 

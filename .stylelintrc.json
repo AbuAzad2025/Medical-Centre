@@ -21,7 +21,7 @@
     "no-descending-specificity": null,
     "no-duplicate-selectors": null,
     "no-unknown-animations": null,
-    "declaration-block-single-line-max-declarations": null,
+
     "comment-empty-line-before": ["always", {
       "except": ["first-nested"]
     }],

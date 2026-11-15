@@ -3,6 +3,7 @@
    ============================================================ */
 
 /* CSS Variables for sidebar positioning */
+
 :root {
   --sidebar-width: 280px;
   --sidebar-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s;
@@ -16,16 +17,19 @@
 .sidebar-right {
   --sidebar-position: right;
 }
+
 .sidebar-left {
   --sidebar-position: left;
 }
 
 /* Clinical Sidebar - supports left/right */
+
 .sidebar-left #appSidebar {
-  left: 0;
   right: auto;
+  left: 0;
   transform: translateX(0);
 }
+
 .sidebar-right #appSidebar {
   right: 0;
   left: auto;
@@ -36,29 +40,35 @@
   margin-right: var(--sidebar-width);
   margin-left: 0;
 }
+
 .sidebar-right .main-container {
-  margin-left: var(--sidebar-width);
   margin-right: 0;
+  margin-left: var(--sidebar-width);
 }
 
 /* Mobile: sidebar off-canvas */
+
 @media (width <= 1199px) {
   .sidebar-left #appSidebar {
     transform: translateX(-100%);
   }
+
   .sidebar-right #appSidebar {
     transform: translateX(100%);
   }
+
   .sidebar-left #appSidebar.open {
     transform: translateX(0);
   }
+
   .sidebar-right #appSidebar.open {
     transform: translateX(0);
   }
+
   .sidebar-left .main-container,
   .sidebar-right .main-container {
-    margin-left: 0;
     margin-right: 0;
+    margin-left: 0;
   }
 }
 
@@ -71,9 +81,10 @@
   left: 0;
   transform: translateX(0);
 }
+
 .sidebar-right .owner-sidebar {
-  left: auto;
   right: 0;
+  left: auto;
   transform: translateX(0);
 }
 
@@ -81,28 +92,33 @@
   margin-right: var(--owner-sidebar-width);
   margin-left: 0;
 }
+
 .sidebar-right .owner-main {
-  margin-left: var(--owner-sidebar-width);
   margin-right: 0;
+  margin-left: var(--owner-sidebar-width);
 }
 
 @media (width <= 1199px) {
   .sidebar-left .owner-sidebar {
     transform: translateX(-100%);
   }
+
   .sidebar-right .owner-sidebar {
     transform: translateX(100%);
   }
+
   .sidebar-left .owner-sidebar.open {
     transform: translateX(0);
   }
+
   .sidebar-right .owner-sidebar.open {
     transform: translateX(0);
   }
+
   .sidebar-left .owner-main,
   .sidebar-right .owner-main {
-    margin-left: 0;
     margin-right: 0;
+    margin-left: 0;
   }
 }
 
@@ -111,28 +127,28 @@
    ============================================================ */
 
 .sidebar-toggle-btn {
+  z-index: 1050;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   padding: 0;
+  color: var(--text-primary);
+  cursor: pointer;
   background: var(--owner-surface, var(--color-surface));
   border: 1px solid var(--owner-border, var(--border));
   border-radius: var(--radius-md);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
   box-shadow: var(--shadow-sm);
-  z-index: 1050;
+  transition: all var(--transition-fast);
 }
 
 .sidebar-toggle-btn:hover {
+  color: var(--owner-primary, var(--azad-blue));
   background: var(--owner-primary-light, var(--azad-blue-light));
   border-color: var(--owner-primary, var(--azad-blue));
-  color: var(--owner-primary, var(--azad-blue));
-  transform: translateY(-1px);
   box-shadow: var(--shadow);
+  transform: translateY(-1px);
 }
 
 .sidebar-toggle-btn:focus-visible {
@@ -147,21 +163,24 @@
 }
 
 /* Position in header - owner */
+
 .owner-header .sidebar-toggle-btn {
   margin-inline-end: 0.5rem;
 }
 
 /* Position in clinical navbar */
+
 #appNavbar .sidebar-toggle-btn {
   margin-inline-end: 0.5rem;
 }
 
 /* Mobile toggle button positioning */
+
 @media (width <= 768px) {
   .sidebar-toggle-btn {
     position: fixed;
-    bottom: 1.5rem;
     inset-inline-end: 1.5rem;
+    bottom: 1.5rem;
     z-index: 1060;
     width: 48px;
     height: 48px;
@@ -170,8 +189,7 @@
   }
   
   .sidebar-right .sidebar-toggle-btn {
-    inset-inline-end: auto;
-    inset-inline-start: 1.5rem;
+    inset-inline: 1.5rem auto;
   }
 }
 
@@ -185,8 +203,8 @@
   z-index: 1035;
   pointer-events: none;
   background: rgb(0 0 0 / 0.4);
-  backdrop-filter: blur(4px);
   opacity: 0;
+  backdrop-filter: blur(4px);
   transition: opacity 0.3s;
 }
 
@@ -205,10 +223,10 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: transparent;
-  border: none;
   color: var(--text-primary);
   cursor: pointer;
+  background: transparent;
+  border: none;
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
 }
@@ -229,6 +247,7 @@
    ============================================================ */
 
 /* Sidebar collapsed state */
+
 .sidebar-collapsed #appSidebar,
 .sidebar-collapsed .owner-sidebar {
   width: 64px;
@@ -237,17 +256,18 @@
 
 .sidebar-collapsed .owner-main,
 .sidebar-collapsed .main-container {
-  margin-left: 64px;
   margin-right: 64px;
+  margin-left: 64px;
 }
 
 .sidebar-right.sidebar-collapsed .owner-main,
 .sidebar-right.sidebar-collapsed .main-container {
-  margin-left: 64px;
   margin-right: 64px;
+  margin-left: 64px;
 }
 
 /* Hide text when collapsed */
+
 .sidebar-collapsed .sidebar-text,
 .sidebar-collapsed .brand-sub,
 .sidebar-collapsed .brand-title,
@@ -262,13 +282,13 @@
    ============================================================ */
 
 @keyframes slideInFromRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes slideInFromLeft {
-  from { transform: translateX(-100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .sidebar-left #appSidebar.open,
@@ -293,8 +313,8 @@
 
 [dir="rtl"] .sidebar-right #appSidebar,
 [dir="rtl"] .sidebar-right .owner-sidebar {
-  left: 0;
   right: auto;
+  left: 0;
 }
 
 [dir="rtl"] .sidebar-left .main-container,
@@ -305,6 +325,6 @@
 
 [dir="rtl"] .sidebar-right .main-container,
 [dir="rtl"] .sidebar-right .owner-main {
-  margin-left: var(--sidebar-width);
   margin-right: 0;
+  margin-left: var(--sidebar-width);
 }

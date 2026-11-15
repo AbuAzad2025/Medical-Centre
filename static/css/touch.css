@@ -40,8 +40,8 @@
 [data-touch="coarse"] button:active,
 [data-touch="coarse"] a.btn:active,
 [data-touch="coarse"] .clinical-action-tile:active {
-  transition: transform 120ms ease;
   transform: scale(0.98);
+  transition: transform 120ms ease;
 }
 
 .clinical-action-grid {

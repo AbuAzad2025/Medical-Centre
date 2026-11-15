@@ -8,83 +8,83 @@
    and its label. */
 
 .journey-tracker {
+  padding: 1.25rem 1.5rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 1.25rem 1.5rem;
 }
 
 .journey-tracker__title {
-  color: var(--color-text);
+  margin-bottom: 1rem;
   font-size: 0.875rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  color: var(--color-text);
 }
 
 .journey-tracker__title-icon {
-  color: var(--color-primary);
   margin-inline-end: 0.5rem;
+  color: var(--color-primary);
 }
 
 .journey-steps {
-  align-items: center;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+  align-items: center;
   overflow-x: auto;
 }
 
 .journey-step {
-  align-items: center;
   display: flex;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .journey-indicator {
-  align-items: center;
   display: flex;
   flex-direction: column;
+  align-items: center;
   min-width: 64px;
 }
 
 .journey-circle {
-  align-items: center;
-  border-radius: 50%;
   display: flex;
-  font-size: 0.9rem;
-  height: 40px;
+  align-items: center;
   justify-content: center;
-  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
   width: 40px;
+  height: 40px;
+  font-size: 0.9rem;
+  border-radius: 50%;
+  transition: background 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
 }
 
 .journey-circle--done {
-  background: var(--color-success);
   color: #fff;
+  background: var(--color-success);
 }
 
 .journey-circle--active {
+  color: #fff;
   background: var(--step-color);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color) 20%, transparent);
-  color: #fff;
 }
 
 .journey-circle--todo {
-  background: var(--color-surface-alt, var(--color-bg-subtle));
   color: var(--color-text-muted);
+  background: var(--color-surface-alt, var(--color-bg-subtle));
 }
 
 .journey-label {
+  max-width: 64px;
+  margin-top: 0.25rem;
   font-size: 0.65rem;
   line-height: 1.25;
-  margin-top: 0.25rem;
-  max-width: 64px;
   text-align: center;
 }
 
 .journey-label--reached {
-  color: var(--step-color);
   font-weight: 700;
+  color: var(--step-color);
 }
 
 .journey-label--todo {
@@ -92,11 +92,11 @@
 }
 
 .journey-connector {
-  border-radius: 1px;
+  width: 2rem;
   height: 2px;
   margin-inline: 0.25rem;
+  border-radius: 1px;
   transition: background 0.3s ease;
-  width: 2rem;
 }
 
 .journey-connector--done {
@@ -108,14 +108,14 @@
 }
 
 .journey-meta {
-  border-top: 1px solid var(--color-border);
-  color: var(--color-text-muted);
   display: flex;
   flex-wrap: wrap;
-  font-size: 0.75rem;
   gap: 1.5rem;
-  margin-top: 1rem;
   padding-top: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
 }
 
 /* The step palette. Previously six hex values in a Jinja list. */

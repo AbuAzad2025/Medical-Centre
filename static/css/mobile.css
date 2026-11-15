@@ -54,8 +54,8 @@
     content: '';
     background: var(--color-primary, #0f4c81);
     border-radius: 0 0 3px 3px;
-    transition: transform 0.25s ease;
     transform: scaleX(0);
+    transition: transform 0.25s ease;
   }
 
   .mobile-bottom-nav a i {

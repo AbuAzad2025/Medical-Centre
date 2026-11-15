@@ -161,8 +161,8 @@ body.print-doc {
 
 .print-table td {
   padding: 0.45rem 0.5rem;
-  text-align: center;
   vertical-align: top;
+  text-align: center;
   border-bottom: 1px solid var(--print-border);
 }
 
@@ -318,10 +318,9 @@ body.print-doc {
 .badge-sev-high { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #721c24; background: #f8d7da; border-radius: 0.75rem; }
 .badge-sev-critical { padding: 0.1rem 0.45rem; font-size: 0.75rem; color: #fff; background: #dc3545; border-radius: 0.75rem; }
 
-.ws-pre-line { word-break: break-word; white-space: pre-line; }
+.ws-pre-line { overflow-wrap: break-word; white-space: pre-line; }
 
 .print-page-break {
-  page-break-after: always;
   break-after: page;
 }
 
@@ -339,7 +338,7 @@ body.print-doc {
   tfoot { display: table-footer-group; }
   
   /* Prevent row splitting across pages */
-  tbody tr { page-break-inside: avoid; break-inside: avoid; }
+  tbody tr { break-inside: avoid; }
   
   /* Watermark rendering */
 

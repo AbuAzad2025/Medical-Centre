@@ -112,17 +112,17 @@ body.clinical-theme a:hover {
 /* ── Global focus ring — accessibility ── */
 
 body.clinical-theme *:focus-visible {
-  border-radius: 2px;
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 body.clinical-theme input:focus-visible,
 body.clinical-theme select:focus-visible,
 body.clinical-theme textarea:focus-visible,
 body.clinical-theme button:focus-visible {
-  border-color: var(--color-primary);
   outline: none;
+  border-color: var(--color-primary);
   box-shadow: var(--focus-ring);
 }
 

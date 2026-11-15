@@ -495,10 +495,10 @@ input, select, textarea {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
+    scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
   }
 
   .floating-animation, .pulse-animation {
@@ -559,12 +559,12 @@ input, select, textarea {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    page-break-after: avoid;
+    break-after: avoid;
   }
 
   p {
-    orphans: 3;
     widows: 3;
+    orphans: 3;
   }
 
 }

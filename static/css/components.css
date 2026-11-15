@@ -177,10 +177,10 @@
 
 .card-modern {
   background: rgb(255 255 255 / 0.95);
-  backdrop-filter: blur(20px);
   border: 1px solid rgb(255 255 255 / 0.2);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(20px);
   transition: var(--transition);
 }
 
@@ -228,9 +228,9 @@
 
 .btn:disabled, .btn.disabled {
   cursor: not-allowed;
-  filter: grayscale(0.4);
   box-shadow: none;
   opacity: 0.5;
+  filter: grayscale(0.4);
 }
 
 .btn:disabled:hover, .btn.disabled:hover {
@@ -336,8 +336,8 @@
 
 .table-clinical tbody td {
   padding: 0.65rem 1rem;
-  color: var(--text-primary);
   vertical-align: middle;
+  color: var(--text-primary);
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -380,9 +380,9 @@
 
 .table tbody td {
   padding: 0.75rem 1rem;
+  vertical-align: middle;
   color: var(--text-primary);
   text-align: right;
-  vertical-align: middle;
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -446,9 +446,9 @@
 }
 
 .form-control:focus, .form-select:focus {
+  outline: none;
   background: #fff;
   border-color: var(--azad-blue-light);
-  outline: none;
   box-shadow: 0 0 0 3px rgb(15 76 129 / 0.12);
 }
 
@@ -531,8 +531,8 @@
   color: var(--text-muted);
   pointer-events: none;
   border: 1px solid transparent;
-  transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
   transform-origin: 0 0;
+  transition: opacity 0.1s ease-in-out, transform 0.1s ease-in-out;
 }
 
 .form-floating .form-control:focus ~ label,
@@ -637,9 +637,9 @@
   padding: 0.35em 0.65em;
   font-size: 0.72rem;
   font-weight: 600;
+  vertical-align: baseline;
   text-align: center;
   white-space: nowrap;
-  vertical-align: baseline;
   border-radius: 50px;
 }
 
@@ -774,8 +774,8 @@
   height: 2px;
   content: '';
   background: var(--azad-blue);
-  transition: transform 0.25s ease;
   transform: scaleX(0);
+  transition: transform 0.25s ease;
 }
 
 .nav-tabs .nav-link:hover {
@@ -1106,18 +1106,18 @@
   bottom: 100%;
   left: 50%;
   z-index: 1070;
+  visibility: hidden;
   padding: 0.3rem 0.6rem;
   font-size: 0.72rem;
   color: #fff;
   white-space: nowrap;
   pointer-events: none;
-  visibility: hidden;
   content: attr(data-tooltip);
   background: #1e293b;
   border-radius: var(--radius-sm);
   opacity: 0;
-  transition: opacity 0.2s;
   transform: translateX(-50%);
+  transition: opacity 0.2s;
 }
 
 .custom-tooltip:hover::after {
@@ -1544,8 +1544,8 @@
 .form-control:focus,
 .form-select:focus,
 textarea.form-control:focus {
-  border-color: var(--azad-blue);
   outline: none;
+  border-color: var(--azad-blue);
   box-shadow: 0 0 0 3px rgb(15 76 129 / 0.12);
 }
 

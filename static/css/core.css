@@ -486,10 +486,10 @@ img {
 
 .glass-effect {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(20px);
 }
 
 /* Gradient text */

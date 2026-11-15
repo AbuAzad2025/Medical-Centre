@@ -109,9 +109,9 @@ html, body {
   font-weight: 800;
   color: #fff;
   background: rgb(255 255 255 / 0.15);
-  backdrop-filter: blur(4px);
   border: 1px solid rgb(255 255 255 / 0.2);
   border-radius: 10px;
+  backdrop-filter: blur(4px);
 }
 
 .azad-brand-text {
@@ -315,8 +315,8 @@ html, body {
   font-size: 0.9rem;
   color: var(--md-text-muted);
   pointer-events: none;
-  transition: color var(--md-transition);
   transform: translateY(-50%);
+  transition: color var(--md-transition);
 }
 
 .input-wrap:focus-within .field-icon {
@@ -331,10 +331,10 @@ html, body {
   font-family: var(--md-font);
   font-size: 0.95rem;
   color: var(--md-text);
+  outline: none;
   background: #f8fafc;
   border: 1.5px solid var(--md-border);
   border-radius: var(--md-radius);
-  outline: none;
   transition: border-color var(--md-transition), box-shadow var(--md-transition), background var(--md-transition);
 }
 
@@ -371,8 +371,8 @@ html, body {
   cursor: pointer;
   background: none;
   border: none;
-  transition: color var(--md-transition);
   transform: translateY(-50%);
+  transition: color var(--md-transition);
 }
 
 .toggle-password-btn:hover { color: var(--md-navy); }
@@ -384,9 +384,9 @@ html, body {
 }
 
 .toggle-password-btn:focus-visible {
-  border-radius: 4px;
   outline: 2px solid var(--md-navy);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .caps-lock-alert {
