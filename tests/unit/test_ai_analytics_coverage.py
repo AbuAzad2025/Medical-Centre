@@ -84,7 +84,8 @@ class TestAIAnalyticsModels:
 
             patient = Patient(
                 tenant_id=test_tenant.id,
-                full_name='Test Patient',
+                first_name='Test',
+                last_name='Patient',
                 date_of_birth=date(1990, 1, 1),
                 gender='male',
             )

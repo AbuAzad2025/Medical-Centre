@@ -54,8 +54,8 @@ class TestPermissionScopeService:
             # Create feature flag
             flag = TenantFeatureFlag(
                 tenant_id=test_tenant.id,
-                module='reception',
-                is_active=True,
+                module_name='reception',
+                is_enabled=True,
             )
             db.session.add(flag)
             db.session.flush()
@@ -72,5 +72,7 @@ class TestPermissionScopeService:
             db.session.add(user)
             db.session.flush()
 
-            result = PermissionScopeService.get_accessible_module_names(user.id, tenant_id=test_tenant.id)
+            result = PermissionScopeService.get_accessible_module_names(
+                user.id, tenant_id=test_tenant.id
+            )
             assert isinstance(result, list)
