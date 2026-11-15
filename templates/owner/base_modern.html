@@ -59,6 +59,9 @@
                 <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="ownerSidebar">
                     <i class="fas fa-bars"></i>
                 </button>
+                <button class="owner-sidebar-collapse-btn d-none d-md-inline-flex" id="ownerSidebarCollapse" aria-label="إخفاء/إظهار القائمة" aria-expanded="true" aria-controls="ownerSidebar">
+                    <i class="fas fa-chevron-left" id="ownerSidebarCollapseIcon"></i>
+                </button>
                 <nav class="owner-header-breadcrumb" aria-label="مسار التنقل">
                     <a href="{{ url_for('owner.owner_dashboard') }}">{{ _(_('الرئيسية')) }}</a>
                     {% block breadcrumbs %}{% endblock %}
@@ -106,6 +109,22 @@ document.addEventListener('DOMContentLoaded', function() {
             toggleSidebar(false);
         }
     });
+
+    // Desktop collapse toggle
+    const collapseBtn = document.getElementById('ownerSidebarCollapse');
+    const shell = document.querySelector('.owner-shell');
+    if (collapseBtn && shell) {
+        // Restore state from localStorage
+        if (localStorage.getItem('ownerSidebarCollapsed') === '1') {
+            shell.classList.add('sidebar-collapsed');
+            collapseBtn.setAttribute('aria-expanded', 'false');
+        }
+        collapseBtn.addEventListener('click', function() {
+            const collapsed = shell.classList.toggle('sidebar-collapsed');
+            collapseBtn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            localStorage.setItem('ownerSidebarCollapsed', collapsed ? '1' : '0');
+        });
+    }
 
     // Close sidebar when navigating on mobile
     document.querySelectorAll('.owner-nav-link').forEach(function(link) {
