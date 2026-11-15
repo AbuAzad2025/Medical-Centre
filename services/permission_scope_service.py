@@ -38,7 +38,7 @@ class PermissionScopeService:
             user = get_tenant_record(User, user_id)
         except TenantContextError:
             return []
-        if user.is_super_admin:
+        if getattr(user, 'is_super_admin', False):
             return [
                 'reception',
                 'doctor',
