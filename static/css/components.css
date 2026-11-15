@@ -511,6 +511,24 @@
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 16px 12px;
+  line-height: 1.5;
+  min-height: calc(1.5em + 1.5rem + 2px);
+}
+
+/* Ensure select options are fully visible */
+
+.form-select option {
+  padding: 0.5rem 1rem;
+  line-height: 1.5;
+}
+
+/* Prevent text clipping in all form controls */
+
+.form-control,
+.form-select,
+textarea {
+  overflow: visible;
+  text-overflow: clip;
 }
 
 /* Form floating */
