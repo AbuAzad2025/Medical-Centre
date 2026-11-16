@@ -119,7 +119,9 @@ class TestVisitStateMachineService:
             (VisitState.CHECKED_IN, VisitState.IN_PROGRESS, True),
             (VisitState.IN_PROGRESS, VisitState.COMPLETED, True),
             (VisitState.IN_PROGRESS, VisitState.CHECKED_IN, True),
-            (VisitState.COMPLETED, VisitState.OPEN, True),
+            # COMPLETED -> OPEN is only allowed via return_to_treatment() with
+            # an audited reception actor, not through generic transition().
+            (VisitState.COMPLETED, VisitState.OPEN, False),
             (VisitState.CANCELLED, VisitState.OPEN, False),
         ],
     )

@@ -11,7 +11,7 @@ from sqlalchemy.orm import joinedload
 
 from app.extensions import db
 from app.shared.enums import PrescriptionState
-from utils.db_safety import safe_commit
+from utils.db_safety import safe_commit, safe_rollback
 
 
 class PharmacySaleService:
@@ -165,16 +165,17 @@ class PharmacySaleService:
         for item in items:
             med_id = item.get('medication_id')
             if not med_id:
-                safe_commit(db.session, error_message='medication_id required')
+                safe_rollback(db.session, error_message='medication_id required')
                 return {'error': 'medication_id required'}
 
             med = med_map.get(med_id)
             if not med:
-                safe_commit(db.session, error_message=f'Medication {med_id} not found')
+                safe_rollback(db.session, error_message=f'Medication {med_id} not found')
                 return {'error': f'Medication {med_id} not found'}
 
             qty = int(item.get('quantity', 1))
-            unit_price = item.get('unit_price', 0)
+            # Price must come from the server catalog, never the client.
+            unit_price = med.price
             line_total = qty * unit_price
 
             from app.modules.workflows.pharmacy import PharmacyStockService
@@ -189,7 +190,7 @@ class PharmacySaleService:
                     performed_by=dispensed_by,
                 )
             except ValueError:
-                safe_commit(db.session, error_message=f'Insufficient stock for medication {med_id}')
+                safe_rollback(db.session, error_message=f'Insufficient stock for medication {med_id}')
                 return {'error': f'Insufficient stock for medication {med_id}'}
 
             sale_item = PharmacySaleItem(
@@ -394,14 +395,15 @@ class PharmacySaleService:
         for item in items:
             med_id = item.get('medication_id')
             if not med_id:
-                safe_commit(db.session, error_message='medication_id required')
+                safe_rollback(db.session, error_message='medication_id required')
                 return {'error': 'medication_id required'}
             med = med_map.get(med_id)
             if not med:
-                safe_commit(db.session, error_message=f'Medication {med_id} not found')
+                safe_rollback(db.session, error_message=f'Medication {med_id} not found')
                 return {'error': f'Medication {med_id} not found'}
             qty = int(item.get('quantity', 1))
-            unit_price = item.get('unit_price', 0)
+            # Price must come from the server catalog, never the client.
+            unit_price = med.price
             line_total = qty * unit_price
 
             from app.modules.workflows.pharmacy import PharmacyStockService
@@ -416,12 +418,14 @@ class PharmacySaleService:
                     performed_by=dispensed_by,
                 )
             except Exception as exc:
-                safe_commit(db.session, error_message='stock adjustment failed')
+                safe_rollback(db.session, error_message='stock adjustment failed')
                 return {'error': f'Stock adjustment failed: {exc}'}
 
             sale_item = PharmacySaleItem(
+                tenant_id=tenant_id,
                 sale_id=sale.id,
                 medication_id=med_id,
+                medication_name=med.trade_name or med.scientific_name or str(med_id),
                 quantity=qty,
                 unit_price=unit_price,
                 total_price=line_total,

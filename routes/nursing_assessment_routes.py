@@ -104,8 +104,11 @@ def new_assessment(patient_id):
             assessment.total_score = assessment.morse_total
             if assessment.total_score is not None:
                 score = int(assessment.total_score)
-                if score >= 51:
+                # Standard Morse fall-risk bands: 0-24 low, 25-44 moderate, >=45 high
+                if score >= 45:
                     assessment.risk_level = 'high'
+                elif score >= 25:
+                    assessment.risk_level = 'moderate'
                 else:
                     assessment.risk_level = 'low'
 

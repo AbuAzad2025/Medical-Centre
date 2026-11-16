@@ -752,9 +752,9 @@ def soc2_cc1_control_environment():
         if user.role in privileged_roles or bool(getattr(user, 'is_admin', False)):
             excessive_count += 1
         if direct_count >= threshold:
-            excessive_count += 0
+            excessive_count += 1
         if sensitive_direct > 0:
-            excessive_count += 0
+            excessive_count += 1
 
     total_users = len(users)
     checks = [

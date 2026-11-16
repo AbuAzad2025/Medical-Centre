@@ -48,7 +48,7 @@ IMMUTABLE_TABLES = frozenset({'phi_audit_logs'})
 
 RETENTION_CONFIG = {
     'platform_audit_logs': {
-        'days': int(os.getenv('PLATFORM_AUDIT_RETENTION_DAYS', '180')),
+        'days': int(os.getenv('PLATFORM_AUDIT_RETENTION_DAYS', '2555')),
         'model_path': 'app.core.tenant.models.PlatformAuditLog',
         'column': 'created_at',
     },
