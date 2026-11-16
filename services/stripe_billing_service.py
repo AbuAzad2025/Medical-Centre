@@ -277,7 +277,10 @@ class StripeBillingService:
             line_items=[
                 {
                     'price_data': {
-                        'currency': (getattr(pricing, 'currency', None) or os.environ.get('STRIPE_CURRENCY', 'usd')).lower(),
+                        'currency': (
+                            getattr(pricing, 'currency', None)
+                            or os.environ.get('STRIPE_CURRENCY', 'usd')
+                        ).lower(),
                         'product_data': {'name': cls._version_display_name(version)},
                         'recurring': {'interval': interval},
                         'unit_amount': amount_cents,
@@ -374,10 +377,15 @@ class StripeBillingService:
                     {
                         'id': item_id,
                         'price_data': {
-                            'currency': (getattr(new_pricing, 'currency', None) or os.environ.get('STRIPE_CURRENCY', 'usd')).lower(),
+                            'currency': (
+                                getattr(new_pricing, 'currency', None)
+                                or os.environ.get('STRIPE_CURRENCY', 'usd')
+                            ).lower(),
                             'product_data': {'name': cls._version_display_name(new_version)},
                             'recurring': {'interval': interval},
-                            'unit_amount': int((Decimal(str(new_pricing.price)) * 100).quantize(Decimal('1'))),
+                            'unit_amount': int(
+                                (Decimal(str(new_pricing.price)) * 100).quantize(Decimal('1'))
+                            ),
                         },
                     }
                 ],

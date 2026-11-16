@@ -559,9 +559,7 @@ def billing_summary():
         from decimal import Decimal
 
         # Keep money in Decimal end-to-end (float - Decimal raises TypeError).
-        total_invoiced = sum(
-            (Decimal(str(i.total_amount or 0)) for i in invoices), Decimal('0')
-        )
+        total_invoiced = sum((Decimal(str(i.total_amount or 0)) for i in invoices), Decimal('0'))
         total_paid = sum(
             (
                 Decimal(str(p.amount or 0))

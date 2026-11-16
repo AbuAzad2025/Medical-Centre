@@ -190,7 +190,9 @@ class PharmacySaleService:
                     performed_by=dispensed_by,
                 )
             except ValueError:
-                safe_rollback(db.session, error_message=f'Insufficient stock for medication {med_id}')
+                safe_rollback(
+                    db.session, error_message=f'Insufficient stock for medication {med_id}'
+                )
                 return {'error': f'Insufficient stock for medication {med_id}'}
 
             sale_item = PharmacySaleItem(
