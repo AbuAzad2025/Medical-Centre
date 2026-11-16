@@ -8,6 +8,7 @@
 :root {
   --owner-bg:              #f0f4f8;
   --owner-surface:         #fff;
+  --owner-surface-hover:   #f1f5f9;
   --owner-card:            #fff;
   --owner-text:            #0f172a;
   --owner-text-muted:      #64748b;
