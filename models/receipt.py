@@ -118,23 +118,55 @@ class Receipt(TenantMixin, db.Model):
             # تنسيق: RCP-YYYYMMDD-XXXX
             date_str = datetime.now(UTC).strftime('%Y%m%d')
             # البحث عن آخر رقم لهذا اليوم
+            # Order by the numeric suffix (not id) so out-of-order commits
+            # cannot cause a lower number to be treated as the last one.
             last_receipt = (
                 db.session.execute(
-                    select(Receipt)
+                    select(Receipt.receipt_number)
                     .filter(Receipt.receipt_number.like(f'RCP-{date_str}-%'))
-                    .order_by(Receipt.id.desc())
+                    .order_by(Receipt.receipt_number.desc())
+                    .limit(1)
                 )
                 .scalars()
                 .first()
             )
 
             if last_receipt:
-                last_number = int(last_receipt.receipt_number.split('-')[-1])
+                try:
+                    last_number = int(str(last_receipt).split('-')[-1])
+                except (ValueError, IndexError):
+                    last_number = 0
                 new_number = last_number + 1
             else:
                 new_number = 1
 
-            self.receipt_number = f'RCP-{date_str}-{new_number:04d}'
+            # Retry on the classic read-increment-write race: two concurrent
+            # requests can compute the same next number. The unique constraint
+            # on receipt_number makes the loser fail, so retry with a fresh read.
+            from sqlalchemy.exc import IntegrityError
+
+            for attempt in range(5):
+                candidate = f'RCP-{date_str}-{new_number + attempt:04d}'
+                self.receipt_number = candidate
+                try:
+                    db.session.flush()
+                    break
+                except IntegrityError:
+                    db.session.rollback()
+                    fresh = (
+                        db.session.execute(
+                            select(Receipt.receipt_number)
+                            .filter(Receipt.receipt_number.like(f'RCP-{date_str}-%'))
+                            .order_by(Receipt.receipt_number.desc())
+                            .limit(1)
+                        )
+                        .scalars()
+                        .first()
+                    )
+                    base = int(str(fresh).split('-')[-1]) if fresh else 0
+                    new_number = base + 1
+            else:
+                raise RuntimeError('Could not generate a unique receipt number')
 
     def generate_qr_code(self):
         """توليد QR Code للسند"""

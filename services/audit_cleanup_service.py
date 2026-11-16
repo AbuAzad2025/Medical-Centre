@@ -91,8 +91,20 @@ class AuditCleanupService:
         return getattr(module, class_name)
 
     @staticmethod
+    def _validate_identifier(table_name: str, column: str) -> bool:
+        """Only allow identifiers declared in RETENTION_CONFIG (SQL injection guard)."""
+        cfg = RETENTION_CONFIG.get(table_name)
+        if not cfg:
+            return False
+        allowed_column = cfg.get('column') if isinstance(cfg, dict) else cfg
+        return column == allowed_column
+
+    @staticmethod
     def _count_old_records(table_name: str, column: str, cutoff: datetime) -> int:
         """Count rows older than cutoff."""
+        if not AuditCleanupService._validate_identifier(table_name, column):
+            logger.warning('Audit cleanup: rejected unknown table/column %s/%s', table_name, column)
+            return 0
         try:
             result = db.session.execute(
                 text(f'SELECT COUNT(*) FROM {table_name} WHERE {column} < :cutoff'),
@@ -111,6 +123,9 @@ class AuditCleanupService:
         batch_size: int,
     ) -> int:
         """Delete one batch of old rows, returning rows deleted."""
+        if not AuditCleanupService._validate_identifier(table_name, column):
+            logger.warning('Audit cleanup: rejected unknown table/column %s/%s', table_name, column)
+            return 0
         # The audit trail is append-only: the row-level policy on it refuses
         # a delete unless the session has said it is the retention job. The
         # application never says that, so nothing it does can remove a row

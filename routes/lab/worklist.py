@@ -238,7 +238,13 @@ def worklist_request(request_id):
                     'start': 'IN_PROGRESS',
                 }
                 new_status = status_map.get(action)
-                if new_status and lab_request.status != new_status:
+                # Enforce the lab state machine: no skipping steps and no
+                # reactivating terminal (DONE/CANCELLED) requests.
+                from services.lab_service import LabService
+
+                if new_status and not LabService.can_transition_lab(lab_request.status, new_status):
+                    flash('انتقال حالة غير صالح لطلب التحليل', 'warning')
+                elif new_status and lab_request.status != new_status:
                     lab_request.status = new_status
                     lab_request.updated_at = datetime.now(UTC)
                     if action == 'collect':
@@ -272,6 +278,11 @@ def worklist_request(request_id):
                     )
                     return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
 
+                from services.lab_service import LabService
+
+                if not LabService.can_transition_lab(lab_request.status, 'DONE'):
+                    flash('لا يمكن إنهاء هذا الطلب من حالته الحالية', 'warning')
+                    return redirect(url_for('lab.worklist_request', request_id=lab_request.id))
                 for res in results:
                     res.status = LabResultStatus.VALIDATED
                     res.performed_by = current_user.id

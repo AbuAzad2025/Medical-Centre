@@ -411,9 +411,12 @@ def refund_approve(refund_id):
 
     ok, payload = RefundService.approve_refund(refund_id, approved_by=current_user.id)
     if ok:
+        from utils.db_safety import safe_commit
+
+        safe_commit(db.session, error_message='failed to persist refund action', reraise=True)
         flash('تمت الموافقة على الاسترداد', 'success')
     else:
-        flash(payload.get('error', 'فشل الموافقة'), 'error')
+        flash(payload if isinstance(payload, str) else payload.get('error', 'فشل العملية'), 'error')
     return redirect(url_for('accountant.refund_requests'))
 
 
@@ -426,9 +429,12 @@ def refund_reject(refund_id):
     reason = request.form.get('reason', '')
     ok, payload = RefundService.reject_refund(refund_id, rejected_by=current_user.id, reason=reason)
     if ok:
+        from utils.db_safety import safe_commit
+
+        safe_commit(db.session, error_message='failed to persist refund action', reraise=True)
         flash('تم رفض الاسترداد', 'success')
     else:
-        flash(payload.get('error', 'فشل الرفض'), 'error')
+        flash(payload if isinstance(payload, str) else payload.get('error', 'فشل العملية'), 'error')
     return redirect(url_for('accountant.refund_requests'))
 
 
@@ -440,9 +446,12 @@ def refund_execute(refund_id):
 
     ok, payload = RefundService.execute_refund(refund_id, executed_by=current_user.id)
     if ok:
+        from utils.db_safety import safe_commit
+
+        safe_commit(db.session, error_message='failed to persist refund action', reraise=True)
         flash('تم تنفيذ الاسترداد وعكس القيد', 'success')
     else:
-        flash(payload.get('error', 'فشل التنفيذ'), 'error')
+        flash(payload if isinstance(payload, str) else payload.get('error', 'فشل العملية'), 'error')
     return redirect(url_for('accountant.refund_requests'))
 
 

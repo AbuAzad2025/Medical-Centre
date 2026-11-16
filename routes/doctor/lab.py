@@ -67,9 +67,6 @@ def lab_request(visit_id):
                 memo_parts.append(f'الوصف: {notes}')
             if urgency:
                 memo_parts.append(f'الأولوية: {urgency}')
-            memo_text = '[مذكرة تحاليل]\n' + (
-                '\n'.join(memo_parts) if memo_parts else 'يرجى إجراء التحليل لدى مركز مناسب.'
-            )
 
             # P2-001: Create a structured LabRequest when catalog test IDs are supplied.
             test_ids_raw = request.form.get('test_ids', '') or ''
@@ -93,6 +90,9 @@ def lab_request(visit_id):
                     flash(f'تعذر إنشاء طلب المختبر المهيكل: {result.get("error")}', 'warning')
 
             visit.notes = visit.notes or ''
+            memo_text = '[مذكرة تحاليل]\n' + (
+                '\n'.join(memo_parts) if memo_parts else 'يرجى إجراء التحليل لدى مركز مناسب.'
+            )
             visit.notes += ('\n\n' if visit.notes else '') + memo_text
             visit.lab_tests_ordered = True
             # === Financial Gate: Hub-and-Spoke ===

@@ -130,7 +130,14 @@ class CurrencyConverter:
         from sqlalchemy import update
 
         db.session.execute(
-            update(ExchangeRate).where(ExchangeRate.is_active).values(is_active=False)
+            update(ExchangeRate)
+            .where(
+                ExchangeRate.is_active,
+                ExchangeRate.source == 'MANUAL',
+                ExchangeRate.from_currency == from_currency,
+                ExchangeRate.to_currency == to_currency,
+            )
+            .values(is_active=False)
         )
         db.session.add(rate)
         safe_commit(db.session, error_message='Failed to save manual rate', reraise=True)

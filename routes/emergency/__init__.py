@@ -73,6 +73,12 @@ def _set_emergency_status(emergency, new_status):
     old = getattr(emergency, 'status', None)
     if old == ns:
         return
+    # Terminal states must not be reopened: a completed/transferred/cancelled
+    # case cannot move back into an active state.
+    _terminal = {'COMPLETED', 'TRANSFERRED', 'CANCELLED'}
+    _active = {'WAITING', 'TRIAGE', 'TREATMENT', 'OBSERVATION'}
+    if str(old).upper() in _terminal and str(ns).upper() in _active:
+        return
     db.session.add(
         EmergencyStatusHistory(
             emergency_id=emergency.id,

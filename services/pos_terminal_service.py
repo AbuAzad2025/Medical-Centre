@@ -41,7 +41,10 @@ class PosTerminalService:
             with request.urlopen(req, timeout=15) as resp:
                 data = resp.read().decode('utf-8')
                 parsed = json.loads(data)
-                succeeded = bool(parsed.get('success', True))
+                # Only an explicit positive acknowledgement means success.
+                # A missing/malformed success key (gateway error payload) must
+                # never be reported as a charged payment.
+                succeeded = parsed.get('success') is True
                 result = {
                     'success': succeeded,
                     'transaction_id': parsed.get('transaction_id'),

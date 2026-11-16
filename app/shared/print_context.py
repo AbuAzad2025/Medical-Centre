@@ -10,6 +10,7 @@ from sqlalchemy import select
 
 from app.extensions import db
 from app.shared.branding_context import get_branding_row, resolve_ui_context
+from utils.html_sanitize import sanitize_rich_html
 
 PLATFORM_COPYRIGHT = 'شركة ازاد للأنظمة الذكية'
 PLATFORM_WATERMARK = 'شركة أزاد للأنظمة الطبية'
@@ -105,9 +106,11 @@ def resolve_print_slots(doc_type: str, branding) -> tuple[str | None, str | None
     if branding:
         h_field = _HEADERS[doc_type]
         f_field = _FOOTERS[doc_type]
-        header = getattr(branding, h_field, None) or None
+        # Defence in depth: sanitise at render time too (covers legacy rows
+        # written before input sanitisation was introduced).
+        header = sanitize_rich_html(getattr(branding, h_field, None)) or None
         if f_field:
-            footer = getattr(branding, f_field, None) or None
+            footer = sanitize_rich_html(getattr(branding, f_field, None)) or None
     return header, footer
 
 

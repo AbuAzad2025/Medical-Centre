@@ -34,9 +34,12 @@ def _status_for(result: dict) -> int:
 
 def execute_pos_charge(amount_raw) -> tuple[dict, int]:
     try:
-        amount = float(amount_raw or 0)
-        if amount <= 0:
+        from decimal import Decimal
+
+        amount_dec = Decimal(str(amount_raw or 0))
+        if not amount_dec.is_finite() or amount_dec <= 0:
             return {'success': False, 'message': user_message('pos_amount_invalid')}, 400
+        amount = float(amount_dec)
         result = PosTerminalService.charge(amount)
         if not result.get('success'):
             result = dict(result)

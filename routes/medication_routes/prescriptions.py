@@ -224,6 +224,8 @@ def dispense_prescription(prescription_id):
                 .scalars()
                 .first()
             )
+            if not med:
+                return jsonify({'success': False, 'message': 'الدواء غير موجود'}), 404
             if med.expiry_date and med.is_expired():
                 return jsonify(
                     {'success': False, 'message': f'الدواء {med.trade_name} منتهي الصلاحية'}
@@ -258,6 +260,8 @@ def dispense_prescription(prescription_id):
                 .scalars()
                 .first()
             )
+            if not med:
+                return jsonify({'success': False, 'message': 'الدواء غير موجود'}), 404
             try:
                 PharmacyStockService.adjust_stock(
                     medication_id=med.id,

@@ -185,19 +185,25 @@ def export_system_data():
 @login_required
 @super_admin_required
 def download_export(filename):
-    """تحميل ملف التصدير"""
+    """Download a generated system export file (path-traversal safe)."""
+    import re
+
+    from flask import send_from_directory
+
     try:
-        import os
+        # Strict validation: only server-generated export filenames are allowed.
+        if not re.fullmatch(r'medical_system_export_\d{8}_\d{6}\.json', filename):
+            flash('اسم ملف غير صالح', 'error')
+            return redirect(url_for('super_admin.dashboard'))
 
-        from flask import send_file
+        instance_dir = os.path.abspath('instance')
+        file_path = os.path.join(instance_dir, filename)
+        if os.path.isfile(file_path):
+            return send_from_directory(instance_dir, filename, as_attachment=True)
 
-        file_path = os.path.join('instance', filename)
-        if os.path.exists(file_path):
-            return send_file(file_path, as_attachment=True, download_name=filename)
-        flash('الملف غير موجود', 'error')
+        flash('ملف التصدير غير موجود', 'error')
         return redirect(url_for('super_admin.dashboard'))
-
     except Exception:
-        logging.exception('Error downloading export: %s')
-        flash('حدث خطأ في تحميل الملف', 'error')
+        logging.exception('Error downloading export')
+        flash('حدث خطأ أثناء تحميل ملف التصدير', 'error')
         return redirect(url_for('super_admin.dashboard'))

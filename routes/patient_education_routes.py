@@ -15,6 +15,7 @@ from app.shared.user_role_policy import CLINICAL_STAFF_ROLES
 from models import Patient, PatientEducationAssignment, PatientEducationMaterial
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import handle_route_errors, role_required
+from utils.html_sanitize import sanitize_rich_html
 
 patient_education_bp = Blueprint('patient_education', __name__)
 
@@ -89,7 +90,7 @@ def new_material():
     if request.method == 'POST':
         title = request.form.get('title', '').strip()
         category = request.form.get('category', 'general').strip()
-        content_html = request.form.get('content_html', '')
+        content_html = sanitize_rich_html(request.form.get('content_html', ''))
         content_text = request.form.get('content_text', '')
         language = request.form.get('language', 'ar')
 
@@ -127,7 +128,7 @@ def edit_material(material_id):
     if request.method == 'POST':
         material.title = request.form.get('title', '').strip()
         material.category = request.form.get('category', 'general').strip()
-        material.content_html = request.form.get('content_html', '')
+        material.content_html = sanitize_rich_html(request.form.get('content_html', ''))
         material.content_text = request.form.get('content_text', '')
         material.language = request.form.get('language', 'ar')
         material.is_active = request.form.get('is_active') == 'on'

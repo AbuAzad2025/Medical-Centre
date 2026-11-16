@@ -53,7 +53,9 @@ class RefundService:
         total_existing = db.session.execute(
             select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
                 RefundRequest.payment_id == payment.id,
-                RefundRequest.status != RefundStatus.REJECTED,
+                # Executed refunds are already netted out of payment.amount;
+                # counting them again would double-count and block valid refunds.
+                RefundRequest.status.in_([RefundStatus.PENDING, RefundStatus.APPROVED]),
             )
         ).scalar()
         total_existing_dec = Decimal(str(total_existing or 0)).quantize(
@@ -110,7 +112,7 @@ class RefundService:
             total_existing = db.session.execute(
                 select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
                     RefundRequest.payment_id == payment.id,
-                    RefundRequest.status != RefundStatus.REJECTED,
+                    RefundRequest.status.in_([RefundStatus.PENDING, RefundStatus.APPROVED]),
                 )
             ).scalar()
             total_existing_dec = Decimal(str(total_existing or 0)).quantize(
@@ -188,19 +190,10 @@ class RefundService:
             refund_amount = Decimal(str(request.amount)).quantize(
                 Decimal('0.01'), rounding=ROUND_HALF_UP
             )
-            total_executed = db.session.execute(
-                select(func.coalesce(func.sum(RefundRequest.amount), 0)).filter(
-                    RefundRequest.payment_id == payment.id,
-                    RefundRequest.status == RefundStatus.EXECUTED,
-                )
-            ).scalar()
-            total_executed_dec = Decimal(str(total_executed or 0)).quantize(
-                Decimal('0.01'), rounding=ROUND_HALF_UP
-            )
             payment_amount = Decimal(str(payment.amount or 0)).quantize(
                 Decimal('0.01'), rounding=ROUND_HALF_UP
             )
-            if total_executed_dec + refund_amount > payment_amount:
+            if refund_amount > payment_amount:
                 return False, 'إجمالي الاستردادات سيتجاوز المبلغ المدفوع'
 
             if payment.visit_id:

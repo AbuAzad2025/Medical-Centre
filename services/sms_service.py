@@ -1,7 +1,7 @@
 import contextlib
 import logging
 import os
-import random
+import secrets
 import string
 import threading
 import time
@@ -103,15 +103,19 @@ class SMSService:
                     }
 
         # 3. Generate and send OTP
-        otp_code = ''.join(random.choices(string.digits, k=6))
+        # Security tokens must come from a CSPRNG, not the predictable
+        # Mersenne Twister used by `random`.
+        otp_code = ''.join(secrets.choice(string.digits) for _ in range(6))
         message = f'Your verification code is: {otp_code}'
         result = SMSService.send_sms(phone, message, tenant=tenant)
 
         if result.get('success'):
             SMSService._store_otp_code(phone, otp_code)
             result['expires_in'] = 300
-            # Expose code only in non-production environments (tests)
-            result['otp_code'] = otp_code
+            # Expose the code only in non-production environments (tests).
+            # In production returning it defeats SMS verification entirely.
+            if os.getenv('APP_ENV', '').lower() in ('testing', 'development', 'test'):
+                result['otp_code'] = otp_code
         return result
 
     @staticmethod
@@ -172,9 +176,11 @@ class SMSService:
         if redis:
             try:
                 key = f'otp_failure:{phone}'
+                ts_key = f'otp_failure_ts:{phone}'
                 pipe = redis.pipeline()
                 pipe.incr(key)
                 pipe.expire(key, 3600)
+                pipe.set(ts_key, now, ex=3600)
                 pipe.execute()
                 return
             except Exception:
@@ -192,7 +198,11 @@ class SMSService:
             try:
                 count = redis.get(f'otp_failure:{phone}')
                 if count is not None:
-                    return {'count': int(count), 'last_failure': time.time()}
+                    # Read the REAL last-failure time so exponential lockout
+                    # expires. Fabricating 'now' here locks the phone forever.
+                    ts = redis.get(f'otp_failure_ts:{phone}')
+                    last = float(ts) if ts is not None else time.time()
+                    return {'count': int(count), 'last_failure': last}
             except Exception:
                 pass
         with _otp_lock:

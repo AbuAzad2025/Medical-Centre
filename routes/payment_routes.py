@@ -7,7 +7,7 @@ import hashlib
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, abort, flash, g, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
@@ -160,7 +160,16 @@ def process_payment(visit_id):
             insurance_company_id = (request.form.get('insurance_company_id') or '').strip()
 
             paid_amount_str = request.form.get('paid_amount') or request.form.get('amount') or '0'
-            amount_value = Decimal(paid_amount_str)
+            try:
+                amount_value = Decimal(paid_amount_str)
+            except (InvalidOperation, ValueError, TypeError):
+                flash('مبلغ الدفع غير صالح', 'error')
+                return redirect(url_for('payment.process_payment', visit_id=visit_id))
+            # Money must be finite and non-negative. NaN/Infinity/negative
+            # amounts would either crash .quantize() or corrupt the ledger.
+            if not amount_value.is_finite() or amount_value < 0:
+                flash('مبلغ الدفع غير صالح', 'error')
+                return redirect(url_for('payment.process_payment', visit_id=visit_id))
             payment_currency = (request.form.get('payment_currency') or 'ILS').strip().upper()
             base_currency = 'ILS'  # العملة الأساسية للنظام
             converted_amount = amount_value
@@ -345,12 +354,12 @@ def process_payment(visit_id):
                     return redirect(url_for('reception.view_visit', visit_id=visit_id))
                 return redirect(url_for('reception.print_receipt', visit_id=visit_id))
 
-            if amount_value > 0 and remaining <= 0:
+            if converted_amount > 0 and remaining <= 0:
                 if _wants_json():
                     return jsonify({'success': False, 'message': 'الزيارة مدفوعة بالكامل'}), 400
                 flash('الزيارة مدفوعة بالكامل', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
-            if amount_value > remaining > 0:
+            if converted_amount > remaining > 0:
                 if _wants_json():
                     return jsonify(
                         {'success': False, 'message': 'المبلغ المدفوع يتجاوز المستحق'}
@@ -392,7 +401,7 @@ def process_payment(visit_id):
                 flash('الدفع الجزئي غير مسموح', 'error')
                 return redirect(url_for('payment.process_payment', visit_id=visit_id))
 
-            if amount_value <= 0 and visit.remaining_amount > 0:
+            if converted_amount <= 0 and visit.remaining_amount > 0:
                 if not allow_debt:
                     if _wants_json():
                         return jsonify({'success': False, 'message': 'الدين غير مسموح'}), 400

@@ -48,7 +48,9 @@ def quality():
 
     from sqlalchemy import func
 
-    total_done = db.session.scalar(select(func.count()).select_from(RadiologyRequest))
+    total_done = db.session.scalar(
+        select(func.count()).select_from(RadiologyRequest).filter(RadiologyRequest.status == 'DONE')
+    )
 
     try:
         avg_tat_seconds = db.session.execute(

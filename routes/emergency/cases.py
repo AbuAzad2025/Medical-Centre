@@ -359,6 +359,8 @@ def convert_emergency_case(id):
         emergency = emergency_service.get_case(id)
         if not emergency:
             return jsonify({'success': False, 'message': 'حالة الطوارئ غير موجودة'}), 404
+        if str(emergency.status).upper() in {'COMPLETED', 'TRANSFERRED', 'CANCELLED'}:
+            return jsonify({'success': False, 'message': 'لا يمكن تحويل حالة منتهية'}), 400
         visit = emergency.visit
         if not visit:
             return jsonify({'success': False, 'message': 'الزيارة غير موجودة'}), 404

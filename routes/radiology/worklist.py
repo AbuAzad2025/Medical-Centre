@@ -319,9 +319,16 @@ def worklist_complete(request_id):
                 req.id,
             )
 
+        from services.radiology_service import RadiologyService
+
         if should_finalize:
-            req.status = OrderState.DONE
-            _log_radiology_workflow(req.id, 'DONE', 'finalize')
+            # Only an in-progress (claimed) order may be finalized; a REQUESTED
+            # or CANCELLED order must not jump straight to DONE.
+            if not RadiologyService.can_transition_rad(req.status, OrderState.DONE):
+                flash('لا يمكن إنهاء هذا الطلب من حالته الحالية', 'warning')
+            else:
+                req.status = OrderState.DONE
+                _log_radiology_workflow(req.id, 'DONE', 'finalize')
         elif req.status == OrderState.REQUESTED:
             req.status = OrderState.IN_PROGRESS
             _log_radiology_workflow(req.id, 'IN_PROGRESS', 'start')

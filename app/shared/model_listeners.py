@@ -236,7 +236,8 @@ def register_model_listeners():
                     new_quantity=new,
                     trade_name=target.trade_name,
                 )
-                if new <= target.minimum_stock:
+                minimum = target.minimum_stock if target.minimum_stock is not None else 0
+                if new is not None and new <= minimum:
                     _safe_emit(
                         stock_low_alert,
                         medication_id=target.id,

@@ -11,6 +11,12 @@ from app_factory import db
 class PatientVisitCounter(TenantMixin, db.Model):
     __tablename__ = 'patient_visit_counters'
 
+    __table_args__ = (
+        db.UniqueConstraint(
+            'tenant_id', 'patient_id', name='uq_patient_visit_counter_tenant_patient'
+        ),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(
         db.Integer, db.ForeignKey('patients.id', ondelete='CASCADE'), nullable=False, index=True

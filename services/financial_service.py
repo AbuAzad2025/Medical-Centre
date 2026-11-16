@@ -109,7 +109,10 @@ class FinancialService:
             payments = (
                 db.session.execute(
                     select(Payment)
-                    .filter_by(visit_id=visit.id, status='CONFIRMED')
+                    .filter(
+                        Payment.visit_id == visit.id,
+                        Payment.status.in_(['CONFIRMED', 'PAID']),
+                    )
                     .order_by(Payment.created_at.asc())
                 )
                 .scalars()
@@ -188,7 +191,14 @@ class FinancialService:
                 .first()
             )
             invoice_number = f'INV-{uuid.uuid4().hex[:8].upper()}'
-            total = sum(item.get('price', 0) * item.get('quantity', 1) for item in items)
+            # Money must use Decimal, never binary float. String prices from
+            # JSON must be coerced explicitly or they concatenate/mismatch.
+            total = Decimal('0')
+            for _it in items:
+                _price = Decimal(str(_it.get('price', 0) or 0))
+                _qty = int(_it.get('quantity', 1) or 1)
+                total += _price * _qty
+            total = total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             invoice = Invoice(
                 visit_id=visit.id if visit else None,
                 total_amount=total,
@@ -198,7 +208,9 @@ class FinancialService:
             db.session.add(invoice)
             db.session.flush()
             for item_data in items:
-                item_total = item_data.get('price', 0) * item_data.get('quantity', 1)
+                _p = Decimal(str(item_data.get('price', 0) or 0))
+                _q = int(item_data.get('quantity', 1) or 1)
+                item_total = (_p * _q).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
                 line = InvoiceService(
                     invoice_id=invoice.id,
                     service_code=item_data.get(
@@ -206,7 +218,7 @@ class FinancialService:
                     ),
                     service_name=item_data.get('description', item_data.get('service_name', '')),
                     quantity=item_data.get('quantity', 1),
-                    unit_price=item_data.get('price', 0),
+                    unit_price=_p,
                     total_price=item_total,
                     notes=notes or item_data.get('notes'),
                 )

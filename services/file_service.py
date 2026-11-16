@@ -320,7 +320,9 @@ class FileService:
         from models.file_management import FileUpload
 
         tid = tenant_id or getattr(g, 'tenant_id', None)
-        query = select(FileUpload)
+        query = select(FileUpload).filter_by(
+            related_entity_type=related_entity_type, related_entity_id=related_entity_id
+        )
         if tid:
             query = query.filter_by(tenant_id=tid)
         query = query.order_by(FileUpload.uploaded_at.desc())

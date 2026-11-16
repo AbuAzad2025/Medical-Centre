@@ -215,8 +215,12 @@ def complete_visit(visit_id):
         emergency_case = (
             db.session.execute(select(EmergencyCase).filter_by(visit_id=visit_id)).scalars().first()
         )
-        if emergency_case:
-            emergency_case.status = EmergencyStatus.COMPLETED
+        if emergency_case and str(emergency_case.status).upper() != 'COMPLETED':
+            # Use the canonical writer so EmergencyStatusHistory is recorded
+            # and terminal-state guards apply.
+            from routes.emergency import _set_emergency_status
+
+            _set_emergency_status(emergency_case, EmergencyStatus.COMPLETED.value)
             emergency_case.completed_at = datetime.now(UTC)
         # تسجيل اكتمال العلاج للطوارئ دون تعديل حالة الزيارة مباشرة، وإخطار الاستقبال
         visit.completed_at = datetime.now(UTC)

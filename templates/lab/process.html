@@ -272,9 +272,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${window.escHtml(t.code)}</td>
-                <td>${window.escHtml(t.name_ar)}${t.name_en ? ' (' + t.name_en + ')' : ''}</td>
+                <td>${window.escHtml(t.name_ar)}${t.name_en ? ' (' + window.escHtml(t.name_en) + ')' : ''}</td>
                 <td>${window.escHtml(t.unit || '-')}</td>
-                <td>${t.default_reference_range || '-'}</td>
+                <td>${window.escHtml(t.default_reference_range || '-')}</td>
                 <td><button class="btn btn-sm btn-success" onclick="addFromCatalog(${t.id})">إضافة</button></td>
             `;
             tbody.appendChild(tr);

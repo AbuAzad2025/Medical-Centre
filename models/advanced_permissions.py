@@ -59,7 +59,7 @@ class ModulePermission(TenantMixin, db.Model):
     role = db.relationship('Role', back_populates='module_permissions', lazy='selectin')
 
     def __repr__(self):
-        return f'<ModulePermission {self.role.name_ar} - {self.module_name}>'
+        return f'<ModulePermission {self.role.name_ar if self.role else "Unknown"} - {self.module_name}>'
 
     def to_dict(self):
         """تحويل إلى قاموس"""
@@ -125,7 +125,7 @@ class DepartmentPermission(TenantMixin, db.Model):
     department = db.relationship('Department', back_populates='role_permissions', lazy='selectin')
 
     def __repr__(self):
-        return f'<DepartmentPermission {self.role.name_ar} - {self.department.name_ar if self.department else "All"}>'
+        return f'<DepartmentPermission {self.role.name_ar if self.role else "Unknown"} - {self.department.name_ar if self.department else "All"}>'
 
     def to_dict(self):
         """تحويل إلى قاموس"""

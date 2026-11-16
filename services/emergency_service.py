@@ -374,14 +374,14 @@ class EmergencyService:
                 NotificationService.send_notification(
                     recipient_role='emergency',
                     title='حالة طوارئ جديدة',
-                    message=f'حالة جديدة: {case.chief_complaint} - أولوية {case.priority}',
+                    message=f'حالة جديدة: {case.chief_complaint} - أولوية {case.severity}',
                     notification_type='emergency',
                 )
             elif event == 'priority_change':
                 NotificationService.send_notification(
                     recipient_role='emergency',
                     title='تغيير أولوية الحالة',
-                    message=f'تم تغيير أولوية الحالة #{case.id} إلى {case.priority}',
+                    message=f'تم تغيير أولوية الحالة #{case.id} إلى {case.severity}',
                     notification_type='warning',
                 )
         except Exception:

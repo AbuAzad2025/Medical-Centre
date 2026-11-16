@@ -150,7 +150,9 @@ class PermissionService:
 
     @staticmethod
     def _resolve_permission(user, permission: str) -> bool:
-        # 1. Try DB-driven permissions
+        # 1. Try DB-driven permissions. When the catalogue is initialised,
+        # the DB is authoritative: a missing grant means the permission was
+        # deliberately revoked and must NOT be re-granted by the fallback map.
         try:
             from sqlalchemy import inspect, select
 
@@ -164,26 +166,23 @@ class PermissionService:
                     .scalars()
                     .first()
                 )
-                if role:
-                    perm = (
-                        db.session.execute(select(Perm).filter_by(name=permission, is_active=True))
+                perm = (
+                    db.session.execute(select(Perm).filter_by(name=permission, is_active=True))
+                    .scalars()
+                    .first()
+                )
+                # Both catalogue rows exist => DB answered definitively.
+                if role and perm:
+                    ok = (
+                        db.session.execute(
+                            select(RolePermission).filter_by(role_id=role.id, permission_id=perm.id)
+                        )
                         .scalars()
                         .first()
                     )
-                    if perm:
-                        ok = (
-                            db.session.execute(
-                                select(RolePermission).filter_by(
-                                    role_id=role.id, permission_id=perm.id
-                                )
-                            )
-                            .scalars()
-                            .first()
-                        )
-                        if ok:
-                            return True
+                    return ok is not None
         except Exception:
-            pass
+            pass  # Fall through only when the DB catalogue is unavailable.
 
         # 2. Fallback role map
         role_perms = ROLE_PERMISSIONS.get(user.role, set())

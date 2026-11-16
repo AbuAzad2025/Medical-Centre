@@ -90,6 +90,44 @@ def _dispatch_single(webhook: dict, event: str, payload: dict, retry_count: int 
     url = webhook.get('url', '').strip()
     if not url:
         return False
+    # SSRF guard: only allow http(s) to public addresses. Reject localhost,
+    # loopback, private and link-local ranges (incl. cloud metadata 169.254.x).
+    import ipaddress
+    from urllib.parse import urlparse
+
+    try:
+        parsed_url = urlparse(url)
+        if parsed_url.scheme not in ('http', 'https') or not parsed_url.hostname:
+            logger.warning('Webhook rejected: invalid scheme/host %s', url)
+            return False
+        host = parsed_url.hostname
+        # Block obvious localhost names without needing DNS resolution.
+        if host.lower() in ('localhost', 'localhost.localdomain'):
+            logger.warning('Webhook rejected: localhost target %s', url)
+            return False
+        resolved = ipaddress.ip_address(host)
+        if (
+            resolved.is_private
+            or resolved.is_loopback
+            or resolved.is_link_local
+            or resolved.is_reserved
+        ):
+            logger.warning('Webhook rejected: private address %s', url)
+            return False
+    except ValueError:
+        # A non-IP hostname: resolve it and check the addresses.
+        import socket
+
+        try:
+            infos = socket.getaddrinfo(host, None)
+        except Exception:
+            logger.warning('Webhook rejected: DNS failure %s', url)
+            return False
+        for info in infos:
+            ip = ipaddress.ip_address(info[4][0])
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved:
+                logger.warning('Webhook rejected: resolves to private address %s', url)
+                return False
     secret = webhook.get('secret', '')
     body = json.dumps(payload, ensure_ascii=False, default=str).encode('utf-8')
     signature = _sign_payload(body, secret) if secret else ''

@@ -7,8 +7,12 @@ from app.extensions import csrf
 from services.stripe_billing_service import StripeBillingError, StripeBillingService
 from services.stripe_subscription_service import StripeSubscriptionService, StripeWebhookError
 from utils.api_security import limit_payload_size
+from utils.decorators import role_required_json
 
 saas_billing_bp = Blueprint('saas_billing', __name__)
+
+# Only tenant/platform billing administrators may mutate the subscription.
+_BILLING_ADMIN_ROLES = ('owner', 'super_admin', 'admin', 'manager')
 
 
 def _tenant_id_from_context() -> int:
@@ -35,6 +39,7 @@ def stripe_webhook():
 
 @saas_billing_bp.route('/api/billing/checkout', methods=['POST'])
 @login_required
+@role_required_json(*_BILLING_ADMIN_ROLES)
 @limit_payload_size(64 * 1024)
 def create_checkout():
     """Start a Stripe Checkout session for subscription purchase."""
@@ -59,6 +64,7 @@ def create_checkout():
 
 @saas_billing_bp.route('/api/billing/portal', methods=['POST'])
 @login_required
+@role_required_json(*_BILLING_ADMIN_ROLES)
 @limit_payload_size(64 * 1024)
 def billing_portal():
     """Open Stripe customer portal for card updates."""
@@ -79,6 +85,7 @@ def billing_portal():
 
 @saas_billing_bp.route('/api/billing/subscription/cancel', methods=['POST'])
 @login_required
+@role_required_json(*_BILLING_ADMIN_ROLES)
 @limit_payload_size(64 * 1024)
 def cancel_subscription():
     """Cancel the tenant's Stripe subscription."""
@@ -98,6 +105,7 @@ def cancel_subscription():
 
 @saas_billing_bp.route('/api/billing/subscription/change-plan', methods=['POST'])
 @login_required
+@role_required_json(*_BILLING_ADMIN_ROLES)
 @limit_payload_size(64 * 1024)
 def change_plan():
     """Upgrade or downgrade the active subscription package."""

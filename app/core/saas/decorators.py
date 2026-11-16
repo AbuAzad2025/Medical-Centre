@@ -17,7 +17,9 @@ from app.core.saas.resolver import EntitlementResolver
 from app.extensions import db
 from app.shared.user_role_policy import normalize_role
 
-_BYPASS_ROLES = frozenset({'super_admin', 'owner', 'admin', 'platform_owner'})
+# Entitlement is a tenant property, not a user-role property. Only true
+# platform operators bypass it; tenant-level roles (including 'admin') do not.
+_BYPASS_ROLES = frozenset({'super_admin', 'owner', 'platform_owner'})
 
 
 def _is_admin_user() -> bool:

@@ -93,6 +93,7 @@ _GLOBAL_TENANT_TABLES = frozenset(
         'user_permissions',
         'module_permissions',
         'department_permissions',
+        'departments',  # core reference data, not module-specific
         'platform_audit_logs',  # has tenant_id column but is cross-tenant audit trail
     }
 )

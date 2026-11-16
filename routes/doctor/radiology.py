@@ -73,9 +73,6 @@ def radiology_request(visit_id):
                 memo_parts.append(f'المنطقة: {body_part}')
             if notes:
                 memo_parts.append(f'الوصف: {notes}')
-            memo_text = '[مذكرة تصوير]\n' + (
-                '\n'.join(memo_parts) if memo_parts else 'يرجى إجراء التصوير لدى مركز مناسب.'
-            )
 
             # P2-003: Create structured RadiologyRequest when modality/body_part supplied.
             structured_ok = False
@@ -97,6 +94,9 @@ def radiology_request(visit_id):
                     flash(f'تعذر إنشاء طلب الأشعة المهيكل: {result.get("error")}', 'warning')
 
             visit.notes = visit.notes or ''
+            memo_text = '[مذكرة تصوير]\n' + (
+                '\n'.join(memo_parts) if memo_parts else 'يرجى إجراء التصوير لدى مركز مناسب.'
+            )
             visit.notes += ('\n\n' if visit.notes else '') + memo_text
             visit.radiology_ordered = True
             # === Financial Gate: Hub-and-Spoke ===

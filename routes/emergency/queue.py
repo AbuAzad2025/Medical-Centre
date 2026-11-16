@@ -34,7 +34,7 @@ def patient_queue():
 
         tenant_id = getattr(g, 'tenant_id', None)
         # جلب الحالات الطارئة مع تفاصيل إضافية
-        case(
+        severity_rank = case(
             (EmergencyCase.severity == 'CRITICAL', 4),
             (EmergencyCase.severity == 'HIGH', 3),
             (EmergencyCase.severity == 'MODERATE', 2),
@@ -54,6 +54,7 @@ def patient_queue():
         )
         if tenant_id is not None and hasattr(EmergencyCase, 'tenant_id'):
             query = query.filter(EmergencyCase.tenant_id == tenant_id)
+        query = query.order_by(severity_rank.desc(), EmergencyCase.created_at.asc())
 
         total = db.session.execute(select(func.count()).select_from(query.subquery())).scalar() or 0
         pages = (total + per_page - 1) // per_page

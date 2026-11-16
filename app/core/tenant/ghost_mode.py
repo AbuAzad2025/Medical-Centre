@@ -113,12 +113,13 @@ def verify_ghost_signature(tenant_id, user_id, timestamp, signature) -> bool:
         return False
     if now - ts > REPLAY_WINDOW_SECONDS:
         return False
-    # Anti-replay: reject reused signature within window
-    if _is_nonce_replayed(signature):
-        return False
     payload = _canonical_payload(str(tenant_id), str(user_id), str(timestamp))
     expected = hmac.new(secret.encode('utf-8'), payload, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    # Authenticate FIRST, then consume the nonce. Recording a caller-supplied
+    # value before verification lets invalid signatures poison the replay store.
+    if not hmac.compare_digest(expected, signature):
+        return False
+    return not _is_nonce_replayed(signature)
 
 
 def _impersonation_headers_present() -> bool:

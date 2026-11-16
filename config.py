@@ -348,7 +348,8 @@ class DevelopmentConfig(Config):
     LOG_TO_STDOUT = True
     # إعادة تحميل القوالب تلقائياً في التطوير حتى تظهر التعديلات دون إعادة تشغيل
     TEMPLATES_AUTO_RELOAD = True
-    SEND_FILE_MAX_AGE_DEFAULT = 0
+    # Cache static assets briefly in development (production uses 1 year).
+    SEND_FILE_MAX_AGE_DEFAULT = 3600
 
 
 class ProductionConfig(Config):

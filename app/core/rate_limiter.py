@@ -34,8 +34,10 @@ def _get_redis_pool() -> object | None:
         if _redis_pool is not None:
             return _redis_pool
 
-        redis_url = (
-            os.getenv('REDIS_URL') or current_app.config.get('REDIS_URL') if current_app else None
+        # Group the ternary with the config lookup so the env var is still
+        # honoured outside a Flask app context (CLI, background threads).
+        redis_url = os.getenv('REDIS_URL') or (
+            current_app.config.get('REDIS_URL') if current_app else None
         )
         if not redis_url:
             return None

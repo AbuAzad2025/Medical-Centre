@@ -226,7 +226,9 @@ class WorkflowTransfer(TenantMixin, db.Model):
     transferred_by_user = db.relationship('User', back_populates='workflow_transfers')
 
     def __repr__(self):
-        return f'<WorkflowTransfer {self.id}: {self.from_step.name_ar} -> {self.to_step.name_ar}>'
+        frm = self.from_step.name_ar if self.from_step else '?'
+        to = self.to_step.name_ar if self.to_step else '?'
+        return f'<WorkflowTransfer {self.id}: {frm} -> {to}>'
 
     def to_dict(self):
         """تحويل إلى قاموس"""

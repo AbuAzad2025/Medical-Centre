@@ -63,14 +63,14 @@ class TenantContextService:
             try:
                 from flask import current_app
 
-                if current_app.config.get('ENABLE_SAAS_MODE', False):
-                    if not g.get('_tenant_filter_bypass', False):
-                        from flask import abort
+                saas_mode = current_app.config.get('ENABLE_SAAS_MODE', False)
+            except Exception:
+                saas_mode = False
+            # Security decision must not depend on exception message text.
+            if saas_mode and not g.get('_tenant_filter_bypass', False):
+                from flask import abort
 
-                        abort(403, description='Cross-tenant access denied')
-            except Exception as exc:
-                if 'Cross-tenant' in str(exc):
-                    raise
+                abort(403, description='Cross-tenant access denied')
             return
         record_tenant = getattr(record, 'tenant_id', None)
         if record_tenant is not None and record_tenant != tenant_id:

@@ -39,7 +39,7 @@ class VisitStateMachineService:
         VisitState.OPEN: {VisitState.CHECKED_IN, VisitState.CANCELLED},
         VisitState.CHECKED_IN: {VisitState.IN_PROGRESS, VisitState.CANCELLED},
         VisitState.IN_PROGRESS: {VisitState.COMPLETED, VisitState.CANCELLED, VisitState.CHECKED_IN},
-        VisitState.COMPLETED: {VisitState.OPEN},
+        VisitState.COMPLETED: set(),  # reopen only via return_to_treatment()
         VisitState.CANCELLED: set(),
     }
 
@@ -66,14 +66,16 @@ class VisitStateMachineService:
         return target_state in cls.TRANSITIONS.get(current, set())
 
     @classmethod
-    def transition(cls, visit, target_state: VisitState, *, actor=None, context=None) -> bool:
+    def transition(
+        cls, visit, target_state: VisitState, *, actor=None, context=None, _authorized: bool = False
+    ) -> bool:
         """Perform a validated state transition.
 
         Raises ValueError for invalid transitions. Callers should check
         can_transition() first when they need a soft failure.
         """
         current = cls.get_status(visit)
-        if not cls.can_transition(visit, target_state):
+        if not _authorized and not cls.can_transition(visit, target_state):
             raise ValueError(f'Invalid visit transition from {current} to {target_state}')
         _vsm_authorized.active = True
         try:
@@ -183,4 +185,4 @@ class VisitStateMachineService:
         actor_role = getattr(actor, 'role', None)
         if actor_role not in allowed_roles:
             raise ValueError(f"actor role '{actor_role}' not authorized for return-to-treatment")
-        return cls.transition(visit, VisitState.OPEN, actor=actor)
+        return cls.transition(visit, VisitState.OPEN, actor=actor, _authorized=True)

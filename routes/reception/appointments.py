@@ -173,7 +173,7 @@ def checkin_appointment(appointment_id: int):
         flash('الموعد غير موجود', 'error')
         return redirect(url_for('reception.appointments'))
 
-    if appointment.status in {'CANCELLED', 'NO_SHOW'}:
+    if appointment.status in {'CANCELLED', 'NO_SHOW', 'DONE', 'COMPLETED'}:
         flash('لا يمكن تحويل هذا الموعد إلى زيارة', 'warning')
         return redirect(url_for('reception.appointments'))
 
@@ -234,8 +234,9 @@ def checkin_appointment(appointment_id: int):
     db.session.add(visit)
     db.session.flush()
 
-    if appointment.status == AppointmentState.SCHEDULED:
-        appointment.status = AppointmentState.CONFIRMED
+    if appointment.status in (AppointmentState.SCHEDULED, AppointmentState.CONFIRMED):
+        # Check-in means the patient has arrived: move to CHECKED_IN, not CONFIRMED.
+        appointment.status = AppointmentState.CHECKED_IN
 
     safe_commit(db.session, error_message='database commit failed', reraise=True)
 
@@ -563,6 +564,15 @@ def create_appointment():
             if extra_parts:
                 combined_notes = (base_notes + '\n' + '\n'.join(extra_parts)).strip()
 
+            from app.modules.workflows.appointment import AppointmentService
+
+            _doctor_id = request.form.get('doctor_id', type=int)
+            if _doctor_id and AppointmentService.check_double_booking(
+                _doctor_id, starts_at, ends_at
+            ):
+                flash('الطبيب لديه موعد متداخل في هذا الوقت', 'error')
+                return redirect(url_for('reception.create_appointment'))
+
             appointment = Appointment(
                 patient_id=request.form.get('patient_id'),
                 doctor_id=request.form.get('doctor_id'),
@@ -709,6 +719,16 @@ def edit_appointment(appointment_id):
 
             appointment.doctor_id = request.form.get('doctor_id')
             appointment.department_id = request.form.get('department_id')
+            from app.modules.workflows.appointment import AppointmentService
+
+            _doctor_id = request.form.get('doctor_id', type=int)
+            if _doctor_id and AppointmentService.check_double_booking(
+                _doctor_id, starts_at, ends_at, exclude_id=appointment.id
+            ):
+                flash('الطبيب لديه موعد متداخل في هذا الوقت', 'error')
+                return redirect(
+                    url_for('reception.edit_appointment', appointment_id=appointment.id)
+                )
             appointment.starts_at = starts_at
             appointment.ends_at = ends_at
 

@@ -36,7 +36,10 @@ def dashboard():
         # إحصائيات مالية
         total_revenue = (
             db.session.execute(
-                select(db.func.sum(Payment.amount)).filter(~Payment.is_provisional)
+                select(db.func.sum(Payment.amount)).filter(
+                    ~Payment.is_provisional,
+                    Payment.status.in_([PaymentStatus.CONFIRMED, PaymentStatus.PAID]),
+                )
             ).scalar()
             or 0
         )
@@ -554,7 +557,16 @@ def billing_summary():
         invoices = db.session.execute(inv_q).scalars().all()
         payments = db.session.execute(pay_q).scalars().all()
         total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
-        total_paid = sum(float(p.amount or 0) for p in payments)
+        from decimal import Decimal
+
+        total_paid = sum(
+            (
+                Decimal(str(p.amount or 0))
+                for p in payments
+                if p.status in (PaymentStatus.CONFIRMED, PaymentStatus.PAID)
+            ),
+            Decimal('0'),
+        )
         pending = sum(1 for i in invoices if (i.paid_amount or 0) < (i.total_amount or 0))
         return jsonify(
             {

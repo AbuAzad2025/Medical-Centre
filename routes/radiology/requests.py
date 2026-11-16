@@ -97,7 +97,9 @@ def results():
             query = query.join(Visit, Visit.id == RadiologyRequest.visit_id).filter(
                 Visit.department_id.in_(dept_ids)
             )
-        results = query.order_by(RadiologyRequest.created_at.desc()).all()
+        results = (
+            db.session.execute(query.order_by(RadiologyRequest.created_at.desc())).scalars().all()
+        )
 
         return render_template('radiology/results.html', results=results)
     except Exception:

@@ -26,6 +26,7 @@ from models.branding import BrandingSettings
 from routes.manager import manager_bp
 from utils.db_safety import safe_commit, safe_rollback
 from utils.decorators import role_required
+from utils.html_sanitize import sanitize_rich_html
 
 logger = logging.getLogger(__name__)
 
@@ -112,26 +113,26 @@ def manager_branding():
                 )
                 branding.accent_color = request.form.get('accent_color', branding.accent_color)
 
-                branding.report_header_html = request.form.get(
-                    'report_header_html', branding.report_header_html
+                branding.report_header_html = sanitize_rich_html(
+                    request.form.get('report_header_html', branding.report_header_html)
                 )
-                branding.report_footer_html = request.form.get(
-                    'report_footer_html', branding.report_footer_html
+                branding.report_footer_html = sanitize_rich_html(
+                    request.form.get('report_footer_html', branding.report_footer_html)
                 )
-                branding.invoice_header_html = request.form.get(
-                    'invoice_header_html', branding.invoice_header_html
+                branding.invoice_header_html = sanitize_rich_html(
+                    request.form.get('invoice_header_html', branding.invoice_header_html)
                 )
-                branding.invoice_footer_html = request.form.get(
-                    'invoice_footer_html', branding.invoice_footer_html
+                branding.invoice_footer_html = sanitize_rich_html(
+                    request.form.get('invoice_footer_html', branding.invoice_footer_html)
                 )
-                branding.receipt_header_html = request.form.get(
-                    'receipt_header_html', branding.receipt_header_html
+                branding.receipt_header_html = sanitize_rich_html(
+                    request.form.get('receipt_header_html', branding.receipt_header_html)
                 )
-                branding.prescription_header_html = request.form.get(
-                    'prescription_header_html', branding.prescription_header_html
+                branding.prescription_header_html = sanitize_rich_html(
+                    request.form.get('prescription_header_html', branding.prescription_header_html)
                 )
-                branding.prescription_footer_html = request.form.get(
-                    'prescription_footer_html', branding.prescription_footer_html
+                branding.prescription_footer_html = sanitize_rich_html(
+                    request.form.get('prescription_footer_html', branding.prescription_footer_html)
                 )
                 branding.tax_number = request.form.get('tax_number', branding.tax_number)
                 branding.license_number = request.form.get(
