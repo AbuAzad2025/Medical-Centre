@@ -41,10 +41,10 @@
                             <td>{{ permission.created_at.strftime('%Y-%m-%d') if permission.created_at else '-' }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm shadow-sm" role="group">
-                                    <button class="btn btn-primary" data-action="editPermission" data-permission-id="permission.id" title="تعديل الصلاحية">
+                                    <button class="btn btn-primary" data-action="editPermission" data-permission-id="{{ permission.id }}" title="تعديل الصلاحية">
                                         <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                     </button>
-                                    <button class="btn btn-danger" data-action="deletePermission" data-permission-id="permission.id" title="حذف الصلاحية">
+                                    <button class="btn btn-danger" data-action="deletePermission" data-permission-id="{{ permission.id }}" title="حذف الصلاحية">
                                         <i class="fas fa-trash-alt"></i> <span class="btn-label">{{ _('حذف') }}</span>
                                     </button>
                                 </div>

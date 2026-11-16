@@ -137,12 +137,12 @@
                             {{ _(_('إدارة الموظفين')) }}
                         </a>
                         {% if department.is_active %}
-                        <button data-action="deactivateDepartment" data-department-id="department.id" class="btn btn-danger">
+                        <button data-action="deactivateDepartment" data-department-id="{{ department.id }}" class="btn btn-danger">
                             <i class="fas fa-times-circle me-2"></i>
                             {{ _(_('إلغاء التفعيل')) }}
                         </button>
                         {% else %}
-                        <button data-action="activateDepartment" data-department-id="department.id" class="btn btn-success">
+                        <button data-action="activateDepartment" data-department-id="{{ department.id }}" class="btn btn-success">
                             <i class="fas fa-check-circle me-2"></i>
                             {{ _(_('تفعيل القسم')) }}
                         </button>

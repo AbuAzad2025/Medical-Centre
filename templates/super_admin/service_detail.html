@@ -175,12 +175,12 @@
                             {{ _(_('إدارة التسعير')) }}
                         </a>
                         {% if service.is_active %}
-                        <button data-action="deactivateService" data-service-id="service.id" class="btn btn-danger">
+                        <button data-action="deactivateService" data-service-id="{{ service.id }}" class="btn btn-danger">
                             <i class="fas fa-times-circle me-2"></i>
                             {{ _(_('إلغاء التفعيل')) }}
                         </button>
                         {% else %}
-                        <button data-action="activateService" data-service-id="service.id" class="btn btn-success">
+                        <button data-action="activateService" data-service-id="{{ service.id }}" class="btn btn-success">
                             <i class="fas fa-check-circle me-2"></i>
                             {{ _(_('تفعيل الخدمة')) }}
                         </button>

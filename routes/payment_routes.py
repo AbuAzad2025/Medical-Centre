@@ -724,7 +724,7 @@ def request_refund(payment_id):
 
 @payment_bp.route('/refund-requests/<int:refund_id>/approve', methods=['POST'])
 @login_required
-@role_required('accountant', 'admin', 'manager')
+@role_required('admin', 'manager')
 def approve_refund(refund_id):
     """Approve a pending refund request."""
     try:

@@ -237,6 +237,8 @@ def resolve_emergency_case(id):
         _set_emergency_status(emergency, 'COMPLETED')
         emergency.completed_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'success': True})
         flash('تم حل الحالة بنجاح', 'success')
         return redirect(url_for('emergency.list_emergency_cases'))
     except Exception:

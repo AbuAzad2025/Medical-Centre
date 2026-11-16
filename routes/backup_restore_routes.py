@@ -48,14 +48,12 @@ def index():
         # Real restore via pg_backup_service (supports plain gz and custom)
         start = time.monotonic()
         try:
-            from services.pg_backup_service import pg_backup_service
+            from services.pg_backup_service import restore_pg_sql_gz
 
-            if hasattr(pg_backup_service, 'restore_backup'):
-                ok = pg_backup_service.restore_backup(backup.backup_path)
-            elif hasattr(pg_backup_service, 'restore_pg_sql_gz'):
-                ok = pg_backup_service.restore_pg_sql_gz(backup.backup_path)
-            else:
-                ok = False
+            # restore_pg_sql_gz raises on failure and returns None on success;
+            # any failure is handled by the outer except block below.
+            restore_pg_sql_gz(backup.backup_path)
+            ok = True
             duration = int(time.monotonic() - start)
             log.status = 'success' if ok else 'failed'
             log.completed_at = datetime.now(UTC)

@@ -199,7 +199,9 @@ def system_config():
                 normalized = {}
                 for key, val in data.items():
                     if key not in allowed:
-                        errors.append(f'إعداد غير معروف: {key}')
+                        # The settings page posts inputs from multiple forms at
+                        # once; ignore keys that aren't persisted settings so a
+                        # single extra field doesn't reject the whole batch.
                         continue
                     rule = allowed[key]
                     if rule['type'] == 'string':

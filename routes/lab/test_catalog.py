@@ -79,7 +79,7 @@ def test_catalog_add():
             critical_high=request.form.get('critical_high', '').strip(),
             price=request.form.get('price', 0) or 0,
             preparation_instructions=request.form.get('preparation_instructions', '').strip(),
-            is_active=request.form.get('is_active', '1') == '1',
+            is_active=request.form.get('is_active') == '1',
             sort_order=request.form.get('sort_order', 0) or 0,
         )
         db.session.add(test)
@@ -115,7 +115,7 @@ def test_catalog_edit(id):
         test.critical_high = request.form.get('critical_high', '').strip()
         test.price = request.form.get('price', 0) or 0
         test.preparation_instructions = request.form.get('preparation_instructions', '').strip()
-        test.is_active = request.form.get('is_active', '1') == '1'
+        test.is_active = request.form.get('is_active') == '1'
         test.sort_order = request.form.get('sort_order', 0) or 0
         test.updated_at = datetime.now(UTC)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
@@ -188,7 +188,7 @@ def test_panels_add():
             name_ar=request.form.get('name_ar', '').strip(),
             name_en=request.form.get('name_en', '').strip(),
             description=request.form.get('description', '').strip(),
-            is_active=request.form.get('is_active', '1') == '1',
+            is_active=request.form.get('is_active') == '1',
         )
         test_ids = request.form.getlist('test_ids')
         for idx, tid in enumerate(test_ids):
@@ -233,7 +233,7 @@ def test_panels_edit(id):
         panel.name_ar = request.form.get('name_ar', '').strip()
         panel.name_en = request.form.get('name_en', '').strip()
         panel.description = request.form.get('description', '').strip()
-        panel.is_active = request.form.get('is_active', '1') == '1'
+        panel.is_active = request.form.get('is_active') == '1'
         panel.updated_at = datetime.now(UTC)
 
         tenant_id = getattr(current_user, 'tenant_id', None)

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import os
-import uuid
 from decimal import Decimal
 from typing import Any
 
@@ -268,7 +267,7 @@ class StripeBillingService:
         pricing = cls._pricing_for(package_version_id, billing_type)
         customer_id = cls.ensure_customer(tenant_id)
         interval = 'month' if billing_type == 'monthly' else 'year'
-        amount_cents = int(float(pricing.price) * 100)
+        amount_cents = int((Decimal(str(pricing.price)) * 100).quantize(Decimal('1')))
 
         session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -278,7 +277,7 @@ class StripeBillingService:
             line_items=[
                 {
                     'price_data': {
-                        'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
+                        'currency': (getattr(pricing, 'currency', None) or os.environ.get('STRIPE_CURRENCY', 'usd')).lower(),
                         'product_data': {'name': cls._version_display_name(version)},
                         'recurring': {'interval': interval},
                         'unit_amount': amount_cents,
@@ -375,10 +374,10 @@ class StripeBillingService:
                     {
                         'id': item_id,
                         'price_data': {
-                            'currency': os.environ.get('STRIPE_CURRENCY', 'usd'),
+                            'currency': (getattr(new_pricing, 'currency', None) or os.environ.get('STRIPE_CURRENCY', 'usd')).lower(),
                             'product_data': {'name': cls._version_display_name(new_version)},
                             'recurring': {'interval': interval},
-                            'unit_amount': int(float(new_pricing.price) * 100),
+                            'unit_amount': int((Decimal(str(new_pricing.price)) * 100).quantize(Decimal('1'))),
                         },
                     }
                 ],
@@ -388,7 +387,7 @@ class StripeBillingService:
                     'package_version_id': str(new_package_version_id),
                     'billing_type': billing_type,
                 },
-                idempotency_key=f'plan_change_{tenant_id}_{new_package_version_id}_{billing_type}_{uuid.uuid4().hex[:16]}',
+                idempotency_key=f'plan_change_{tenant_id}_{new_package_version_id}_{billing_type}',
             )
 
             # Validate proration doesn't produce unreasonably negative balances

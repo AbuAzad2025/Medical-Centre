@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import case, func, select
 
 from app.extensions import db
-from app.shared.enums import VisitArchiveStatus, VisitState
+from app.shared.enums import VisitArchiveStatus
 from models.audit_trail import AuditTrail
 from models.medical_record import MedicalRecord
 from models.visit import Visit
@@ -19,7 +19,7 @@ from routes.doctor import (
     calculate_medical_performance_score,
     doctor_bp,
 )
-from services.visit_state_machine_service import VisitStateMachineService, set_vsm_authorized
+from services.visit_state_machine_service import VisitStateMachineService
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
@@ -49,7 +49,7 @@ def diagnosis(visit_id):
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.status == 'COMPLETED' or visit.is_archived:
+        if visit.status in ('COMPLETED', 'CANCELLED') or visit.is_archived:
             flash('لا يمكن تعديل التشخيص بعد اكتمال أو أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
 
@@ -116,14 +116,14 @@ def diagnosis(visit_id):
             # Re-saving the diagnosis alone must not cancel a booked follow-up.
             # Cancelling is an explicit action, never a side effect of a save.
             visit.vital_signs = json.dumps(vital_signs, ensure_ascii=False)
+            # Only the state machine may change visit.status. If the visit
+            # cannot move to in-progress (cancelled/terminal), surface the error
+            # instead of silently forcing it active.
             try:
                 VisitStateMachineService.ensure_in_progress(visit, actor=current_user)
-            except ValueError:
-                set_vsm_authorized(True)
-                try:
-                    visit.status = VisitState.IN_PROGRESS
-                finally:
-                    set_vsm_authorized(False)
+            except ValueError as exc:
+                flash(f'لا يمكن تعديل تشخيص زيارة بهذه الحالة: {exc}', 'warning')
+                return redirect(url_for('doctor.patient_queue'))
             if additional_notes:
                 memo_text = '[ملاحظات طبية]\n' + additional_notes
                 current_notes = visit.notes or ''

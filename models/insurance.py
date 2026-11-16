@@ -112,14 +112,16 @@ class InsuranceClaim(TenantMixin, db.Model):
         approved_amount = (
             Decimal(str(approved_amount)) if approved_amount is not None else Decimal(0)
         )
+        total = self.total_claim or Decimal(0)
+        # An approved amount cannot exceed the claim; clamp to avoid a negative
+        # patient responsibility.
+        approved_amount = max(Decimal(0), min(approved_amount, total))
         self.status = status
         self.approved_amount = approved_amount
         self.adjudication_notes = notes
         if status in (InsuranceClaimStatus.PARTIALLY_APPROVED, InsuranceClaimStatus.APPROVED):
             self.insurance_share_amount = approved_amount
-            self.patient_share_amount = (
-                self.total_claim - approved_amount if self.total_claim else Decimal(0)
-            )
+            self.patient_share_amount = (total - approved_amount).quantize(Decimal('0.01'))
         elif status == InsuranceClaimStatus.REJECTED:
             self.insurance_share_amount = Decimal(0)
             self.patient_share_amount = self.total_claim
@@ -129,9 +131,12 @@ class InsuranceClaim(TenantMixin, db.Model):
         from app.shared.enums import InsuranceClaimStatus
 
         settled_amount = Decimal(str(settled_amount)) if settled_amount is not None else Decimal(0)
+        total = self.total_claim or Decimal(0)
+        settled_amount = max(Decimal(0), min(settled_amount, total))
         self.status = InsuranceClaimStatus.SETTLED
         self.approved_amount = settled_amount
         self.insurance_share_amount = settled_amount
+        self.patient_share_amount = (total - settled_amount).quantize(Decimal('0.01'))
 
 
 class InsuranceClaimLine(TenantMixin, db.Model):

@@ -7,6 +7,7 @@ from flask import (
     flash,
     redirect,
     render_template,
+    request,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -72,6 +73,26 @@ def add_scan_post():
     """إضافة فحص أشعة (نقطة إرسال الفورم)"""
 
     try:
+        from models.radiology_request import RadiologyRequest
+        from utils.db_safety import safe_commit
+
+        patient_id = request.form.get('patient_id', type=int)
+        visit_id = request.form.get('visit_id', type=int)
+        if not patient_id:
+            flash('المريض مطلوب', 'error')
+            return redirect(url_for('radiology.tests'))
+        rec = RadiologyRequest(
+            tenant_id=getattr(current_user, 'tenant_id', None),
+            patient_id=patient_id,
+            visit_id=visit_id,
+            requested_by=current_user.id,
+            modality=(request.form.get('scan_type') or '').strip()[:20] or None,
+            body_part=(request.form.get('technician') or '').strip()[:120] or None,
+            notes=(request.form.get('notes') or '').strip() or None,
+            status='REQUESTED',
+        )
+        db.session.add(rec)
+        safe_commit(db.session, error_message='failed to save radiology scan', reraise=True)
         flash('تم استلام بيانات الفحص بنجاح', 'success')
         return redirect(url_for('radiology.tests'))
     except Exception:

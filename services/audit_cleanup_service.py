@@ -2,7 +2,7 @@
 Audit Cleanup Service — batched, non-blocking retention policy enforcement.
 
 Tables covered:
-  - platform_audit_logs (config: PLATFORM_AUDIT_RETENTION_DAYS, default 180)
+  - platform_audit_logs (config: PLATFORM_AUDIT_RETENTION_DAYS, default 2555)
   - audit_trails        (config: AUDIT_TRAIL_RETENTION_DAYS,    default 180)
   - system_logs         (config: SYSTEM_LOG_RETENTION_DAYS,     default 90)
   - security_events     (config: SECURITY_EVENT_RETENTION_DAYS, default 365)
@@ -53,7 +53,7 @@ RETENTION_CONFIG = {
         'column': 'created_at',
     },
     'audit_trails': {
-        'days': int(os.getenv('AUDIT_TRAIL_RETENTION_DAYS', '180')),
+        'days': int(os.getenv('AUDIT_TRAIL_RETENTION_DAYS', '2555')),
         'model_path': 'models.audit_trail.AuditTrail',
         'column': 'created_at',
     },

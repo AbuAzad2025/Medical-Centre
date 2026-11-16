@@ -558,6 +558,8 @@ def prescription(visit_id):
                 # it. If it fails the prescription is still saved, so the failure
                 # is logged rather than raised.
                 logging.warning(f'Error in {__name__}: {e}')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'success': True, 'redirect': url_for('doctor.patient_details', visit_id=visit_id)})
             flash('تم حفظ الوصفة بنجاح', 'success')
             return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 

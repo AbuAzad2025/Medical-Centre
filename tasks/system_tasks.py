@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import delete as sa_delete
@@ -47,7 +48,8 @@ def _purge_old_audit_logs() -> dict:
     from app.extensions import db
     from models.audit_trail import AuditTrail
 
-    retention_days = 90  # Configurable via env later
+    # 7-year (HIPAA) retention; previously destroyed evidence after 90 days.
+    retention_days = int(os.getenv('AUDIT_TRAIL_RETENTION_DAYS', '2555'))
     # The cutoff was previously computed and thrown away on a bare expression
     # line, and the DELETE below carried no WHERE clause - so this task wiped
     # the entire audit trail on every run, not just rows past retention. It is

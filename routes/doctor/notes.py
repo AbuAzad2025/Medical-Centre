@@ -47,7 +47,7 @@ def notes(visit_id):
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
-        if visit.is_archived:
+        if getattr(visit, 'status', None) == 'CANCELLED' or visit.is_archived:
             flash('لا يمكن إضافة ملاحظات بعد أرشفة الزيارة', 'warning')
             return redirect(url_for('doctor.patient_queue'))
 

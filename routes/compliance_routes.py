@@ -770,7 +770,7 @@ def soc2_cc1_control_environment():
         },
         {
             'name': 'no_excessive_permissions',
-            'passed': excessive_count == 0 or excessive_count <= total_users,
+            'passed': excessive_count == 0,
             'detail': f'{excessive_count} flagged users',
         },
         {
@@ -827,12 +827,12 @@ def soc2_cc2_communication():
         },
         {
             'name': 'recent_audit_activity',
-            'passed': True,
+            'passed': recent_logs > 0,
             'detail': f'{recent_logs} records in last 24h',
         },
         {
             'name': 'actor_attribution',
-            'passed': missing_actor <= total_logs,
+            'passed': missing_actor == 0,
             'detail': f'{missing_actor} records without actor',
         },
     ]

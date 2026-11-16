@@ -278,11 +278,11 @@
                                                 
                                                 <!-- حذف -->
                                                 <button type="button" class="btn btn-danger" title="حذف نهائي"
-                                                   data-action="deleteUser" data-user-id="user.id">
+                                                   data-action="deleteUser" data-user-id="{{ user.id }}">
                                                     <i class="fas fa-trash-alt"></i> <span class="btn-label">{{ _('حذف') }}</span>
                                                 </button>
                                                 <button type="button" class="btn btn-secondary" title="إعادة تعيين كلمة المرور"
-                                                   data-action="resetPassword" data-user-id="user.id">
+                                                   data-action="resetPassword" data-user-id="{{ user.id }}">
                                                     <i class="fas fa-key"></i> <span class="btn-label">زر</span>
                                                 </button>
                                             {% endif %}

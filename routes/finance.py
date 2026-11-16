@@ -556,9 +556,12 @@ def billing_summary():
             pay_q = pay_q.filter(Payment.tenant_id == tenant_id)
         invoices = db.session.execute(inv_q).scalars().all()
         payments = db.session.execute(pay_q).scalars().all()
-        total_invoiced = sum(float(i.total_amount or 0) for i in invoices)
         from decimal import Decimal
 
+        # Keep money in Decimal end-to-end (float - Decimal raises TypeError).
+        total_invoiced = sum(
+            (Decimal(str(i.total_amount or 0)) for i in invoices), Decimal('0')
+        )
         total_paid = sum(
             (
                 Decimal(str(p.amount or 0))
@@ -574,10 +577,10 @@ def billing_summary():
                 'data': {
                     'total_invoices': len(invoices),
                     'total_payments': len(payments),
-                    'total_invoiced': total_invoiced,
-                    'total_paid': total_paid,
+                    'total_invoiced': float(total_invoiced),
+                    'total_paid': float(total_paid),
                     'pending_invoices': pending,
-                    'outstanding': max(total_invoiced - total_paid, 0.0),
+                    'outstanding': float(max(total_invoiced - total_paid, Decimal('0'))),
                 },
             }
         )

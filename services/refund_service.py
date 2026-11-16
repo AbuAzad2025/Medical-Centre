@@ -258,7 +258,8 @@ class RefundService:
                     status=PaymentStatus.REFUNDED,
                     method=payment.method,
                     reference=payment.reference,
-                    receipt_number=payment.receipt_number,
+                    # receipt_number is UNIQUE - never copy the original.
+                    receipt_number=None,
                     idempotency_key=f'refund:{payment.id}:{request.id}',
                     operation_type='refund',
                     received_by=payment.received_by,
