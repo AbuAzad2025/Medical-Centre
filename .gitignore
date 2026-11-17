@@ -177,3 +177,8 @@ coverage.xml
 /diag*.test.mjs
 
 coverage_clean.txt
+
+# Local runtime launcher scripts (environment-specific)
+/start_app.vbs
+/start_app_background.bat
+/app_runtime.log
