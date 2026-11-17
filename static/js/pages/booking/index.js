@@ -8,7 +8,9 @@ export function loadDoctors(){
   }).then(d=>{
     const sel = document.getElementById('doctor_id'); sel.innerHTML = '<option value="">اختر الطبيب</option>';
     (d.doctors||[]).forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.full_name; sel.appendChild(o); });
-  }).catch(err => { });
+  }).catch(() => {
+    // Non-fatal: on failure keep the placeholder option already in the select.
+  });
 }
 export function loadTimes(){
   const doc = document.getElementById('doctor_id').value;
@@ -21,7 +23,9 @@ export function loadTimes(){
   }).then(d=>{
     const sel = document.getElementById('appointment_time'); sel.innerHTML = '<option value="">اختر الوقت</option>';
     (d.available_times||[]).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; sel.appendChild(o); });
-  }).catch(err => { });
+  }).catch(() => {
+    // Non-fatal: on failure keep the placeholder option already in the select.
+  });
 }
 
 

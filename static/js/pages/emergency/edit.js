@@ -1,5 +1,3 @@
-var __M = window.__M || [];
-
 export function resolveEmergency() {
   Swal.fire({
     title: 'حل الحالة',
@@ -88,6 +86,7 @@ if (form) {
 
     requiredFields.forEach(function(field) {
       var input = document.querySelector('[name="' + field + '"]');
+      if (!input) return;
       if (!input.value.trim()) {
         input.classList.add('is-invalid');
         isValid = false;

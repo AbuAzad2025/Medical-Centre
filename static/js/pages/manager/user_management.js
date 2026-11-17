@@ -1,5 +1,3 @@
-var __M = window.__M || [];
-
 function csvCell(value) {
     const s = String(value == null ? '' : value);
     // Spreadsheet formula-injection guard
@@ -68,24 +66,15 @@ export function viewUser(userId) {
         title: cellText(0).replace(/\s+/g, ' ') || 'تفاصيل المستخدم',
         html:
             '<div class="text-start">'
-            + '<p class="mb-1"><strong>اسم المستخدم:</strong> ' + escapeHtml(cellText(1)) + '</p>'
-            + '<p class="mb-1"><strong>البريد:</strong> ' + escapeHtml(cellText(2)) + '</p>'
-            + '<p class="mb-1"><strong>الدور:</strong> ' + escapeHtml(cellText(3)) + '</p>'
-            + '<p class="mb-1"><strong>القسم:</strong> ' + escapeHtml(cellText(4)) + '</p>'
-            + '<p class="mb-1"><strong>الحالة:</strong> ' + escapeHtml(cellText(5)) + '</p>'
-            + '<p class="mb-0"><strong>آخر دخول:</strong> ' + escapeHtml(cellText(6)) + '</p>'
+            + '<p class="mb-1"><strong>اسم المستخدم:</strong> ' + window.escHtml(cellText(1)) + '</p>'
+            + '<p class="mb-1"><strong>البريد:</strong> ' + window.escHtml(cellText(2)) + '</p>'
+            + '<p class="mb-1"><strong>الدور:</strong> ' + window.escHtml(cellText(3)) + '</p>'
+            + '<p class="mb-1"><strong>القسم:</strong> ' + window.escHtml(cellText(4)) + '</p>'
+            + '<p class="mb-1"><strong>الحالة:</strong> ' + window.escHtml(cellText(5)) + '</p>'
+            + '<p class="mb-0"><strong>آخر دخول:</strong> ' + window.escHtml(cellText(6)) + '</p>'
             + '</div>',
         icon: 'info',
     });
-}
-
-function escapeHtml(v) {
-    return String(v == null ? '' : v)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
 }
 
 document.addEventListener('DOMContentLoaded', function() {

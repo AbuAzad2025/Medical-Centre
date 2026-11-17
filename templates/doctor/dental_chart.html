@@ -28,6 +28,20 @@
         </div>
     </div>
 
+    {# One tooth cell, shared by both arches so the two loops cannot drift apart. #}
+    {% macro tooth_group(tooth) %}
+    <g class="tooth-group" data-fdi="{{ tooth.fdi }}"
+       transform="translate({{ tooth.x }}, {{ tooth.y }})"
+       onclick="openToothModal('{{ tooth.fdi }}')">
+        <rect x="0" y="0" width="32" height="32" rx="4"
+              fill="{{ tooth.color }}" stroke="#fff" stroke-width="1"/>
+        <text x="16" y="21" text-anchor="middle" font-size="12" fill="white" font-weight="bold">{{ tooth.fdi }}</text>
+        {% if tooth.state != 'sound' %}
+        <circle cx="28" cy="4" r="3" fill="white"/>
+        {% endif %}
+    </g>
+    {% endmacro %}
+
     <!-- Dental Chart SVG -->
     <div class="row">
         <div class="col-lg-8">
@@ -37,33 +51,13 @@
                         <!-- Upper Right (1x) and Upper Left (2x) -->
                         <g id="upper" transform="translate(50,30)">
                             {% for tooth in upper_teeth %}
-                            <g class="tooth-group" data-fdi="{{ tooth.fdi }}"
-                               transform="translate({{ tooth.x }}, {{ tooth.y }})"
-                               onclick="openToothModal('{{ tooth.fdi }}')"
-                               class="cursor-pointer">
-                                <rect x="0" y="0" width="32" height="32" rx="4"
-                                      fill="{{ tooth.color }}" stroke="#fff" stroke-width="1"/>
-                                <text x="16" y="21" text-anchor="middle" font-size="12" fill="white" font-weight="bold">{{ tooth.fdi }}</text>
-                                {% if tooth.state != 'sound' %}
-                                <circle cx="28" cy="4" r="3" fill="white"/>
-                                {% endif %}
-                            </g>
+                            {{ tooth_group(tooth) }}
                             {% endfor %}
                         </g>
                         <!-- Lower Right (4x) and Lower Left (3x) -->
                         <g id="lower" transform="translate(50,260)">
                             {% for tooth in lower_teeth %}
-                            <g class="tooth-group" data-fdi="{{ tooth.fdi }}"
-                               transform="translate({{ tooth.x }}, {{ tooth.y }})"
-                               onclick="openToothModal('{{ tooth.fdi }}')"
-                               class="cursor-pointer">
-                                <rect x="0" y="0" width="32" height="32" rx="4"
-                                      fill="{{ tooth.color }}" stroke="#fff" stroke-width="1"/>
-                                <text x="16" y="21" text-anchor="middle" font-size="12" fill="white" font-weight="bold">{{ tooth.fdi }}</text>
-                                {% if tooth.state != 'sound' %}
-                                <circle cx="28" cy="4" r="3" fill="white"/>
-                                {% endif %}
-                            </g>
+                            {{ tooth_group(tooth) }}
                             {% endfor %}
                         </g>
                         <!-- Labels -->
@@ -80,7 +74,7 @@
                 <div class="card-header bg-primary text-white">
                     <i class="fas fa-edit me-1"></i> {{ _(_('تعديل السن')) }}
                 </div>
-                <div class="card-body" id="toothEditor" class="d-none">
+                <div class="card-body" id="toothEditor">
                     <h6 class="mb-3">{{ _(_('السن')) }} <span id="selectedFdi" class="badge bg-dark"></span></h6>
                     <div class="mb-3">
                         <label class="form-label">{{ _(_('الحالة')) }}</label>
@@ -128,8 +122,8 @@
 </div>
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__={{ states_json | safe }}; __M1__={{ teeth_json | safe }}; __M2__='{{ url_for("doctor.save_dental_chart") }}'; __M3__='{{ csrf_token() }}'; __M4__={{ patient.id }}; __M5__={{ visit_id or 'null' }};
-        </script>
+window.__M = window.__M || [];
+__M0__={{ states_json | safe }}; __M1__={{ teeth_json | safe }}; __M2__='{{ url_for("doctor.save_dental_chart") }}'; __M3__='{{ csrf_token() }}'; __M4__={{ patient.id }}; __M5__={{ visit_id or 'null' }};
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/doctor/dental_chart.js') }}"></script>
 {% endblock %}

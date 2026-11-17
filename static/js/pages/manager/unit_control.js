@@ -64,11 +64,13 @@ export function toggleUnit(moduleName, btn) {
     });
 }
 
-export function bulkActivate() {
+// Shared implementation for the bulk activate/deactivate actions. The two
+// actions only differ by which status is skipped and the messages shown.
+function setAllUnits(skipStatus, confirmText, successText) {
     var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',
-        text: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0641\u0639\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
+        text: confirmText,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: '\u0646\u0639\u0645',
@@ -83,7 +85,7 @@ export function bulkActivate() {
             var mod = toggleBtn.getAttribute('data-module');
             if (!mod) return;
             var statusCell = row.querySelector('td:nth-child(4) .badge');
-            if (statusCell && statusCell.textContent.trim() === '\u0646\u0634\u0637') return;
+            if (statusCell && statusCell.textContent.trim() === skipStatus) return;
             promises.push(
                 fetch(toggleUrl, {
                     method: 'POST',
@@ -97,7 +99,7 @@ export function bulkActivate() {
             );
         });
         Promise.all(promises).then(function() {
-            Swal.fire({ title: '\u062a\u0645', text: '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a', icon: 'success', timer: 1500, showConfirmButton: false })
+            Swal.fire({ title: '\u062a\u0645', text: successText, icon: 'success', timer: 1500, showConfirmButton: false })
                 .then(function() { location.reload(); });
         }).catch(function() {
             Swal.fire({ title: '\u062e\u0637\u0623', text: '\u062d\u062f\u062b \u062e\u0637\u0623', icon: 'error' });
@@ -105,45 +107,20 @@ export function bulkActivate() {
     });
 }
 
+export function bulkActivate() {
+    setAllUnits(
+        '\u0646\u0634\u0637',
+        '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0641\u0639\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
+        '\u062a\u0645 \u062a\u0641\u0639\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a'
+    );
+}
+
 export function bulkDeactivate() {
-    var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
-    Swal.fire({
-        title: '\u062a\u0623\u0643\u064a\u062f',
-        text: '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0639\u0637\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: '\u0646\u0639\u0645',
-        cancelButtonText: '\u0625\u0644\u063a\u0627\u0621'
-    }).then(function(r) {
-        if (!r.isConfirmed) return;
-        var cards = document.querySelectorAll('#unitsTable tbody tr');
-        var promises = [];
-        cards.forEach(function(row) {
-            var toggleBtn = row.querySelector('[data-action="toggleUnit"]');
-            if (!toggleBtn) return;
-            var mod = toggleBtn.getAttribute('data-module');
-            if (!mod) return;
-            var statusCell = row.querySelector('td:nth-child(4) .badge');
-            if (statusCell && statusCell.textContent.trim() === '\u0645\u0639\u0637\u0644') return;
-            promises.push(
-                fetch(toggleUrl, {
-                    method: 'POST',
-                    headers: Object.assign({ 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }, csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-                    credentials: 'same-origin',
-                    body: JSON.stringify({ module_name: mod })
-                }).then(function(res) {
-                    if (!res.ok) throw new Error('http_' + res.status);
-                    return res.json();
-                })
-            );
-        });
-        Promise.all(promises).then(function() {
-            Swal.fire({ title: '\u062a\u0645', text: '\u062a\u0645 \u062a\u0639\u0637\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a', icon: 'success', timer: 1500, showConfirmButton: false })
-                .then(function() { location.reload(); });
-        }).catch(function() {
-            Swal.fire({ title: '\u062e\u0637\u0623', text: '\u062d\u062f\u062b \u062e\u0637\u0623', icon: 'error' });
-        });
-    });
+    setAllUnits(
+        '\u0645\u0639\u0637\u0644',
+        '\u0647\u0644 \u062a\u0631\u064a\u062f \u062a\u0639\u0637\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a\u061f',
+        '\u062a\u0645 \u062a\u0639\u0637\u064a\u0644 \u062c\u0645\u064a\u0639 \u0627\u0644\u0648\u062d\u062f\u0627\u062a'
+    );
 }
 
 export function bulkRestart() {

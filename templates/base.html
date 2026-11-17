@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ current_locale }}" dir="{{ 'rtl' if current_locale == 'ar' else 'ltr' }}">
 <head>
-        <meta charset="UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <meta name="format-detection" content="telephone=no">
     <meta name="theme-color" content="#0f4c81">
@@ -11,9 +11,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
-    
+
     <title>{% block title %}{{ branding.organization_name if branding else _('المركز الصحي المتخصص') }} - نظام إدارة متطور{% endblock %}</title>
-    
+
     <meta name="description" content="نظام إدارة {{ branding.organization_name if branding else 'المركز الصحي المتخصص' }} - حلول طبية متطورة وذكية">
     <meta name="keywords" content="نظام طبي, إدارة مستشفى, مركز صحي, نظام ذكي">
     <meta name="author" content="{{ developer_company or _('شركة آزاد للأنظمة الذكية') }}">
@@ -21,7 +21,7 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon/favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon/favicon-16x16.png') }}">
-    
+
     <!-- Self-hosted Arabic fonts (Cairo + Tajawal) — no external CDN, offline-safe -->
     {{ stylesheets('base') }}
 
@@ -53,7 +53,7 @@
     })();
     </script>
     <link rel="icon" href="{{ ui.favicon_url if ui else url_for('static', filename='favicon/favicon.ico') }}" type="image/png">
-    
+
     {% block extra_css %}{% endblock %}
 </head>
 <body class="clinical-theme{% if current_user.is_authenticated %} has-mobile-nav{% endif %}">
@@ -74,13 +74,13 @@
     {% endif %}
     <div class="main-layout">
         {% include 'partials/_sidebar_dynamic.html' %}
-        
+
         <main class="main-container" id="mainContent">
             {% include 'partials/_breadcrumbs.html' %}
             {% block content %}{% endblock %}
         </main>
     </div>
-    
+
     <!-- Toast container for JS-rendered notifications -->
     <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
     {% include 'partials/_footer.html' %}

@@ -6,9 +6,6 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
 }
 
-var __M = window.__M || [];
-window.__M0__
-
 // The templates set the chart payload on window.__M0__ (a bare global); the
 // #acc-chart-data json-script element does not exist on those pages. Prefer it, and fall
 // back to the element for pages that still ship it.

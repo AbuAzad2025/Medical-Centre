@@ -1,5 +1,5 @@
-var __M = window.__M || [];
-document.getElementById('visitSummaryForm').addEventListener('submit', function(e) {
+// Optional chaining keeps this page script safe if the form is not rendered.
+document.getElementById('visitSummaryForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);

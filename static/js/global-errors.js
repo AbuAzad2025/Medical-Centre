@@ -83,6 +83,8 @@ export function showEntitlementLock(payload) {
     || 'هذه الميزة غير مفعّلة في باقتك الحالية. تواصل مع مدير المنشأة للترقية.';
   var capability = (payload && (payload.capability_key || payload.capability)) || '';
   var upgradeUrl = (payload && (payload.upgrade_url || payload.upgradeUrl)) || '';
+  // Validate once and reuse: an unsafe value must never reach an href attribute.
+  var upgradeHref = safeSameOriginUrl(upgradeUrl);
 
   var overlay = document.createElement('div');
   overlay.className = 'entitlement-lock-overlay';
@@ -95,8 +97,8 @@ export function showEntitlementLock(payload) {
     '<div class="entitlement-lock-screen__icon" aria-hidden="true"><i class="fas fa-lock"></i></div>' +
     '<h5 class="mb-2">' + esc(String(title)) + '</h5>' +
     '<p class="text-muted mb-3">' + esc(String(message)) + '</p>' +
-    (safeSameOriginUrl(upgradeUrl)
-      ? '<a href="' + esc(safeSameOriginUrl(upgradeUrl)) + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
+    (upgradeHref
+      ? '<a href="' + esc(upgradeHref) + '" class="btn btn-primary btn-sm">ترقية الباقة</a>'
       : '<button type="button" class="btn btn-secondary btn-sm" data-dismiss-lock>إغلاق</button>') +
     '</div>';
   document.body.appendChild(overlay);

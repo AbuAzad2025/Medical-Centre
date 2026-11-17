@@ -1,7 +1,10 @@
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
+// Backup console. All actions resolve their URL from window.API_ROUTES first,
+// falling back to the literal routes below, and attach the meta CSRF token.
+
 export function createBackup(e) {
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية للنظام؟',
@@ -39,7 +42,7 @@ export function createBackup(e) {
 }
 
 export function scheduleBackup() {
-    var scheduleUrl = (window.API_ROUTES && window.API_ROUTES.backup_schedule) || '/super-admin/backup/schedule';
+    const scheduleUrl = (window.API_ROUTES && window.API_ROUTES.backup_schedule) || '/super-admin/backup/schedule';
     Swal.showLoading();
     fetch(scheduleUrl, { credentials: 'same-origin' })
         .then(r => {
@@ -114,7 +117,7 @@ export function scheduleBackup() {
 }
 
 export function createFullBackup(e) {
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية كاملة؟ قد يستغرق هذا بعض الوقت.',
@@ -153,7 +156,7 @@ export function createFullBackup(e) {
 }
 
 export function createIncrementalBackup(e) {
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية تدريجية (قاعدة البيانات فقط)؟',
@@ -192,7 +195,7 @@ export function createIncrementalBackup(e) {
 }
 
 export function createDatabaseBackup(e) {
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية لقاعدة البيانات فقط؟',
@@ -231,7 +234,7 @@ export function createDatabaseBackup(e) {
 }
 
 export function createFilesBackup(e) {
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
     Swal.fire({
         title: 'تأكيد',
         text: 'هل تريد إنشاء نسخة احتياطية للملفات فقط؟',
@@ -288,7 +291,7 @@ export function filterBackups(status, e) {
 }
 
 export function restoreBackup(backupId) {
-    var restoreUrl = ((window.API_ROUTES && window.API_ROUTES.restore_backup) || '/super-admin/backup/restore/0').replace('/0', '/' + backupId);
+    const restoreUrl = ((window.API_ROUTES && window.API_ROUTES.restore_backup) || '/super-admin/backup/restore/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'تأكيد الاستعادة',
         text: 'سيتم استبدال البيانات الحالية. هل تريد المتابعة؟',
@@ -323,7 +326,7 @@ export function restoreBackup(backupId) {
 }
 
 export function deleteBackup(backupId) {
-    var deleteUrl = ((window.API_ROUTES && window.API_ROUTES.delete_backup) || '/super-admin/backup/delete/0').replace('/0', '/' + backupId);
+    const deleteUrl = ((window.API_ROUTES && window.API_ROUTES.delete_backup) || '/super-admin/backup/delete/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'حذف النسخة',
         text: 'هل تريد حذف هذه النسخة نهائياً؟',
@@ -358,7 +361,7 @@ export function deleteBackup(backupId) {
 }
 
 export function cancelBackup(backupId) {
-    var cancelUrl = ((window.API_ROUTES && window.API_ROUTES.cancel_backup) || '/super-admin/backup/cancel/0').replace('/0', '/' + backupId);
+    const cancelUrl = ((window.API_ROUTES && window.API_ROUTES.cancel_backup) || '/super-admin/backup/cancel/0').replace('/0', '/' + backupId);
     Swal.fire({
         title: 'إلغاء النسخ',
         text: 'هل تريد إلغاء عملية النسخ الاحتياطي؟ (سيتم وضع علامة "ملغى")',
@@ -397,7 +400,7 @@ export function retryBackup(type) {
     if (type === 'incremental' || type === 'INCREMENTAL') reqType = 'incremental';
     else if (type === 'differential' || type === 'DIFFERENTIAL') reqType = 'database';
 
-    var createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
+    const createUrl = (window.API_ROUTES && window.API_ROUTES.create_backup) || '/super-admin/backup/create';
 
     Swal.fire({
         title: 'تأكيد إعادة المحاولة',
@@ -440,7 +443,7 @@ export function retryBackup(type) {
 }
 
 export function saveBackupSettings() {
-    var settingsUrl = (window.API_ROUTES && window.API_ROUTES.save_backup_settings) || '/super-admin/backup/settings';
+    const settingsUrl = (window.API_ROUTES && window.API_ROUTES.save_backup_settings) || '/super-admin/backup/settings';
     Swal.fire({
         title: 'حفظ الإعدادات',
         text: 'هل تريد حفظ إعدادات النسخ الاحتياطي؟',
@@ -491,7 +494,7 @@ export function exportBackupLogs() {
 }
 
 export function viewBackupHistory() {
-    var historyUrl = (window.API_ROUTES && window.API_ROUTES.backup_history) || '/super-admin/backup/history';
+    const historyUrl = (window.API_ROUTES && window.API_ROUTES.backup_history) || '/super-admin/backup/history';
     Swal.showLoading();
     fetch(historyUrl, { credentials: 'same-origin' })
     .then(r => {

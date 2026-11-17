@@ -231,13 +231,13 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='vendor/chartjs/chart.umd.min.js') }}"></script>
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__={{ {
+    window.__M = window.__M || [];
+    __M0__={{ {
   'spark': [stats.today_requests or 0, stats.completed_today or 0, stats.pending_requests or 0, stats.requested_count or 0],
   'equipment': [stats.equipment_status.operational or 0, stats.equipment_status.maintenance or 0],
   'mainData': [stats.requested_count or 0, stats.in_progress_count or 0, stats.done_today_count or 0, stats.predictive_insights.weekly_requests or 0, stats.predictive_insights.monthly_requests or 0]
 }|tojson }};
-        </script>
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/radiology/dashboard_new.js') }}"></script>
 
 {% endblock %}

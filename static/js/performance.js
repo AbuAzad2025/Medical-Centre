@@ -189,12 +189,12 @@ class OptimizedSearch {
     displayResults(results) {
         if (this.results) {
             this.results.innerHTML = '';
-            results.forEach(function(result) {
+            results.forEach((result) => {
                 var div = document.createElement('div');
                 div.className = 'search-result';
                 div.textContent = result;
                 this.results.appendChild(div);
-            }.bind(this));
+            });
         }
     }
 

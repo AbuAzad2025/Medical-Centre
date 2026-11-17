@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 (function () {
             const testNameEl = document.getElementById('test_name');
             const bodyPartEl = document.getElementById('body_part');

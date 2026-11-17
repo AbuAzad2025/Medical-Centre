@@ -1,5 +1,7 @@
 var __M = window.__M || [];
 
+// Local copy (also present in view_appointment.js) keeps this page safe even
+// when loaded without the shared base.js bundle.
 export function getCsrfToken() {
     const el = document.querySelector('input[name="csrf_token"]') || document.querySelector('meta[name="csrf-token"]');
     return el ? (el.value || el.content || '') : '';

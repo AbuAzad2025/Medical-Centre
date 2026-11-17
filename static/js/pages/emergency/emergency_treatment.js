@@ -1,5 +1,4 @@
-var __M = window.__M || [];
-document.getElementById('emergencyTreatmentForm').addEventListener('submit', function(e) {
+document.getElementById('emergencyTreatmentForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);

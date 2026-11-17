@@ -35,8 +35,9 @@ export function initEventDelegation() {
         location.reload();
         return;
       case 'close-modal': {
+        // Kiosk/login shells may not load the Bootstrap bundle; do not throw.
         const m = el.closest('.modal');
-        if (m) {
+        if (m && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
           const bs = bootstrap.Modal.getInstance(m);
           if (bs) bs.hide();
         }

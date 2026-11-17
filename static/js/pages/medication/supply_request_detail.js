@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const csrfToken = window.__M0__;
 document.getElementById('approveBtn')?.addEventListener('click', async () => {
   try {

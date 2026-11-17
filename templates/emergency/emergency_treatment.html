@@ -214,8 +214,8 @@
 </div>
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__='{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}'; __M1__='{{ url_for("emergency.emergency_visits") }}';
-        </script>
+    window.__M = window.__M || [];
+    __M0__='{{ url_for("emergency.emergency_treatment", visit_id=visit.id) }}'; __M1__='{{ url_for("emergency.emergency_visits") }}';
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/emergency/emergency_treatment.js') }}"></script>
 {% endblock %}

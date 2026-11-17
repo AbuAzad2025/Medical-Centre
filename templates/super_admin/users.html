@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 
 {% block title %}إدارة المستخدمين والأدوار - السوبر أدمن{% endblock %}
 
@@ -24,7 +25,7 @@
                                     {{ _(_('إضافة مستخدم')) }}
                                 </a>
                                 <form method="POST" action="{{ url_for('super_admin.seed_users') }}" class="d-inline">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {{ csrf() }}
                                     <input type="hidden" name="per_role" value="1">
                                     <input type="hidden" name="default_password" value="">
                                     <button type="submit" class="btn btn-warning btn-lg">
@@ -57,7 +58,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('super_admin.edit_user', user_id=user.id) }}" id="editUserForm">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf() }}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -249,7 +250,7 @@
                                                 {% if user.is_active %}
                                                     <form method="post" action="{{ url_for('super_admin.ban_user', user_id=user.id) }}" class="d-inline"
                                                           data-action="confirm-submit" data-message="هل تريد حظر هذا المستخدم؟">
-                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        {{ csrf() }}
                                                         <button type="submit" class="btn btn-warning" title="حظر المستخدم">
                                                             <i class="fas fa-ban"></i>
                                                             <span class="btn-label">{{ _('منع') }}</span>
@@ -258,7 +259,7 @@
                                                 {% else %}
                                                     <form method="post" action="{{ url_for('super_admin.unban_user', user_id=user.id) }}" class="d-inline"
                                                           data-action="confirm-submit" data-message="هل تريد إلغاء حظر هذا المستخدم؟">
-                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        {{ csrf() }}
                                                         <button type="submit" class="btn btn-success" title="إلغاء الحظر">
                                                             <i class="fas fa-check-circle"></i>
                                                             <span class="btn-label">{{ _('تأكيد') }}</span>
@@ -269,7 +270,7 @@
                                                 <!-- فرض تسجيل خروج -->
                                                 <form method="post" action="{{ url_for('super_admin.force_logout_user', user_id=user.id) }}" class="d-inline"
                                                       data-action="confirm-submit" data-message="هل تريد إجبار هذا المستخدم على تسجيل الخروج؟">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    {{ csrf() }}
                                                     <button type="submit" class="btn btn-info" title="فرض تسجيل الخروج">
                                                         <i class="fas fa-sign-out-alt"></i>
                                                         <span class="btn-label">{{ _('خروج') }}</span>

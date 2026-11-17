@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 function notifyErr(msg) {
   if (window.showToast) window.showToast(msg || 'حدث خطأ', 'error');
   else console.warn('[doctor-page]', msg);
@@ -14,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const q = (this.value || '').trim();
       if (q.length < 2) { if (list) { list.style.display = 'none'; list.innerHTML=''; } return; }
       to = setTimeout(() => {
+        // The results container is optional on layouts without live search.
+        if (!list) return;
         fetch(window.__M0__ + '?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
           .then(r => {
             if (!r.ok) throw new Error(r.status);

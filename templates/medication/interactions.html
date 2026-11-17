@@ -103,8 +103,8 @@
 </div>
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__='{{ csrf_token() }}';
-        </script>
+    window.__M = window.__M || [];
+    __M0__='{{ csrf_token() }}';
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/medication/interactions.js') }}"></script>
 {% endblock %}

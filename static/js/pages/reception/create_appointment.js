@@ -138,6 +138,8 @@ if (appointmentTypeEl) appointmentTypeEl.addEventListener('change', loadDoctors)
 const departmentIdEl = document.getElementById('department_id');
 if (departmentIdEl) departmentIdEl.addEventListener('change', loadDoctors);
 
+// The doctor and date 'change' handlers below both load the available-times
+// endpoint; whichever input the user changes last drives the time dropdown.
 const doctorIdEl = document.getElementById('doctor_id');
 if (doctorIdEl) {
     doctorIdEl.addEventListener('change', function() {

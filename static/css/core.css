@@ -2,10 +2,6 @@
  * core.css — الرموز التصميمية والقاعدة والطباعة والأدوات المساعدة
  */
 
-/* ── Google Fonts ── */
-
-
-
 /* ── Design Tokens ── */
 
 :root {
@@ -349,8 +345,6 @@ img {
 /* Font weights */
 .font-bold { font-weight: 700; }
 
-/* Line heights */
-
 /* Font families */
 .arabic-text { font-family: var(--font-primary); text-align: right; direction: rtl; }
 .arabic-heading { font-family: var(--font-heading); font-weight: 700; }
@@ -477,10 +471,6 @@ img {
 .opacity-25 { opacity: 0.25; }
 .opacity-50 { opacity: 0.5; }
 .opacity-75 { opacity: 0.75; }
-
-/* Visibility */
-
-/* Screen reader only */
 
 /* Glass effect */
 

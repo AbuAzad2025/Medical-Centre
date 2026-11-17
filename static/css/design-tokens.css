@@ -5,7 +5,7 @@
  */
 
 :root {
-  /* Primary palette — fallback only; tenant branding overrides via \3c style id="tenant-branding-vars"> */
+  /* Primary palette — fallback only; tenant branding overrides via the inline #tenant-branding-vars style block */
   --color-primary: #0f4c81;
   --color-primary-light: #e8f2fa;
   --color-primary-dark: #0a365a;
@@ -57,8 +57,6 @@
 
   /* Focus ring — accessibility */
   --focus-ring: 0 0 0 3px rgb(15 76 129 / 0.18);
-  --focus-ring-offset: 2px;
-  --focus-ring-color: rgb(15 76 129 / 0.18);
 
   /* Layout */
   --sidebar-width: 260px;

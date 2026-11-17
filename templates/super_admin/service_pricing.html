@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 
 {% block title %}إدارة تسعير - {{ service.name }}{% endblock %}
 
@@ -71,7 +72,7 @@
                                 </div>
                                 <div class="card-body">
                                     <form method="POST">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        {{ csrf() }}
                                         
                                         <div class="mb-3">
                                             <label for="price_type" class="form-label">{{ _(_('نوع التسعير')) }}</label>

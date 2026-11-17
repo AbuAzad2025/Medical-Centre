@@ -1,5 +1,8 @@
 var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
+// __M0__ (load) and __M1__ (save) are endpoint URLs injected by
+// queue_settings.html; the save POST carries the meta CSRF token explicitly.
 const tbody = document.getElementById('queueSettingsBody');
 const saveBtn = document.getElementById('saveQueueSettingsBtn');
 

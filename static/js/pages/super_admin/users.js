@@ -1,6 +1,9 @@
 var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 
+// Super-admin users list helpers. Every mutating request carries the meta CSRF
+// token; the '/0' route placeholders let window.API_ROUTES override the fallback.
+
 export function swalInfo(message) {
     Swal.fire({
         title: 'معلومة',

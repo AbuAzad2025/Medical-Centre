@@ -14,11 +14,8 @@
 
 .main-container {
   flex: 1;
-  padding: 2rem;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
-
-
 
 .page-header h2, .page-header h3, .page-header h1 {
   margin: 0;
@@ -65,16 +62,6 @@
    SIDEBAR
    ═══════════════════════════════════════════════ */
 
-
-
-
-
-
-
-
-
-
-
 /* Sidebar overlay (mobile) */
 
 .sidebar-overlay {
@@ -104,7 +91,6 @@
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
 /* ── Main content padding — consistent across all pages ── */
 
 .main-container {
@@ -124,17 +110,9 @@
   }
 }
 
-
-
 /* ═══════════════════════════════════════════════
    NAVBAR / TOPBAR
    ═══════════════════════════════════════════════ */
-
-
-
-
-
-
 
 /* ═══════════════════════════════════════════════
    FLASH MESSAGES
@@ -268,9 +246,8 @@
   }
 
   /* Mobile sidebar */
-  
-  
-    body.sidebar-open {
+
+  body.sidebar-open {
     overflow: hidden;
     touch-action: none;
   }
@@ -299,8 +276,6 @@
   .stats-card h3 {
     font-size: 1.75rem;
   }
-
-  
 }
 
 /* Medium devices / tablets (768px - 991px) */
@@ -310,7 +285,7 @@
     padding: 1.5rem;
   }
 
-    .stats-card h3 {
+  .stats-card h3 {
     font-size: 2rem;
   }
 
@@ -326,7 +301,7 @@
     padding: 2rem;
   }
 
-    .stats-card h3 {
+  .stats-card h3 {
     font-size: 2.25rem;
   }
 
@@ -342,7 +317,7 @@
     padding: 2.5rem;
   }
 
-    .stats-card h3 {
+  .stats-card h3 {
     font-size: 2.5rem;
   }
 
@@ -358,7 +333,7 @@
     padding: 3rem;
   }
 
-    .stats-card h3 {
+  .stats-card h3 {
     font-size: 3rem;
   }
 
@@ -366,8 +341,6 @@
     max-width: 800px;
   }
 }
-
-
 
 /* Stats grid */
 
@@ -378,13 +351,7 @@
   margin-bottom: 2rem;
 }
 
-
-
-
 /* Responsive utilities */
-
-
-
 
 /* ═══════════════════════════════════════════════
    TOUCH DEVICE OPTIMIZATIONS
@@ -457,8 +424,6 @@ input, select, textarea {
   .card-body {
     padding: 0.75rem;
   }
-
-  
 }
 
 /* High DPI */

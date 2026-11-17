@@ -121,6 +121,7 @@ if (logoFileEl) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const logoPreview = document.querySelector('.logo-preview');
+                if (!logoPreview) return;
                 logoPreview.innerHTML = `<img src="${e.target.result}" alt="الشعار" class="img-thumbnail" style="max-height: 100px;">`;
             };
             reader.readAsDataURL(file);

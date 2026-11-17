@@ -7,15 +7,21 @@
   }
   window.escHtml = window.escHtml || escHtml;
 
+    // Read the token once at load time. The header name matches Flask-WTF's
+    // WTF_CSRF_HEADERS ('X-CSRFToken'), so the server accepts it on any unsafe method.
     const token = (document.querySelector('meta[name="csrf-token"]') || {}).content;
     if (!token || !window.fetch) return;
+    // Bind before replacing: otherwise the wrapper would recurse into itself.
     const originalFetch = window.fetch.bind(window);
     window.__apiMetrics = { calls: 0, time: 0 };
     window.fetch = function(input, init) {
         const start = performance.now();
         init = init || {};
         const method = (init.method || 'GET').toUpperCase();
+        // GET/HEAD are safe methods and need no CSRF header.
         if (method !== 'GET' && method !== 'HEAD') {
+            // Clone into a Headers instance so the caller's object is never mutated.
+            // Both spellings are checked: callers may already supply either one.
             const headers = new Headers(init.headers || {});
             if (!headers.has('X-CSRFToken') && !headers.has('X-CSRF-Token')) {
                 headers.set('X-CSRFToken', token);
@@ -29,6 +35,9 @@
             return response;
         });
     };
+    // global-errors.js (loaded before this module) registers the entitlement
+    // wrapper in window.__wrapFetchEntitlement. Apply it last so it observes the
+    // CSRF-injected fetch rather than the raw one.
     if (window.__wrapFetchEntitlement) {
         window.fetch = window.__wrapFetchEntitlement(window.fetch);
     }
@@ -343,6 +352,7 @@ export function initAdvancedTable(tableId) {
         header.addEventListener('click', function() {
             const column = this.dataset.sort;
             const tbody = table.querySelector('tbody');
+            if (!tbody) return; // markup without a tbody has nothing to sort
             const rows = Array.from(tbody.querySelectorAll('tr'));
             const isAsc = this.classList.contains('sort-asc');
             rows.sort((a, b) => {
@@ -393,9 +403,9 @@ export function initAutoSave(formId, interval = 30000) {
 }
 
 export function initPerformanceMonitoring() {
-    window.addEventListener('load', () => {
-        const loadTime = performance.now();
-    });
+    // Legacy no-op hook kept for pages that call it by name. Real page-load
+    // metrics are collected by performance.js's PerformanceMonitor.
+    window.addEventListener('load', () => {});
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -415,13 +425,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const bsPopover = (typeof bootstrap !== 'undefined') && bootstrap.Popover;
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     if (bsTooltip) {
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
             return new bsTooltip(tooltipTriggerEl);
         });
     }
     const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
     if (bsPopover) {
-        popoverTriggerList.map(function (popoverTriggerEl) {
+        popoverTriggerList.forEach(function (popoverTriggerEl) {
             return new bsPopover(popoverTriggerEl);
         });
     }
@@ -437,12 +447,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (isPlaceholder || isToggle) {
                 a.addEventListener('click', function(e){ e.preventDefault(); });
-            }
-            if (window.__ENV !== 'production' && isPlaceholder && !isToggle && !a.getAttribute('onclick')){
-                try {
-                    var label = (a.textContent || a.getAttribute('aria-label') || '').trim();
-                    if (label) {}
-                } catch (e) {}
             }
         });
     }

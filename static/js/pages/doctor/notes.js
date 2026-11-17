@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const noteTextEl = document.getElementById('medical_notes');
 const tplSelectEl = document.getElementById('note_template_select');
 const applyTplBtn = document.getElementById('apply_note_template_btn');

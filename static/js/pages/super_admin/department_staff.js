@@ -4,7 +4,9 @@ const addStaffFormEl = document.getElementById('addStaffForm');
 if (addStaffFormEl) {
     addStaffFormEl.addEventListener('submit', function(e) {
         e.preventDefault();
-        const userId = document.getElementById('user_id').value;
+        const userIdEl = document.getElementById('user_id');
+        if (!userIdEl) return;
+        const userId = userIdEl.value;
         
         fetch((window.API_ROUTES && window.API_ROUTES.add_department_staff) ? window.API_ROUTES.add_department_staff.replace('/0', '/' + window.__M0__) : `/super-admin/department-staff/${window.__M0__}/add`, {
             method: 'POST',

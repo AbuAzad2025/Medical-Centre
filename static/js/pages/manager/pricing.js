@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 let serviceModal;
 
 document.addEventListener('DOMContentLoaded', function() {

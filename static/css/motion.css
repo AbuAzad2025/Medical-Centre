@@ -1,13 +1,5 @@
 /* نظام الحركة — §22 */
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-in,
-  .fade-enter {
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
 .animate-in {
   will-change: transform, opacity;
 }
@@ -41,7 +33,15 @@
   100% { background-position: -200% 0; }
 }
 
+/* Reduced motion */
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .fade-enter {
+    transition: none !important;
+    animation: none !important;
+  }
+
   .skeleton {
     animation: none;
   }

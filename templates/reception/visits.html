@@ -11,6 +11,21 @@
 
 {% block content %}
 <div class="container-fluid">
+    {# Shared by the detail panel and the list table below. #}
+    {% macro visit_status_badge(visit) %}
+    {% if visit.status == 'OPEN' %}
+    <span class="badge bg-primary">{{ _(_('مفتوحة')) }}</span>
+    {% elif visit.status == 'IN_PROGRESS' %}
+    <span class="badge bg-warning">{{ _(_('قيد التنفيذ')) }}</span>
+    {% elif visit.status == 'COMPLETED' %}
+    <span class="badge bg-success">{{ _(_('مكتملة')) }}</span>
+    {% elif visit.status == 'ARCHIVED' %}
+    <span class="badge bg-secondary">{{ _(_('مؤرشفة')) }}</span>
+    {% else %}
+    <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
+    {% endif %}
+    {% endmacro %}
+
     {% set visit_header_actions = [
         {'type': 'button', 'label': _('تصدير'), 'icon': 'fas fa-download', 'style': 'success', 'data_action': 'export-visits'}
     ] %}
@@ -73,8 +88,7 @@
                             <div class="text-muted">{{ visit.created_at|format_time }}</div>
                             {% if visit.created_by %}
                             <div class="text-muted small mt-1">
-                                <i class="fas fa-user me-1"></i>موظف #{{
-                                visit.created_by if visit.created_by else '-' }}
+                                <i class="fas fa-user me-1"></i>موظف #{{ visit.created_by if visit.created_by else '-' }}
                             </div>
                             {% endif %}
                         </div>
@@ -93,17 +107,7 @@
                         <div class="col-md-3">
                             <div class="fw-bold">{{ _(_('حالة الزيارة')) }}</div>
                             <div>
-                                {% if visit.status == 'OPEN' %}
-                                <span class="badge bg-primary">{{ _(_('مفتوحة')) }}</span>
-                                {% elif visit.status == 'IN_PROGRESS' %}
-                                <span class="badge bg-warning">{{ _(_('قيد التنفيذ')) }}</span>
-                                {% elif visit.status == 'COMPLETED' %}
-                                <span class="badge bg-success">{{ _(_('مكتملة')) }}</span>
-                                {% elif visit.status == 'ARCHIVED' %}
-                                <span class="badge bg-secondary">{{ _(_('مؤرشفة')) }}</span>
-                                {% else %}
-                                <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
-                                {% endif %}
+                                {{ visit_status_badge(visit) }}
                             </div>
                         </div>
                     </div>
@@ -270,17 +274,7 @@
                                         {{ payment_status_badge(visit) }}
                                     </td>
                                     <td>
-                                        {% if visit.status == 'OPEN' %}
-                                        <span class="badge bg-primary">{{ _(_('مفتوحة')) }}</span>
-                                        {% elif visit.status == 'IN_PROGRESS' %}
-                                        <span class="badge bg-warning">{{ _(_('قيد التنفيذ')) }}</span>
-                                        {% elif visit.status == 'COMPLETED' %}
-                                        <span class="badge bg-success">{{ _(_('مكتملة')) }}</span>
-                                        {% elif visit.status == 'ARCHIVED' %}
-                                        <span class="badge bg-secondary">{{ _(_('مؤرشفة')) }}</span>
-                                        {% else %}
-                                        <span class="badge bg-light text-dark">{{ visit.status | enum_label('VisitState') }}</span>
-                                        {% endif %}
+                                        {{ visit_status_badge(visit) }}
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">

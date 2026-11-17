@@ -1,5 +1,4 @@
-var __M = window.__M || [];
-document.getElementById('triageForm').addEventListener('submit', function(e) {
+document.getElementById('triageForm')?.addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);

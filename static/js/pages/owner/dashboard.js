@@ -8,10 +8,10 @@ if (typeof Chart !== 'undefined') {
 }
 
 var __M = window.__M || [];
-window.__M0__
 
-    const chartDataEl = document.getElementById('chart-data');
-    if (chartDataEl && typeof Chart !== 'undefined') {
+// Chart series are injected by the server as JSON in #chart-data.
+const chartDataEl = document.getElementById('chart-data');
+if (chartDataEl && typeof Chart !== 'undefined') {
     const chartData = JSON.parse(chartDataEl.textContent);
     const months = chartData.months;
     const tenantGrowth = chartData.tenantGrowth;
@@ -109,6 +109,6 @@ window.__M0__
     sparkline('sparkMRR', mrrTrend, '#198754');
     sparkline('sparkChurn', chartData.churnSpark, '#dc3545');
     sparkline('sparkUsers', chartData.userSpark, '#0dcaf0');
-    }
+}
 
 export {};

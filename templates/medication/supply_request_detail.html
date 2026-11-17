@@ -66,8 +66,8 @@
 </div>
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__='{{ csrf_token() }}'; __M1__='{{ url_for("medication.approve_supply_request", request_id=req.id) }}';
-        </script>
+    window.__M = window.__M || [];
+    __M0__='{{ csrf_token() }}'; __M1__='{{ url_for("medication.approve_supply_request", request_id=req.id) }}';
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/medication/supply_request_detail.js') }}"></script>
 {% endblock %}

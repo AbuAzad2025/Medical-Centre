@@ -21,7 +21,8 @@ export function validateValue(ruleKey, value) {
 }
 
 export function setFieldState(input, message) {
-  const feedback = input.parentElement.querySelector('.invalid-feedback')
+  // A detached input has no parent; fall back to the document-level lookup.
+  const feedback = (input.parentElement && input.parentElement.querySelector('.invalid-feedback'))
     || document.querySelector(`[data-error-for="${input.name || input.id}"]`);
   if (message) {
     input.classList.add('is-invalid');

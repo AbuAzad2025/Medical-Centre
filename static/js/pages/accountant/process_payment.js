@@ -1,8 +1,6 @@
-var __M = window.__M || [];
 const baseCurrency = window.__M0__;
   const currencySelect = document.getElementById('paymentCurrencySelect');
   const rateInfo = document.getElementById('exchangeRateInfo');
-  const remainingDisplay = document.getElementById('remainingDisplay');
   const baseLabel = document.getElementById('baseCurrencyLabel');
 
   async function checkRate() {

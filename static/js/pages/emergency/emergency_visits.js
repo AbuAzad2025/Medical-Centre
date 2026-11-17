@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const __csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
 
 export function startTreatment(visitId) {

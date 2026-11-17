@@ -1,4 +1,14 @@
-var __M = window.__M || [];
+// Shared mapping of unit key -> stat field used by the monitoring payload.
+// Keeping one copy avoids the three previously duplicated definitions drifting apart.
+const UNIT_COUNT_COLUMN = {
+    reception: 'pending_visits',
+    doctor: 'in_progress_visits',
+    emergency: 'emergency_visits',
+    lab: 'lab_requests',
+    radiology: 'radiology_requests',
+    accountant: 'open_invoices',
+};
+
 export function refreshMonitoring() {
     location.reload();
 }
@@ -11,16 +21,8 @@ export function exportMonitoringReport() {
     const rows = [
         ['الوحدة', 'الحجم'],
     ];
-    const countColumn = {
-        reception: 'pending_visits',
-        doctor: 'in_progress_visits',
-        emergency: 'emergency_visits',
-        lab: 'lab_requests',
-        radiology: 'radiology_requests',
-        accountant: 'open_invoices',
-    };
     Object.keys(units).forEach(key => {
-        const col = countColumn[key];
+        const col = UNIT_COUNT_COLUMN[key];
         const val = col && units[key] ? units[key][col] : '';
         rows.push([(units[key] && units[key].name) || key, val]);
     });
@@ -50,20 +52,13 @@ export function viewUnitDetails(unitKey) {
         Swal.fire({ title: 'تفاصيل الوحدة', text: 'لا توجد بيانات لهذه الوحدة', icon: 'info' });
         return;
     }
-    const countColumn = {
-        reception: 'pending_visits',
-        doctor: 'in_progress_visits',
-        emergency: 'emergency_visits',
-        lab: 'lab_requests',
-        radiology: 'radiology_requests',
-        accountant: 'open_invoices',
-    };
-    const col = countColumn[unitKey];
+    const col = UNIT_COUNT_COLUMN[unitKey];
     const val = col ? unit[col] : '-';
     Swal.fire({
         title: unit.name || unitKey,
+        // Swal `html` is rendered as markup: escape the API-provided value.
         html: '<p class="text-start mb-1">الحالة: ' + (unit.status === 'active' ? 'نشطة' : 'معطّلة') + '</p>'
-            + '<p class="text-start mb-0">القيمة الحالية: <strong>' + val + '</strong></p>',
+            + '<p class="text-start mb-0">القيمة الحالية: <strong>' + window.escHtml(val) + '</strong></p>',
         icon: 'info',
     });
 }
@@ -73,17 +68,9 @@ export function refreshUnit() {
 }
 
 export function updateUnitStatus(unitsStatus) {
-    const map = {
-        reception: 'pending_visits',
-        doctor: 'in_progress_visits',
-        emergency: 'emergency_visits',
-        lab: 'lab_requests',
-        radiology: 'radiology_requests',
-        accountant: 'open_invoices'
-    };
     Object.keys(unitsStatus).forEach(unitKey => {
         const unit = unitsStatus[unitKey];
-        const statProp = map[unitKey];
+        const statProp = UNIT_COUNT_COLUMN[unitKey];
         const statEl = document.getElementById(`stat-${unitKey}-${statProp}`);
         if (statEl) {
             statEl.textContent = unit[statProp] ?? 0;

@@ -4,6 +4,7 @@ if (searchInputEl) {
     searchInputEl.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
         const table = document.getElementById('servicesTable');
+        if (!table) return;
         const rows = table.getElementsByTagName('tr');
         
         for (let i = 1; i < rows.length; i++) {

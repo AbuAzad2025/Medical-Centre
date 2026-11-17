@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const STATES = window.__M0__;
 let selectedFdi = null;
 let teethData = window.__M1__;
@@ -35,7 +34,7 @@ export function updateSvgTooth(fdi, state) {
     const rect = group.querySelector('rect');
     const dot = group.querySelector('circle');
     const color = STATES[state]?.color || '#10b981';
-    rect.setAttribute('fill', color);
+    if (rect) rect.setAttribute('fill', color);
     if (state === 'sound') {
         if (dot) dot.remove();
     } else {

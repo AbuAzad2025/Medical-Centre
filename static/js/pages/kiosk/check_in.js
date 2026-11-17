@@ -22,6 +22,8 @@ export function doCheckIn() {
   }
   submit.disabled = true;
   var endpoint = submit.dataset.apiUrl || '/kiosk/api/check-in';
+  // CSRF is added by the global base.js fetch wrapper, which injects
+  // X-CSRFToken on every non-GET request when the meta token is present.
   fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

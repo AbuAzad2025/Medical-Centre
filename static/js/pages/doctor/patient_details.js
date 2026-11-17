@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 document.addEventListener('keydown', function(e) {
     if (e.target && ['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
     if (e.altKey && e.key === '1') document.getElementById('diagnosis-tab')?.click();

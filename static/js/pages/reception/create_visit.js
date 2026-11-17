@@ -5,10 +5,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const selectedPatientInfo = document.getElementById('selectedPatientInfo');
     const addNewPatientBtn = document.getElementById('addNewPatientBtn');
 
-    var prePid = window.window.__M0__;
-    var preDept = window.window.__M1__;
-    var preDoc = window.window.__M2__;
-    var PRESELECTED_PATIENT = window.window.__M3__;
+    // Values injected by the server template (the window.__M* constants).
+    // `window.window` is just a self-reference to `window`; use it directly.
+    var prePid = window.__M0__;
+    var preDept = window.__M1__;
+    var preDoc = window.__M2__;
+    var PRESELECTED_PATIENT = window.__M3__;
     if (PRESELECTED_PATIENT) {
         (function initPreselectedPatient(){
             selectedPatientId.value = PRESELECTED_PATIENT.id;

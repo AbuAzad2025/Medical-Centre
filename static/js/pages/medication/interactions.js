@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const csrfToken = window.__M0__;
 export async function toggleInteraction(id) {
   try {

@@ -10,6 +10,11 @@ export function getCsrfToken() {
     return meta ? meta.getAttribute('content') : '';
 }
 
+// Mutating requests below send CSRF twice on purpose: as a `csrf_token` body
+// field (for the Django-style form endpoints) and as an X-CSRFToken header.
+// The global base.js fetch wrapper would add the header for us, but keeping it
+// explicit makes these handlers safe on pages where that wrapper is absent.
+
 export function updateQueueStatus() {
     const params = new URLSearchParams();
     const dep = document.getElementById('filterDepartment');

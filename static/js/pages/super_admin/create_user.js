@@ -1,7 +1,8 @@
 export function togglePassword(fieldId) {
     const field = document.getElementById(fieldId);
-    const button = field.nextElementSibling;
-    const icon = button.querySelector('i');
+    const button = field && field.nextElementSibling;
+    const icon = button && button.querySelector('i');
+    if (!field || !icon) return;
     
     if (field.type === 'password') {
         field.type = 'text';
@@ -52,23 +53,15 @@ if (passwordEl) {
 }
 
 export function checkPasswordStrength(password) {
+    // Five independent criteria drive the displayed strength bar; the
+    // per-criterion messages used to be collected but never rendered.
     let score = 0;
-    let feedback = [];
-    
+
     if (password.length >= 8) score++;
-    else feedback.push('8 أحرف على الأقل');
-    
     if (/[a-z]/.test(password)) score++;
-    else feedback.push('أحرف صغيرة');
-    
     if (/[A-Z]/.test(password)) score++;
-    else feedback.push('أحرف كبيرة');
-    
     if (/[0-9]/.test(password)) score++;
-    else feedback.push('أرقام');
-    
     if (/[^A-Za-z0-9]/.test(password)) score++;
-    else feedback.push('رموز خاصة');
     
     if (score >= 4) {
         return { percentage: 100, color: 'success', text: 'قوية جداً' };
@@ -98,7 +91,10 @@ if (createUserFormEl) {
 const roleSelect = document.getElementById('role');
 const doctorPricingSection = document.getElementById('doctorPricingSection');
 export function toggleDoctorPricing() {
-    if (doctorPricingSection) doctorPricingSection.style.display = roleSelect.value === 'doctor' ? '' : 'none';
+    // Both elements are optional so this exported helper is safe to call from
+    // pages that do not render the create-user form.
+    if (!doctorPricingSection || !roleSelect) return;
+    doctorPricingSection.style.display = roleSelect.value === 'doctor' ? '' : 'none';
 }
 if (roleSelect) {
     roleSelect.addEventListener('change', toggleDoctorPricing);

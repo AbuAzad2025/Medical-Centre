@@ -3,7 +3,6 @@
     else console.warn('[doctor-page]', msg);
   }
 
-var __M = window.__M || [];
 const dashboardLayoutUrl = window.__M0__;
 const csrfToken = window.__M1__;
 const panelContainer = document.getElementById('doctorPanels');

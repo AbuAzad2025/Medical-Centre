@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
+{% from "macros/forms.html" import csrf %}
 
 {% block title %}{{ _('صيانة النظام') }} - {{ _('السوبر أدمن') }}{% endblock %}
 
@@ -52,7 +53,7 @@
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('super_admin.system_cleanup') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {{ csrf() }}
                 <div class="cleanup-options">
                     <div class="cleanup-item">
                         <div class="cleanup-info">
@@ -138,7 +139,7 @@
         <div class="card-body">
             <div class="cleanup-options">
                 <form method="POST" action="{{ url_for('super_admin.run_notifications') }}" class="cleanup-item">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ csrf() }}
                     <div class="cleanup-info">
                         <h5>
                             <i class="fas fa-paper-plane text-primary"></i>
@@ -152,7 +153,7 @@
                     </button>
                 </form>
                 <form method="POST" action="{{ url_for('super_admin.init_notification_templates') }}" class="cleanup-item">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ csrf() }}
                     <div class="cleanup-info">
                         <h5>
                             <i class="fas fa-file-alt text-secondary"></i>

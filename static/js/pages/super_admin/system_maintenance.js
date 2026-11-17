@@ -97,8 +97,8 @@ export function loadSystemStatus() {
         .then(r => r.json())
         .then(data => {
             if (!el) return;
-            const dbOk = data.database === 'connected';
-            const redisOk = data.redis === 'connected' || data.redis === 'unavailable';
+            // Overall health is decided by the server; DB/Redis details are
+            // only surfaced in the tooltip, so no local status computation.
             const overallOk = data.status === 'healthy';
             el.className = 'badge ' + (overallOk ? 'bg-success' : 'bg-danger');
             el.textContent = overallOk ? 'النظام سليم' : 'النظام يعاني من خلل';

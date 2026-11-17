@@ -1,5 +1,3 @@
-var __M = window.__M || [];
-
 export function printEmergency() {
   window.print();
 }

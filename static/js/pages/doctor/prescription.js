@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const RX_TEMPLATES = window.__M0__;
 
 export function showSafetyModal(alerts, onOverride) {

@@ -19,6 +19,8 @@ export function initCsrfManual() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // Each helper is optional: on minimal shells (kiosk/login/portal) the module
+  // may be absent or throw, so every import is isolated and falls back safely.
   try {
     const m = await import('./csrf.js');
     const fn = m.initCsrf || (m.default && m.default.initCsrf);

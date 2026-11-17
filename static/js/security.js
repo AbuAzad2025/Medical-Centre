@@ -31,6 +31,9 @@ class SecurityManager {
         const activityHandler = () => {
             this.lastActivity = Date.now();
         };
+        // Keep the exact handler reference: removeEventListener only matches the
+        // original function, so destroy() must not pass a fresh callback.
+        this._activityHandler = activityHandler;
         this._activityHandlers = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].map(event => {
             document.addEventListener(event, activityHandler, true);
             return event;
@@ -116,7 +119,7 @@ class SecurityManager {
 
     destroy() {
         this._activityHandlers.forEach(event => {
-            document.removeEventListener(event, () => {}, true);
+            document.removeEventListener(event, this._activityHandler, true);
         });
         if (this._blurHandler) {
             document.removeEventListener('blur', this._blurHandler, true);

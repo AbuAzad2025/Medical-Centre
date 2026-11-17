@@ -1,5 +1,8 @@
 var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
+
+// Settings console. __M0__..__M6__ are URLs injected by system_config.html;
+// every POST below attaches the meta CSRF token explicitly.
 export function saveSettings() {
     const forms = ['generalSettingsForm', 'securitySettingsForm', 'databaseSettingsForm', 'notificationsSettingsForm', 'backupSettingsForm'];
     const settings = {};
@@ -95,11 +98,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (providerSelect) {
         providerSelect.addEventListener('change', function() {
             const twilioSettings = document.getElementById('twilioSettings');
-            if (this.value === 'twilio') {
-                twilioSettings.style.display = 'block';
-            } else {
-                twilioSettings.style.display = 'none';
-            }
+            if (!twilioSettings) return;
+            twilioSettings.style.display = this.value === 'twilio' ? 'block' : 'none';
         });
         if (providerSelect.value === 'twilio') {
             const twilioSettings = document.getElementById('twilioSettings');
@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             if (data.success) {
                 const tbody = document.querySelector('#deptQueueTable tbody');
+                if (!tbody) return;
                 tbody.innerHTML = '';
                 data.items.forEach(item => {
                     const tr = document.createElement('tr');
@@ -200,12 +201,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('#deptQueueTable tbody tr');
             const items = [];
             rows.forEach(row => {
-                const deptId = parseInt(row.querySelector('td[data-id]').getAttribute('data-id'));
-                const maxSize = parseInt(row.querySelector('.dept-max').value || '0');
+                const deptId = parseInt(row.querySelector('td[data-id]').getAttribute('data-id'), 10);
+                const maxSize = parseInt(row.querySelector('.dept-max').value || '0', 10);
                 const paymentRequired = row.querySelector('.dept-required').checked;
                 const emergencyWaived = row.querySelector('.dept-emergency-waived').checked;
                 const forceAllowed = row.querySelector('.dept-force').checked;
-                const avgWait = parseInt(row.querySelector('.dept-avg').value || '0');
+                const avgWait = parseInt(row.querySelector('.dept-avg').value || '0', 10);
                 const allowPartial = row.querySelector('.dept-partial').checked;
                 const allowDebt = row.querySelector('.dept-debt').checked;
                 items.push({ department_id: deptId, max_queue_size: maxSize, payment_required: paymentRequired, emergency_payment_waived: emergencyWaived, force_entry_allowed: forceAllowed, average_wait_time: avgWait, allow_partial_payment: allowPartial, allow_debt: allowDebt });

@@ -174,35 +174,35 @@
                                         </span>
                                     </td>
                                     <td>
-                    {% if backup.started_at and backup.completed_at %}
-                        {% set duration = (backup.completed_at - backup.started_at).total_seconds() %}
-                        {% if duration < 60 %}
-                            {{ duration|int }} ثانية
-                        {% else %}
-                            {{ (duration/60)|int }} دقيقة
-                        {% endif %}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="btn-group" role="group">
-                        <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="تحميل">
-                            <i class="fas fa-download"></i> <span class="btn-label">{{ _('تصدير') }}</span>
-                        </a>
-                        <button class="btn btn-sm btn-outline-info" data-action="restoreBackup" data-value="{{ backup.id }}" title="استعادة">
-                            <i class="fas fa-undo"></i> <span class="btn-label">{{ _('تراجع') }}</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" data-action="deleteBackup" data-value="{{ backup.id }}" title="حذف">
-                            <i class="fas fa-trash"></i> <span class="btn-label">{{ _('حذف') }}</span>
-                        </button>
-                        {% if backup.backup_status == 'FAILED' %}
-                        <button class="btn btn-sm btn-outline-warning" data-action="retryBackup" data-value="{{ backup.backup_type }}" title="إعادة المحاولة">
-                            <i class="fas fa-redo"></i> <span class="btn-label">{{ _('إعادة') }}</span>
-                        </button>
-                        {% endif %}
-                    </div>
-                </td>
+                                        {% if backup.started_at and backup.completed_at %}
+                                            {% set duration = (backup.completed_at - backup.started_at).total_seconds() %}
+                                            {% if duration < 60 %}
+                                                {{ duration|int }} ثانية
+                                            {% else %}
+                                                {{ (duration/60)|int }} دقيقة
+                                            {% endif %}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('backup.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-outline-success" title="تحميل">
+                                                <i class="fas fa-download"></i> <span class="btn-label">{{ _('تصدير') }}</span>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-info" data-action="restoreBackup" data-value="{{ backup.id }}" title="استعادة">
+                                                <i class="fas fa-undo"></i> <span class="btn-label">{{ _('تراجع') }}</span>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="deleteBackup" data-value="{{ backup.id }}" title="حذف">
+                                                <i class="fas fa-trash"></i> <span class="btn-label">{{ _('حذف') }}</span>
+                                            </button>
+                                            {% if backup.backup_status == 'FAILED' %}
+                                                <button class="btn btn-sm btn-outline-warning" data-action="retryBackup" data-value="{{ backup.backup_type }}" title="إعادة المحاولة">
+                                                    <i class="fas fa-redo"></i> <span class="btn-label">{{ _('إعادة') }}</span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% else %}
                                 <tr>

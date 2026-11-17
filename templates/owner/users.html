@@ -172,7 +172,7 @@
                             <form method="post" action="{{ url_for('owner.owner_delete_user', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من حذف {{ u.username }} نهائياً؟');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف"><i class="fas fa-trash"></i></button>
-                            </form
+                            </form>
                             {% endif %}
                         </div>
                     </td>
@@ -315,7 +315,7 @@
                     </div>
                     <div class="owner-form-group">
                         <label class="owner-form-label">{{ _(_('كلمة المرور الجديدة')) }}</label>
-                        <input type="text" name="password" id="resetPwdInput" class="owner-input minlength="6" placeholder="اترك الحقل فارغاً لتوليد كلمة مرور عشوائية">
+                        <input type="text" name="password" id="resetPwdInput" class="owner-input" minlength="6" placeholder="اترك الحقل فارغاً لتوليد كلمة مرور عشوائية">
                         <div class="mt-2 d-flex align-items-center gap-2 text-muted">
                             <i class="fas fa-lightbulb text-warning"></i>
                             <span class="x-small">{{ _(_('سيتم إنشاء كلمة مرور قوية وعشوائية في حال تركت الحقل فارغاً.')) }}</span>

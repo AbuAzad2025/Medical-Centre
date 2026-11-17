@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-.form-container {
+    .form-container {
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
@@ -431,8 +431,8 @@
 
 {% block extra_js %}
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__='{{ url_for("emergency.resolve_emergency_case", id=emergency.id) }}'; __M1__='{{ url_for("emergency.convert_emergency_case", id=emergency.id) }}';
-        </script>
+    window.__M = window.__M || [];
+    __M0__='{{ url_for("emergency.resolve_emergency_case", id=emergency.id) }}'; __M1__='{{ url_for("emergency.convert_emergency_case", id=emergency.id) }}';
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/emergency/edit.js') }}"></script>
 {% endblock %}

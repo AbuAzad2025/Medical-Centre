@@ -6,8 +6,6 @@ if (typeof Chart !== 'undefined') {
   Chart.defaults.font.family = "'Cairo', 'Tajawal', sans-serif";
 }
 
-var __M = window.__M || [];
-
 (function() {
   const el = document.getElementById('rad-chart-data');
   let d = null;

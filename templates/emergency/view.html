@@ -4,7 +4,7 @@
 
 {% block extra_css %}
 <style>
-.detail-card {
+    .detail-card {
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 20px rgba(0,0,0,0.1);
@@ -446,8 +446,8 @@
 
 {% block extra_js %}
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
-        window.__M = window.__M || [];
-        __M0__='{{ url_for('emergency.list_emergency_cases') }}';
-        </script>
+    window.__M = window.__M || [];
+    __M0__='{{ url_for('emergency.list_emergency_cases') }}';
+</script>
 <script type="module" src="{{ url_for('static', filename='js/pages/emergency/view.js') }}"></script>
 {% endblock %}

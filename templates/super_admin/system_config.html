@@ -99,63 +99,63 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="date_format" class="form-label">{{ _(_('تنسيق التاريخ')) }}</label>
-                                    <select class="form-control" id="date_format" name="date_format">
-                                        <option value="dd/mm/yyyy">dd/mm/yyyy</option>
-                                        <option value="mm/dd/yyyy">mm/dd/yyyy</option>
-                                        <option value="yyyy-mm-dd">yyyy-mm-dd</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="allow_partial_payment_global" name="allow_partial_payment_global">
-                                    <label class="form-check-label" for="allow_partial_payment_global">{{ _(_('السماح بالدفع الجزئي (عام)')) }}</label>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="allow_debt_global" name="allow_debt_global">
-                                    <label class="form-check-label" for="allow_debt_global">{{ _(_('السماح بالدين (عام)')) }}</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">{{ _(_('إعدادات الدفع حسب الأقسام')) }}</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped" id="deptQueueTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th>{{ _(_('القسم')) }}</th>
-                                                        <th>{{ _(_('الحجم الأقصى للطابور')) }}</th>
-                                                        <th>{{ _(_('يتطلب دفع')) }}</th>
-                                                        <th>{{ _(_('إعفاء دفع الطوارئ')) }}</th>
-                                                        <th>{{ _(_('السماح بالدخول القوي')) }}</th>
-                                                        <th>{{ _(_('متوسط وقت الانتظار (دقيقة)')) }}</th>
-                                                        <th>{{ _(_('السماح بالدفع الجزئي')) }}</th>
-                                                        <th>{{ _(_('السماح بالدين')) }}</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                            </table>
-                                        </div>
-                                        <div class="text-end">
-                                            <button class="btn btn-primary" id="saveDeptQueueSettings">{{ _(_('حفظ إعدادات الأقسام')) }}</button>
+                                        <div class="mb-3">
+                                            <label for="date_format" class="form-label">{{ _(_('تنسيق التاريخ')) }}</label>
+                                            <select class="form-control" id="date_format" name="date_format">
+                                                <option value="dd/mm/yyyy">dd/mm/yyyy</option>
+                                                <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                                                <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allow_partial_payment_global" name="allow_partial_payment_global">
+                                            <label class="form-check-label" for="allow_partial_payment_global">{{ _(_('السماح بالدفع الجزئي (عام)')) }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="allow_debt_global" name="allow_debt_global">
+                                            <label class="form-check-label" for="allow_debt_global">{{ _(_('السماح بالدين (عام)')) }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">{{ _(_('إعدادات الدفع حسب الأقسام')) }}</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped" id="deptQueueTable">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>{{ _(_('القسم')) }}</th>
+                                                                <th>{{ _(_('الحجم الأقصى للطابور')) }}</th>
+                                                                <th>{{ _(_('يتطلب دفع')) }}</th>
+                                                                <th>{{ _(_('إعفاء دفع الطوارئ')) }}</th>
+                                                                <th>{{ _(_('السماح بالدخول القوي')) }}</th>
+                                                                <th>{{ _(_('متوسط وقت الانتظار (دقيقة)')) }}</th>
+                                                                <th>{{ _(_('السماح بالدفع الجزئي')) }}</th>
+                                                                <th>{{ _(_('السماح بالدين')) }}</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="text-end">
+                                                    <button class="btn btn-primary" id="saveDeptQueueSettings">{{ _(_('حفظ إعدادات الأقسام')) }}</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
                         </div>
 

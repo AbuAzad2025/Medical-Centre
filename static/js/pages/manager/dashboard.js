@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 const csrfToken = (document.querySelector('meta[name="csrf-token"]') || {}).content;
 const runBtn = document.getElementById('runWhatIf');
 if (runBtn) {

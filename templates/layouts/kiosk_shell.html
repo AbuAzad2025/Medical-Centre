@@ -6,7 +6,7 @@
   <meta name="theme-color" content="{{ ui.primary_color if ui else '#0f4c81' }}">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{% block title %}{{ _('كشك') }}{% endblock %} — {{ ui.organization_name if ui else _('المركز الصحي المتخصص') }}</title>
-    {{ stylesheets('kiosk') }}
+  {{ stylesheets('kiosk') }}
   <style id="tenant-branding-vars">
   :root {
     --color-primary: {{ ui.primary_color if ui else '#0f4c81' }};

@@ -20,7 +20,9 @@ export function loadDoctors(){
       sel.appendChild(o);
     });
     loadTimes();
-  }).catch(err => { });
+  }).catch(() => {
+    // Non-fatal: keep the previous doctor list if the request fails.
+  });
 }
 
 export function loadTimes(){
@@ -45,7 +47,9 @@ export function loadTimes(){
       if (current && String(t) === String(current)) o.selected = true;
       sel.appendChild(o);
     });
-  }).catch(err => { });
+  }).catch(() => {
+    // Non-fatal: keep the previous time list if the request fails.
+  });
 }
 
 export function loadSmartSlots(){
@@ -70,7 +74,9 @@ export function loadSmartSlots(){
         sel.value = list[0];
       }
     }
-  }).catch(err => { });
+  }).catch(() => {
+    // Non-fatal: the hint simply stays unchanged if the request fails.
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

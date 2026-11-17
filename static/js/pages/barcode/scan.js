@@ -1,4 +1,3 @@
-var __M = window.__M || [];
 export function submitScan() {
   const barcode = document.getElementById('barcodeInput').value;
   const action = document.getElementById('scanAction').value;

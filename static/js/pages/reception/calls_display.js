@@ -4,6 +4,7 @@ const apiUrl = window.__M0__;
 // Standalone template: base.js is not loaded on this page, so EscHtml does not
 // exist yet. Use it when present, otherwise a local equivalent — never trust
 // server data raw into innerHTML.
+// This page only issues GET requests, so no CSRF header is required here.
 const escHtml = window.escHtml || function (v) {
     return String(v == null ? '' : v)
         .replace(/&/g, '&amp;')

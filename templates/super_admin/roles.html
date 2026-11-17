@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 
 {% block title %}إدارة الأدوار - السوبر أدمن{% endblock %}
 
@@ -236,7 +237,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('super_admin.edit_role', role_id=role.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf() }}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
@@ -302,7 +303,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('super_admin.create_role') }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf() }}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">

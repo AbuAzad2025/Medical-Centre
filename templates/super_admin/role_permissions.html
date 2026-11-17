@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/forms.html" import csrf %}
 
 {% block title %}إدارة صلاحيات - {{ role.display_name }}{% endblock %}
 
@@ -15,7 +16,7 @@
                 </div>
                 <div class="card-body p-4">
                     <form method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf() }}
                         
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
