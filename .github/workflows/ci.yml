@@ -399,6 +399,76 @@ jobs:
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_migrate_ci
           RLS_BYPASS_ALLOWED: "1"
 
+  # End-to-end database isolation gate. Fresh Postgres -> migrate -> seed the
+  # 23 packages -> prove (as a NON-superuser role) that tenants cannot see or
+  # write each other's rows. Fully automatic: no manual scripts on deployment.
+  rls-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      SECRET_KEY: ci-test-secret-key-for-jwt-hs256-min32
+      APP_ENV: testing
+      FLASK_ENV: testing
+      RLS_BYPASS_ALLOWED: "1"
+      SUPPRESS_LOGGING: "1"
+      DATABASE_URL: postgresql://postgres:testpass@localhost:5432/medical_rls_ci
+      SEED_DB_HOST: 127.0.0.1
+      SEED_DB_PORT: "5432"
+      SEED_DB_USER: postgres
+      SEED_DB_PASSWORD: testpass
+      SEED_DB_NAME: medical_rls_ci
+      RLS_TEST_DB_HOST: 127.0.0.1
+      RLS_TEST_DB_PORT: "5432"
+      RLS_TEST_DB_USER: postgres
+      RLS_TEST_DB_PASSWORD: testpass
+      RLS_TEST_DB_NAME: medical_rls_ci
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Migrate fresh database (all alembic revisions)
+        run: python scripts/ci/verify_migrations.py
+
+      - name: Bootstrap platform catalog (creates the 23 packages)
+        run: python scripts/ops/bootstrap_platform.py
+        env:
+          FLASK_ENV: production
+          ENABLE_SAAS_MODE: "true"
+          RLS_BYPASS_ALLOWED: "1"
+
+      - name: Seed one tenant per package with realistic data
+        run: python scripts/seed_23_tenants.py
+
+      - name: Database-level RLS isolation tests (non-superuser role)
+        run: python -m pytest tests/test_rls_isolation.py --noconftest -q -o addopts="" -p no:warnings
+
   # â”€â”€ Security audit gate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # Runs all 5 security audit scripts sequentially against a fresh PostgreSQL.
   # Each script starts its own flask db upgrade, so the DB is self-contained.

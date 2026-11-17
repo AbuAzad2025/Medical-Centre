@@ -22,11 +22,17 @@ Design notes
 Run with::
 
     python scripts/seed_23_tenants.py
+
+Every connection setting can be overridden by an env var so the SAME script
+runs locally and in CI against a freshly migrated database:
+
+    SEED_DB_HOST / SEED_DB_PORT / SEED_DB_USER / SEED_DB_PASSWORD / SEED_DB_NAME
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 from datetime import UTC, date, datetime, time, timedelta
 from decimal import Decimal
@@ -38,11 +44,11 @@ import psycopg2
 # --------------------------------------------------------------------------- #
 
 DB_CONFIG = {
-    'host': '127.0.0.1',
-    'port': 5433,
-    'user': 'postgres',
-    'password': 'testpass',
-    'dbname': 'Medical2026',
+    'host': os.environ.get('SEED_DB_HOST', '127.0.0.1'),
+    'port': int(os.environ.get('SEED_DB_PORT', '5433')),
+    'user': os.environ.get('SEED_DB_USER', 'postgres'),
+    'password': os.environ.get('SEED_DB_PASSWORD', 'testpass'),
+    'dbname': os.environ.get('SEED_DB_NAME', 'Medical2026'),
 }
 
 LOG = logging.getLogger('seed_23_tenants')
