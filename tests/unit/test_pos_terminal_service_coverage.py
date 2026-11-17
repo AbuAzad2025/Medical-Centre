@@ -277,12 +277,14 @@ class TestChargeSuccess:
         assert fake.last_request.full_url == 'http://127.0.0.1:9100/api/pos/charge'
 
     def test_a_minimal_answer_falls_back_to_the_requested_values(self, enabled, fake_urlopen):
-        """A terminal that answers ``{}`` still counts as an approval."""
+        """An empty gateway answer is NOT an approval, but echoed values fall back."""
         fake_urlopen(body=json.dumps({}).encode('utf-8'))
 
         result = PosTerminalService.charge(33.0, currency='EUR')
 
-        assert result['success'] is True
+        # Only an explicit success=True counts as a charge (fail-closed fix).
+        assert result['success'] is False
+        assert result['code'] == 'pos_declined'
         assert result['transaction_id'] is None
         assert result['approval_code'] is None
         assert result['card_last_digits'] is None

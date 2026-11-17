@@ -1443,7 +1443,8 @@ class TestCheckinAppointment:
         resp = client.post(f'/reception/appointments/{a.id}/checkin')
         assert resp.status_code == 302
         ctx.db.session.refresh(a)
-        assert a.status == AppointmentState.CONFIRMED.value
+        # Check-in means the patient arrived; confirming is a separate action.
+        assert a.status == AppointmentState.CHECKED_IN.value
         visit = (
             ctx.db.session.execute(
                 select(Visit).filter(Visit.notes.ilike(f'%[APPOINTMENT:{a.id}]%'))

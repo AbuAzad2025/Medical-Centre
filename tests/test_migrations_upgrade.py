@@ -11,7 +11,7 @@ from migrations.migration_utils import column_exists, fk_exists, index_exists, t
 # The migration chain continues from s2_011_clean_schema through s3_* and s4_* migrations.
 # Bump alongside scripts/ci/verify_migrations.py when a revision is appended.
 EXPECTED_HEADS = {
-    'add_slug_to_roles_20261113',
+    's5_001_whatsapp_phone_text',
 }
 
 

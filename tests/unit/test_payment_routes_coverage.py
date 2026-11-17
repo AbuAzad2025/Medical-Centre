@@ -690,7 +690,8 @@ class TestRefundsCoverage:
         assert resp.status_code in (302, 500)
 
     def test_approve_refund_unknown(self, app, client, db, test_tenant):
-        _login(client, db, test_tenant, 'pr_appr_unk', 'accountant')
+        # approve_refund is admin/manager only (privilege-escalation fix).
+        _login(client, db, test_tenant, 'pr_appr_unk', 'manager')
         resp = client.post('/payment/refund-requests/999999/approve', follow_redirects=False)
         assert resp.status_code in (302, 404, 200)
 
@@ -700,7 +701,8 @@ class TestRefundsCoverage:
         assert resp.status_code in (302, 404, 200)
 
     def test_approve_refund_exception(self, app, client, db, test_tenant, monkeypatch):
-        _login(client, db, test_tenant, 'pr_appr_exc', 'accountant')
+        # approve_refund is admin/manager only (privilege-escalation fix).
+        _login(client, db, test_tenant, 'pr_appr_exc', 'manager')
         import routes.payment_routes as pr
 
         orig = pr.refund_service.approve_refund
@@ -728,7 +730,9 @@ class TestRefundsCoverage:
         assert resp.status_code in (302, 500)
 
     def test_refund_lifecycle_success(self, app, client, db, test_tenant):
-        _login(client, db, test_tenant, 'pr_ref_life', 'accountant')
+        # manager may request, approve and execute a refund (approve is
+        # admin/manager only after the privilege-escalation fix).
+        _login(client, db, test_tenant, 'pr_ref_life', 'manager')
         pay = self._confirmed_payment(app, db, test_tenant, 'rfl')
         # request
         resp = client.post(
