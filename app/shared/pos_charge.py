@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from decimal import Decimal, InvalidOperation
 
 from app.shared.user_messages import localize_pos_message, user_message
 from services.pos_terminal_service import PosTerminalService
@@ -34,8 +35,6 @@ def _status_for(result: dict) -> int:
 
 def execute_pos_charge(amount_raw) -> tuple[dict, int]:
     try:
-        from decimal import Decimal
-
         amount_dec = Decimal(str(amount_raw or 0))
         if not amount_dec.is_finite() or amount_dec <= 0:
             return {'success': False, 'message': user_message('pos_amount_invalid')}, 400
@@ -46,7 +45,9 @@ def execute_pos_charge(amount_raw) -> tuple[dict, int]:
             result['message'] = localize_pos_message(result.get('message'))
             return result, _status_for(result)
         return result, 200
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, InvalidOperation):
+        # Decimal('abc') raises InvalidOperation (an ArithmeticError), not a
+        # ValueError, so without it a non-numeric amount became a 500.
         return {'success': False, 'message': user_message('pos_amount_invalid')}, 400
     except Exception:
         logging.exception('POS charge error')

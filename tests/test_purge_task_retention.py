@@ -12,6 +12,7 @@ run the purge, and assert the fresh row survives. A task that deleted
 everything would fail these.
 """
 
+import os
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -28,6 +29,10 @@ class TestPurgeOldAuditLogsRespectsRetention:
 
         tenant = ensure_default_test_tenant(app)
         now = datetime.now(UTC)
+        # The task reads the same env-configured retention (7-year HIPAA default
+        # since the compliance audit). Seed the "stale" row just past that
+        # boundary so it is a genuine purge candidate under the live policy.
+        retention_days = int(os.getenv('AUDIT_TRAIL_RETENTION_DAYS', '2555'))
         with app.test_request_context():
             bind_tenant_on_g(tenant, db_session=db.session)
             for row in db.session.execute(select(AuditTrail)).scalars().all():
@@ -39,7 +44,7 @@ class TestPurgeOldAuditLogsRespectsRetention:
                 action='backup',
                 entity_type='system',
                 entity_id=1,
-                created_at=now - timedelta(days=400),
+                created_at=now - timedelta(days=retention_days + 1),
             )
             fresh = AuditTrail(
                 tenant_id=tenant.id,

@@ -114,6 +114,11 @@ class TestARealReportIsFinalizedCleanly:
         """The ordinary case, pinned so the failures below are about the empty one."""
         client, rad_request = imaging['client'], imaging['request']
 
+        # A report may only be finalized from a claimed/in-progress order; the
+        # state machine forbids REQUESTED -> DONE.
+        rad_request.status = 'IN_PROGRESS'
+        db.session.commit()
+
         _report(
             client,
             rad_request.id,

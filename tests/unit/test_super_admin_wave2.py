@@ -1377,7 +1377,9 @@ class TestServicePricingExpansion:
 
 class TestDownloadExportRoundTrip:
     def test_download_export_existing_file_roundtrip(self, sa_client):
-        name = _uniq('export') + '.json'
+        # The download route only serves server-generated export filenames.
+        stamp = f'{uuid.uuid4().int % 10**8:08d}_{uuid.uuid4().int % 10**6:06d}'
+        name = f'medical_system_export_{stamp}.json'
         payload = b'{"wave2": true}'
         # Route resolves relative to CWD; create in CWD and app-root instance for robustness.
         candidates = [

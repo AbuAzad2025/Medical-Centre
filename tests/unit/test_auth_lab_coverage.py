@@ -2864,7 +2864,12 @@ class TestWorklistFlow:
 
         lab = _login(client, db, test_tenant, _uniq('wlfinok'), 'lab')
         patient = _make_patient(db, test_tenant)
-        req = _make_lab_request(db, test_tenant, patient.id, requested_by=lab.id)
+        # Finalize is gated by the lab state machine: only an in-progress (or
+        # approved) order may be completed. Start from a valid pre-state so this
+        # asserts finalize behaviour, not a rejected transition.
+        req = _make_lab_request(
+            db, test_tenant, patient.id, requested_by=lab.id, status='IN_PROGRESS'
+        )
         _make_lab_result(db, test_tenant, req.id, patient.id, value='13.3', status='READY')
         resp = client.post(
             f'/lab/worklist/request/{req.id}',

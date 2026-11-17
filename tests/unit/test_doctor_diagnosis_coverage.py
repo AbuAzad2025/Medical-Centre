@@ -815,7 +815,12 @@ class TestDiagnosisTargetedHTTP:
             classmethod(_raise_value_error),
         )
         resp = client.post(f'/doctor/diagnosis/{v.id}', data={'diagnosis': 'forced progress'})
-        _assert_redirect_to(resp, f'/doctor/patient-details/{v.id}')
+        # The state machine is the only thing allowed to move a visit to
+        # in-progress. When it refuses, the route surfaces the error and sends
+        # the clinician back to the queue instead of forcing the status active.
+        _assert_redirect_to(resp, '/doctor/patient-queue')
+        db.session.expire_all()
+        assert db.session.get(Visit, v.id).status == 'OPEN'
 
     def test_notes_appended(self, app, client, db, test_tenant, rollback_db):
         doc = _make_doctor(db, test_tenant)

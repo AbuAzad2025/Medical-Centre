@@ -148,8 +148,11 @@ def test_is_cross_tenant_allowed_no_user(fake_g):
 # ---------------------------------------------------------------------------
 # assert_tenant_access — the cross-tenant firewall
 # ---------------------------------------------------------------------------
-def test_assert_tenant_access_noop_when_no_context(fake_g):
+def test_assert_tenant_access_noop_when_no_context(fake_g, standalone_mode):
     rec = SimpleNamespace(tenant_id=99)
+    # Only the standalone (non-SaaS) path is a no-op when there is no tenant
+    # context. In SaaS mode the same situation fails closed with a 403, which
+    # is asserted separately by the fail-closed isolation tests.
     TenantContextService.assert_tenant_access(rec)  # tenant_id None -> skip
 
 

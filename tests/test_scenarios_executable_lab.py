@@ -128,6 +128,11 @@ class TestTheLifecycleIsSoundUpToFinalize:
         """
         client, lab_request = lab['client'], lab['request']
 
+        # A specimen must be collected before it can be received (the lab
+        # state machine allows COLLECTED -> RECEIVED, not ORDERED -> RECEIVED).
+        lab_request.status = 'COLLECTED'
+        db.session.commit()
+
         _act(client, lab_request.id, action='receive')
 
         from tests.tenant_context import refresh_scoped
@@ -250,6 +255,10 @@ class TestARealReportIsFinalizedCleanly:
     def test_a_filled_panel_finalizes_and_validates_every_result(self, lab):
         """The ordinary case, pinned so the failures above are about the empty one."""
         client, lab_request = lab['client'], lab['request']
+
+        # Only APPROVED/IN_PROGRESS orders may be finalized (lab state machine).
+        lab_request.status = 'IN_PROGRESS'
+        db.session.commit()
 
         results = _results_for(lab_request.id)
         _act(

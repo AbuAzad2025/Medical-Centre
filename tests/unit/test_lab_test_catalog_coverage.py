@@ -190,7 +190,10 @@ class TestCatalogAdd:
             .first()
         )
         assert row is not None
-        assert row.is_active is True
+        # An absent checkbox means it was left unchecked on the add form. Since
+        # the audit fix, that creates an inactive catalog entry (an explicit
+        # is_active='1' from the checked box is what makes it active).
+        assert row.is_active is False
         assert float(row.price) == 42.5
         assert row.sort_order == 3
 

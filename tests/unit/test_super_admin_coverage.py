@@ -1265,7 +1265,9 @@ class TestAnalyticsRoutes:
 class TestAnalyticsHelpers:
     """Direct calls to the module-level stat helpers (no HTTP involved)."""
 
-    def test_get_total_users_and_active_inactive_admin(self, app):
+    def test_get_total_users_and_active_inactive_admin(self, app, test_user):
+        # These helpers count all User rows. A freshly migrated test DB has no
+        # users, so request test_user to guarantee the >=1 assertions below.
         from routes.super_admin.analytics import (
             get_active_sessions,
             get_active_users,
@@ -1349,7 +1351,9 @@ class TestAnalyticsHelpers:
         assert 'role_distribution' in result
         assert 'engagement_rate' in result
 
-    def test_get_resource_utilization_keys(self, app):
+    def test_get_resource_utilization_keys(self, app, test_user):
+        # get_resource_utilization reports total_users from the User table;
+        # seed a user so the >=1 assertion is meaningful on a fresh DB.
         from routes.super_admin.analytics import get_resource_utilization
 
         result = get_resource_utilization()
@@ -1722,6 +1726,9 @@ class TestDataRoutes:
             download = sa_client.get(f'/super-admin/download-export/{filename}')
             assert download.status_code == 200
             payload = json.loads(download.get_data(as_text=True))
+            # send_from_directory serves the file lazily; on Windows an open
+            # response keeps the file locked and os.remove in finally fails.
+            download.close()
             assert 'users' in payload['data']
             assert 'patients' in payload['data']
             assert 'visits' in payload['data']

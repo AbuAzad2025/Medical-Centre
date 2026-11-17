@@ -664,7 +664,9 @@ class TestAppointments:
         resp = client.post(f'/reception/appointments/{apt.id}/checkin')
         assert resp.status_code in (302, 200)
         ctx.db.session.refresh(apt)
-        assert apt.status == 'CONFIRMED'
+        # Check-in means the patient arrived (CHECKED_IN); confirming an
+        # appointment is a separate action handled by /confirm.
+        assert apt.status == 'CHECKED_IN'
 
     def test_appointment_confirm(self, login_as, client, ctx):
         _make_reception(login_as, client, ctx)

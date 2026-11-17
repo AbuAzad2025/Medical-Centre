@@ -110,7 +110,9 @@ class TestCreateSaleCommissionAndOptions:
         )
 
         assert 'sale_id' in result
-        assert result['total_amount'] == 20.0
+        # Item prices come from the server medication catalog, never from the
+        # client-supplied `unit_price` in the request.
+        assert result['total_amount'] == pytest.approx(2 * med.price)
 
     def test_create_sale_multiple_items(self, app, test_tenant, test_medications):
         """Multi-item sale: total is the sum of qty * unit_price for each."""
@@ -129,7 +131,10 @@ class TestCreateSaleCommissionAndOptions:
             tenant_id=test_tenant.id,
         )
 
-        assert result['total_amount'] == pytest.approx(25.50)
+        # Totals are computed from each medication's catalog price (Numeric ->
+        # Decimal), not from the client-supplied unit prices in the request.
+        expected_total = 2 * med1.price + 1 * med2.price
+        assert result['total_amount'] == pytest.approx(expected_total)
 
     def test_create_sale_prescription_marked_dispensed(self, app, test_tenant, test_medications):
         """After a successful sale the prescription status should be DISPENSED."""

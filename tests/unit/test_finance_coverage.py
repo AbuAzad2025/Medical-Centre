@@ -1080,7 +1080,9 @@ class TestRefundFlow:
         assert count == 1
 
     def test_payment_blueprint_approve_and_execute(self, app, client, db, test_tenant):
-        _login(client, db, test_tenant, 'fc_refund_exec', 'accountant')
+        # Refund approval is gated to admin/manager; an accountant can only
+        # request and execute the refund.
+        _login(client, db, test_tenant, 'fc_refund_exec', 'manager')
         payment = self._confirmed_payment(app, db, test_tenant, 'exec')
 
         client.post(
@@ -1127,7 +1129,9 @@ class TestRefundFlow:
         assert Decimal(str(refunded_rows[0].amount)) == Decimal('40.00')
 
     def test_approve_unknown_refund_redirects(self, app, client, db, test_tenant):
-        _login(client, db, test_tenant, 'fc_refund_unk', 'accountant')
+        # Approval is admin/manager-only; use a role that can reach the route so
+        # the assertion exercises the unknown-refund path, not the role guard.
+        _login(client, db, test_tenant, 'fc_refund_unk', 'manager')
         resp = client.post('/payment/refund-requests/999999/approve', follow_redirects=False)
         assert resp.status_code == 302
 

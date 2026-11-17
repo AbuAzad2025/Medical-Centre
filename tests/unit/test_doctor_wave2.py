@@ -44,6 +44,11 @@ from models.radiology_result import RadiologyResult
 from models.visit import Visit
 from tests.tenant_context import ensure_test_user, login_test_client, tenant_test_context
 
+# The disabled-module redirect tests below use ``isolated_tenant``. That fixture
+# lives in the opt-in plugin, not in the root conftest; without this declaration
+# those four tests error at setup with "fixture 'isolated_tenant' not found".
+pytest_plugins = ['tests._isolated_tenant']
+
 _DOCTOR_USER = 'wv2_doctor'
 _NURSE_USER = 'wv2_nurse'
 _MANAGER_USER = 'wv2_manager'
@@ -280,9 +285,11 @@ class TestDiagnosisPostGaps:
             classmethod(_raise_value_error),
         )
         resp = client.post(f'/doctor/diagnosis/{v.id}', data={'diagnosis': 'forced progress'})
-        _assert_redirect_to(resp, f'/doctor/patient-details/{v.id}')
+        # An injected VSM failure must surface the error and leave the visit in
+        # its original state - the route must never force it active itself.
+        _assert_redirect_to(resp, '/doctor/patient-queue')
         db.session.expire_all()
-        assert db.session.get(Visit, v.id).status == VisitState.IN_PROGRESS.value
+        assert db.session.get(Visit, v.id).status == VisitState.OPEN.value
 
     def test_post_survives_follow_up_sync_failure(
         self, app, client, db, test_tenant, rollback_db, monkeypatch

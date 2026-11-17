@@ -377,6 +377,9 @@ jobs:
       - name: Verify Alembic upgrade (fresh DB)
         run: python scripts/ci/verify_migrations.py
 
+      - name: Schema parity — every model change has a migration
+        run: python scripts/ci/schema_parity.py
+
       - name: Audit RLS coverage
         run: python scripts/ci/audit_rls_coverage.py
 

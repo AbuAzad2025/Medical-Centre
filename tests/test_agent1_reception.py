@@ -1797,7 +1797,9 @@ class TestReceptionAppointments:
         resp = client.post(f'/reception/appointments/{ap.id}/checkin')
         assert resp.status_code in (302, 200)
         db.session.refresh(ap)
-        assert ap.status == 'CONFIRMED'
+        # Check-in means the patient arrived (CHECKED_IN); confirming an
+        # appointment is a separate action handled by /confirm.
+        assert ap.status == 'CHECKED_IN'
         resp2 = client.post(f'/reception/appointments/{ap.id}/checkin')
         assert resp2.status_code in (302, 200)
 

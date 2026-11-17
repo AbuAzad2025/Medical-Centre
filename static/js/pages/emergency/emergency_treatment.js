@@ -1,4 +1,6 @@
-document.getElementById('emergencyTreatmentForm')?.addEventListener('submit', function(e) {
+// The bare (non-optional) lookup is intentional: module load must fail loudly
+// when the form is absent (asserted by the frontend submit-branch tests).
+document.getElementById('emergencyTreatmentForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);

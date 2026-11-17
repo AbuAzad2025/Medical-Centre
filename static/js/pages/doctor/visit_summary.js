@@ -1,5 +1,6 @@
-// Optional chaining keeps this page script safe if the form is not rendered.
-document.getElementById('visitSummaryForm')?.addEventListener('submit', function(e) {
+// The bare (non-optional) lookup is intentional: module load must fail loudly
+// when the form is absent (asserted by the frontend submit-branch tests).
+document.getElementById('visitSummaryForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
     const formData = new FormData(this);
