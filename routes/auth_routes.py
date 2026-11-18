@@ -1030,9 +1030,34 @@ def impersonate(user_id):
     safe_commit(db.session, error_message='impersonation audit write failed')
 
     login_user(target)
+
+    # Rebind the session to the impersonated user's tenant. The normal login()
+    # path sets session['tenant_id'] / ['tenant_slug'] from the authenticated
+    # user; impersonation must do the same, otherwise g.tenant_id stays on the
+    # operator's tenant while the identity is the target's, so the module guard
+    # and RLS scoping disagree and the target dashboard answers 403.
+    session['tenant_id'] = target.tenant_id
+    from app.core.tenant.models import Tenant as _Tenant
+
+    target_tenant = db.session.get(_Tenant, target.tenant_id) if target.tenant_id else None
+    if target_tenant is not None:
+        session['tenant_slug'] = target_tenant.slug
+
     from services.dashboard_routing import resolve_dashboard_for_user
 
-    redirect_url = resolve_dashboard_for_user(target.role, target.tenant_id)
+    # resolve_dashboard_for_user returns a Flask *endpoint name* (e.g.
+    # 'accountant.dashboard'), not a URL path. Clients (the owner's
+    # "browse as tenant" button and exitImpersonation in base.html) assign it
+    # straight to window.location.href, so returning the bare endpoint yields
+    # a 404 like /owner/accountant.dashboard. Resolve it to a real path here.
+    endpoint = resolve_dashboard_for_user(target.role, target.tenant_id)
+    try:
+        redirect_url = url_for(endpoint)
+    except Exception:
+        # Unknown/edge endpoint (e.g. a tenant with no matching module) — land
+        # safely on the owner console rather than emitting a broken path.
+        current_app.logger.warning('Impersonation endpoint %r not resolvable', endpoint)
+        redirect_url = url_for('owner.owner_dashboard')
     return jsonify(
         {
             'success': True,
@@ -1059,6 +1084,13 @@ def impersonate_exit():
         logout_user()
         return jsonify({'success': False, 'message': 'تم تسجيل الخروج'}), 401
     login_user(owner)
+    # Restore the operator's tenant context, mirroring impersonate(): without
+    # this the owner would keep the impersonated tenant binding after exit.
+    session['tenant_id'] = owner.tenant_id
+    from app.core.tenant.models import Tenant as _Tenant
+
+    owner_tenant = db.session.get(_Tenant, owner.tenant_id) if owner.tenant_id else None
+    session['tenant_slug'] = owner_tenant.slug if owner_tenant is not None else None
 
     from models.audit_trail import AuditTrail
 

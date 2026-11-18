@@ -235,6 +235,16 @@
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
                             <a href="{{ url_for('owner.owner_tenant_detail', tenant_id=t.id) }}" class="btn btn-sm btn-outline-primary" title="تفاصيل"><i class="fas fa-eye"></i></a>
+                            {# Ghost-mode: platform owner browses any tenant by impersonating one of its active users #}
+                            {% set browse_user = (t.users | selectattr('is_active') | first) or (t.users | first) %}
+                            {% if browse_user %}
+                            <button type="button" class="btn btn-sm btn-outline-info btn-browse-tenant"
+                                    data-impersonate-user="{{ browse_user.id }}"
+                                    data-tenant-name="{{ t.name }}"
+                                    title="{{ _(_('تصفح كمستأجر')) }}">
+                                <i class="fas fa-user-secret"></i>
+                            </button>
+                            {% endif %}
                             <form method="post" action="{{ url_for('owner.owner_renew_tenant', tenant_id=t.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-sm btn-outline-success" title="تجديد">
@@ -309,4 +319,36 @@
 }
 </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/owner/dashboard.js') }}"></script>
+<script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
+// Ghost-mode browse: impersonate an active user of the chosen tenant, then
+// follow the redirect_url the endpoint resolves for that user's role.
+document.querySelectorAll('.btn-browse-tenant').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const uid = this.dataset.impersonateUser;
+        const name = this.dataset.tenantName || '';
+        const original = this.innerHTML;
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        fetch('{{ url_for("auth.impersonate", user_id=0) }}'.replace('/0', '/' + uid), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.content || '' },
+        })
+        .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+        .then(function(res) {
+            if (res.ok && res.body.success && res.body.redirect_url) {
+                window.location.href = res.body.redirect_url;
+            } else {
+                if (window.Swal) Swal.fire({ icon: 'error', title: 'تعذر التصفح', text: (res.body && res.body.message) || name });
+                btn.disabled = false;
+                btn.innerHTML = original;
+            }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = original;
+        });
+    });
+});
+</script>
 {% endblock %}
