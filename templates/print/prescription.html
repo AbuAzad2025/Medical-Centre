@@ -7,16 +7,16 @@
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('المنشأة:') }}</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
-<span class="print-doc-meta__item"><strong>{{ _(_('رقم الروشتة:')) }}</strong> {{ prescription.prescription_number or prescription.id }}</span>
-<span class="print-doc-meta__item"><strong>{{ _(_('التاريخ:')) }}</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') if prescription.created_at else '—' }}</span>
+<span class="print-doc-meta__item"><strong>{{ _(_('رقم الروشتة:')) }}</strong> <span dir="ltr">{{ prescription.prescription_number or prescription.id }}</span></span>
+<span class="print-doc-meta__item"><strong>{{ _(_('التاريخ:')) }}</strong> <span dir="ltr">{{ prescription.created_at.strftime('%Y-%m-%d %H:%M') if prescription.created_at else '—' }}</span></span>
 <span class="print-doc-meta__item"><strong>{{ _(_('الحالة:')) }}</strong> {{ prescription.status | enum_label('PrescriptionState') if prescription.status else '—' }}</span>
 {% endblock %}
 
 {% block subject_strip %}
 <div class="print-subject-strip__grid">
     <div class="print-subject-strip__item"><span>{{ _(_('المريض')) }}</span><span>{{ prescription.patient.full_name }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span>{{ prescription.patient.national_id or '—' }}</span></div>
-    <div class="print-subject-strip__item"><span>{{ _(_('الهاتف')) }}</span><span>{{ prescription.patient.phone or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهوية')) }}</span><span dir="ltr">{{ prescription.patient.national_id or '—' }}</span></div>
+    <div class="print-subject-strip__item"><span>{{ _(_('الهاتف')) }}</span><span dir="ltr">{{ prescription.patient.phone or '—' }}</span></div>
     <div class="print-subject-strip__item"><span>{{ _(_('الجنس')) }}</span><span>{{ prescription.patient.gender or '—' }}</span></div>
     <div class="print-subject-strip__item"><span>{{ _(_('الطبيب')) }}</span><span>{{ prescription.doctor.full_name if prescription.doctor else '—' }}</span></div>
     <div class="print-subject-strip__item"><span>{{ _(_('الترخيص')) }}</span><span>{{ prescription.doctor.license_number if prescription.doctor else '—' }}</span></div>

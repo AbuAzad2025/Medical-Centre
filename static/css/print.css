@@ -25,9 +25,14 @@ body.print-doc {
 }
 
 .print-page {
+  width: 100%;
   max-width: 190mm;
   padding: 0;
-  margin: 0 auto;
+
+  /* Logical auto margins centre the sheet in both LTR and RTL. The old
+     shorthand `margin: 0 auto` left RTL print pages stuck to the right. */
+  margin: 0;
+  margin-inline: auto;
 }
 
 .print-action-btn {
@@ -94,10 +99,22 @@ body.print-doc {
 .print-doc-meta {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.75rem 1.5rem;
   margin-bottom: 1rem;
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* Keep each meta label+value together and read left-to-right inside RTL so
+   identifiers such as RX-365-... and timestamps are not visually reversed. */
+
+.print-doc-meta__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .print-doc-meta__item strong { color: #334155; }

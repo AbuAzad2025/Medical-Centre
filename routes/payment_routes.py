@@ -513,6 +513,9 @@ def process_payment(visit_id):
                     visit.force_payment_approved_at = datetime.now(UTC)
                 if visit.remaining_amount <= 0:
                     visit.payment_status = PaymentStatus.PAID
+                    # Mark the system receipt so post_gl / archive_visit guards,
+                    # which both require receipt_printed, can proceed.
+                    visit.receipt_printed = True
                 elif converted_amount > 0:
                     visit.payment_status = PaymentStatus.PARTIAL
                 else:

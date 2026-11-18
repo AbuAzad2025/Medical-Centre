@@ -236,7 +236,7 @@
                                     </td>
                                     <td>
                                         {% if visit.doctor %}
-                                        {{ visit.doctor.full_name }}
+                                        <span class="doctor-name" title="{{ visit.doctor.full_name }}">{{ visit.doctor.full_name }}</span>
                                         {% else %}
                                         <span class="text-muted">{{ _(_('غير محدد')) }}</span>
                                         {% endif %}
@@ -258,7 +258,7 @@
                                             <small class="text-muted">{{ visit.created_at|format_time }}</small>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="visit-amount">
                                         <div>
                                             <strong>{{ "%.2f"|format(visit.total_amount) }} ₪</strong><br>
                                             {% if visit.paid_amount > 0 and visit.remaining_amount > 0 %}
@@ -301,13 +301,15 @@
                                                 <i class="fas fa-random"></i> <span class="btn-label">{{ _('عشوائي') }}</span>
                                             </button>
                                             {% endif %}
-                                            {% if visit.status == 'COMPLETED' %}
+                                            {% if visit.status == 'COMPLETED' and visit.archive_status != 'ARCHIVED' %}
                                             <form method="POST" action="{{ url_for('reception.archive_visit', visit_id=visit.id) }}" class="d-inline">
                                                 {{ forms.csrf() }}
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary" title="أرشفة" data-confirm="هل أنت متأكد من أرشفة الزيارة؟">
                                                     <i class="fas fa-archive"></i> <span class="btn-label">{{ _('أرشيف') }}</span>
                                                 </button>
                                             </form>
+                                            {% elif visit.archive_status == 'ARCHIVED' %}
+                                            <span class="badge text-bg-secondary" title="{{ _('مؤرشفة') }}"><i class="fas fa-archive"></i> {{ _('مؤرشفة') }}</span>
                                             {% endif %}
                                             {% if visit.status == 'OPEN' %}
                                             <button type="button" class="btn btn-sm btn-outline-warning" 
@@ -409,8 +411,29 @@
 .table td {
     vertical-align: middle;
 }
+/* Keep the visits table readable when doctor/patient names are long. */
+.dashboard-table-wrap table {
+    min-width: 960px;
+    table-layout: auto;
+}
+.dashboard-table-wrap .table td,
+.dashboard-table-wrap .table th {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.82rem;
+}
+.doctor-name {
+    display: block;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.visit-amount {
+    white-space: nowrap;
+}
 .badge {
     font-size: 0.75em;
+    white-space: nowrap;
 }
 .btn-group .btn {
     margin-inline-end: 2px;

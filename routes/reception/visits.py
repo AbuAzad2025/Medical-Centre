@@ -669,6 +669,13 @@ def create_visit():
                     # إذا دفع كامل المبلغ
                     if visit.is_fully_paid:
                         visit.payment_status = PaymentStatus.PAID
+                        # A fully-paid visit needs a system receipt marker so the
+                        # downstream GL posting (post_gl) and archive (archive_visit)
+                        # guards, which require receipt_printed, can proceed.
+                        visit.receipt_printed = True
+                        visit.receipt_number = visit.receipt_number or (
+                            f'RCPT-{visit.id}-{int(datetime.now(UTC).timestamp())}'
+                        )
                     else:
                         visit.payment_status = PaymentStatus.PARTIAL
 
