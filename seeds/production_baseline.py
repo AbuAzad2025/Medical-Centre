@@ -365,8 +365,21 @@ def run(app=None):
         app = create_app()
     with app.app_context():
         seed_module_definitions()
-        seed_bed_rates()
-        return seed_master_account()
+        master = seed_master_account()
+        # service_prices is RLS-scoped, so nightly bed rates can only be
+        # written for a bound tenant. Seed the card once per tenant on a
+        # dedicated connection (the shared session may be rolled back by a
+        # caller such as the test harness). Calling seed_bed_rates() with no
+        # tenant raised ValueError and made this entry point unusable.
+        tenant_ids = [row[0] for row in db.session.execute(select(Tenant.id)).all()]
+        for tid in tenant_ids:
+            with db.engine.begin() as conn:
+                conn.execute(
+                    text("SELECT set_config('app.tenant_id', :tid, false)"),
+                    {'tid': str(tid)},
+                )
+                seed_bed_rates(tenant_id=tid, connection=conn)
+        return master
 
 
 if __name__ == '__main__':

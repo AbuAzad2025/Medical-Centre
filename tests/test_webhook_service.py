@@ -13,11 +13,19 @@ class TestSignPayload:
 
 
 class TestDispatchSingle:
-    def test_success_on_200(self):
+    def test_success_on_200(self, monkeypatch):
         resp = MagicMock()
         resp.status = 200
         resp.__enter__ = MagicMock(return_value=resp)
         resp.__exit__ = MagicMock(return_value=False)
+        # _dispatch_single's SSRF guard resolves the hostname via DNS before
+        # dispatching. example.com needs a live DNS lookup, so the test failed
+        # on offline machines even though urlopen was mocked. Return a public IP
+        # from getaddrinfo so the guard passes without any network dependency.
+        monkeypatch.setattr(
+            'socket.getaddrinfo',
+            lambda *_args: [(2, 1, 6, '', ('93.184.216.34', 0))],
+        )
         with patch('services.webhook_service.urlopen', return_value=resp):
             ok = wh._dispatch_single(
                 {'url': 'http://example.com/hook', 'secret': 's'}, 'tenant.created', {'id': 1}
