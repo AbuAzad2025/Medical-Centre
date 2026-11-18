@@ -121,11 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = el.closest('.owner-card');
             
             // CRITICAL: Forced confirmation for emergency actions
-            const confirmed = confirm('⚠️ تحذير هام جداً!
-
-هل أنت متأكد من رغبتك في ' + (this.checked ? 'تفعيل' : 'إيقاف') + ' مفتاح الطوارئ: ' + key + '؟
-
-هذا الإجراء سيؤثر فوراً على جميع مستخدمي المنصة.');
+            const confirmed = confirm('⚠️ تحذير هام جداً!\n\nهل أنت متأكد من رغبتك في ' + (this.checked ? 'تفعيل' : 'إيقاف') + ' مفتاح الطوارئ: ' + key + '؟\n\nهذا الإجراء سيؤثر فوراً على جميع مستخدمي المنصة.');
             
             if (!confirmed) {
                 el.checked = !el.checked;

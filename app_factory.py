@@ -1485,6 +1485,13 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        # The unified PWA service worker lives under /static/pwa/ but controls
+        # the whole origin (its offline SHELL includes '/', '/auth/login', ...).
+        # Browsers restrict a worker's max scope to its own directory, so the
+        # registration at scope '/' is rejected unless the script is served
+        # with Service-Worker-Allowed: /. Emit it only for the worker script.
+        if request.path.endswith('/static/pwa/sw.js'):
+            response.headers['Service-Worker-Allowed'] = '/'
         if not app.debug:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         # Content Security Policy
