@@ -7,7 +7,7 @@
 <div class="container-fluid">
     {% set hdr_actions = [] %}
     {% if lab_request %}
-        {% set _ = hdr_actions.append({'label': _('طباعة التقرير'), 'icon': 'fas fa-print', 'url': url_for('lab.print_request', id=lab_request.id), 'style': 'primary'}) %}
+        {% set _discard = hdr_actions.append({'label': _('طباعة التقرير'), 'icon': 'fas fa-print', 'url': url_for('lab.print_request', id=lab_request.id), 'style': 'primary'}) %}
     {% endif %}
     {{ page_header(_('تقرير التحليل'), subtitle=_('عرض نتائج المختبر وطباعة التقارير'), icon='fas fa-file-medical', actions=hdr_actions) }}
 

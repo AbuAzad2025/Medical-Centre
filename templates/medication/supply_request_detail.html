@@ -5,7 +5,7 @@
 <div class="container-fluid">
   {% set hdr_actions = [{'label': _('رجوع'), 'icon': 'fas fa-arrow-left', 'url': url_for('medication.supply_requests'), 'style': 'secondary'}] %}
   {% if req.status == 'DRAFT' %}
-    {% set _ = hdr_actions.append({'type': 'button', 'label': _('اعتماد'), 'icon': 'fas fa-check', 'id': 'approveBtn', 'style': 'warning'}) %}
+    {% set _discard = hdr_actions.append({'type': 'button', 'label': _('اعتماد'), 'icon': 'fas fa-check', 'id': 'approveBtn', 'style': 'warning'}) %}
   {% endif %}
   {{ page_header(_('تفاصيل طلب التوريد'), subtitle=req.request_number ~ ' — ' ~ req.status, icon='fas fa-truck-loading', actions=hdr_actions) }}
 
