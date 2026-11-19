@@ -610,7 +610,17 @@ _PRODUCT_PROFILE_SEED: dict[str, dict] = {
         'max_patients': 8000,
     },
     'nursing_home': {
-        'modules': ['reception', 'nursing', 'doctor', 'appointments', 'pharmacy', 'inventory'],
+        # billing is cross-cutting (api_search / api_user / api_dashboard are
+        # guarded by it); without it the command-center dashboard 403s.
+        'modules': [
+            'reception',
+            'nursing',
+            'doctor',
+            'billing',
+            'appointments',
+            'pharmacy',
+            'inventory',
+        ],
         'dashboard_route': '/nurse/dashboard',
         'description_ar': 'دار رعاية تمريضية',
         'bundle_slug': 'nursing_home',

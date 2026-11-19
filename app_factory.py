@@ -1229,7 +1229,14 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     _add_platform_cap_guard(fhir_bp, 'fhir_api')
     _add_platform_cap_guard(sso_bp, 'sso')
     _add_guard_once(api_search_bp, 'billing')
-    _add_guard_once(api_dashboard_bp, 'reporting')
+    # The command-center dashboard (render_command_center, used by 9 roles)
+    # polls /api/dashboard/snapshot for today's counters — that is a basic
+    # dashboard widget, not a "report". Guard it with the cross-cutting billing
+    # module (present in every bundle), like api_search/api_user. Guarding it
+    # with 'reporting' made the dashboard raise module_not_activated in the 11
+    # bundles that do not sell reporting. Real report surfaces (report_builder,
+    # data_warehouse, ...) keep their own reporting guard below.
+    _add_guard_once(api_dashboard_bp, 'billing')
     _add_guard_once(api_user_bp, 'billing')
     _add_guard_once(api_lab_bp, 'lab')
     _add_guard_once(api_radiology_bp, 'radiology')
