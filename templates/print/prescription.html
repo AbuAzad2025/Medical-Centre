@@ -3,6 +3,9 @@
 
 {% block doc_title %}روشتة طبية — {{ prescription.patient.full_name }}{% endblock %}
 {% block print_button_label %}طباعة الروشتة{% endblock %}
+{% block extra_print_actions %}
+<a class="print-action-btn no-print print-pdf-btn" href="{{ url_for('doctor.download_prescription_pdf', prescription_id=prescription.id) }}">تحميل PDF</a>
+{% endblock %}
 {% block doc_heading %}روشتة طبية{% endblock %}
 
 {% block doc_meta %}

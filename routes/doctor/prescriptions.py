@@ -626,6 +626,59 @@ def print_prescription(prescription_id):
         return redirect(url_for('doctor.patient_queue'))
 
 
+@doctor_bp.route('/download-prescription-pdf/<int:prescription_id>')
+@login_required
+@role_required('doctor', 'admin', 'manager')
+def download_prescription_pdf(prescription_id):
+    """Generate a real PDF for the prescription (works even when the in-app
+    browser cannot complete window.print()). Ownership is enforced like print.
+    """
+    from flask import make_response
+
+    from utils.tenant_query import TenantContextError, get_tenant_record
+
+    try:
+        try:
+            prescription = get_tenant_record(Prescription, prescription_id)
+        except TenantContextError:
+            prescription = None
+        if not prescription:
+            flash('الوصفة غير موجودة', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+        if (
+            current_user.role == 'doctor'
+            and getattr(prescription, 'doctor_id', None) != current_user.id
+        ):
+            flash('يمكنك تحميل روشيتا مرضاك فقط', 'error')
+            return redirect(url_for('doctor.patient_queue'))
+
+        from services.prescription_pdf_service import build_prescription_pdf, make_qr_png
+
+        payload = (
+            f'RX|{prescription.id}|{prescription.patient_id}|'
+            f'{prescription.created_at.isoformat() if prescription.created_at else ""}'
+        )
+        org = ''
+        try:
+            from app.core.tenant.models import Tenant
+
+            tenant = db.session.get(Tenant, g.tenant_id) if getattr(g, 'tenant_id', None) else None
+            org = tenant.name if tenant else ''
+        except Exception:
+            pass
+        pdf = build_prescription_pdf(prescription, org, make_qr_png(payload))
+        resp = make_response(pdf)
+        resp.headers['Content-Type'] = 'application/pdf'
+        resp.headers['Content-Disposition'] = (
+            f'attachment; filename="prescription-{prescription.prescription_number or prescription.id}.pdf"'
+        )
+        return resp
+    except Exception:
+        logging.exception('Error generating prescription PDF: %s')
+        flash('حدث خطأ في إنشاء ملف PDF', 'error')
+        return redirect(url_for('doctor.patient_queue'))
+
+
 @doctor_bp.route('/prescriptions')
 @login_required
 @role_required('doctor', 'admin', 'manager')

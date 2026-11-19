@@ -492,11 +492,22 @@ def create_booking():
         if link:
             patient_prefill = db.session.get(Patient, link.patient_id)
 
-    # جلب البيانات المطلوبة للنموذج
-    departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
-    doctors = (
-        db.session.execute(select(User).filter_by(role='doctor', is_active=True)).scalars().all()
+    # جلب البيانات المطلوبة للنموذج — filter by the active tenant explicitly.
+    # The tenant GUC is normally set by before_request, but this form is also
+    # rendered from contexts where the GUC may lag; an explicit tenant_id keeps
+    # the dropdown correct for day-one tenants with a single department.
+    # Prefer the authenticated user's tenant (always set) over g.tenant_id,
+    # which may not be populated on this blueprint's render path.
+    tenant_id = getattr(g, 'tenant_id', None) or (
+        current_user.tenant_id if getattr(current_user, 'is_authenticated', False) else None
     )
+    dept_q = select(Department).filter_by(is_active=True)
+    doc_q = select(User).filter_by(role='doctor', is_active=True)
+    if tenant_id:
+        dept_q = dept_q.filter(Department.tenant_id == tenant_id)
+        doc_q = doc_q.filter(User.tenant_id == tenant_id)
+    departments = db.session.execute(dept_q).scalars().all()
+    doctors = db.session.execute(doc_q).scalars().all()
 
     return render_template(
         'booking/create.html',

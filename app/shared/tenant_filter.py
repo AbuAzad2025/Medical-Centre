@@ -263,6 +263,15 @@ def _table_out_of_scope(entity, tenant_id: int) -> bool:
     if not table:
         return False
 
+    # Cross-cutting infrastructure tables every tenant needs regardless of
+    # which modules it bought. Departments in particular are claimed by the
+    # 'reception' module in the registry, but the doctor, booking and billing
+    # flows all need them — a Private Doctor Clinic bundle (doctor/billing/
+    # appointments, no reception) must still see its own departments. Without
+    # this the department dropdown is empty and no patient/visit can be created.
+    if table in _CROSS_CUTTING_TABLES:
+        return False
+
     from app.core.module.registry import get_modules_for_table
 
     owners = get_modules_for_table(table)
@@ -309,6 +318,13 @@ def _model_has_tenant_column(model_class) -> bool:
     mapper = getattr(model_class, '__mapper__', None)
     return mapper is not None and 'tenant_id' in mapper.columns
 
+
+# Tables that are infrastructure for every tenant, not owned by any one
+# module. They are never hidden by the module-scope filter (but are still
+# tenant-scoped and RLS-protected).
+_CROSS_CUTTING_TABLES: frozenset[str] = frozenset(
+    {'departments', 'users', 'tenants', 'system_configs', 'roles', 'permissions'}
+)
 
 # Cache: table name -> mapped class (or sentinel ``...`` for not-found).
 _TABLE_NAME_TO_CLASS_CACHE: dict[str, Any] = {}

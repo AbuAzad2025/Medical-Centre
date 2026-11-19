@@ -6,10 +6,15 @@ os.environ['APP_ENV'] = 'development'
 os.environ['FLASK_ENV'] = 'development'
 os.environ['RLS_BYPASS_ALLOWED'] = '1'
 os.environ['TENANT_DEFAULT_SLUG'] = 'platform'
+# SaaS mode enables multi-tenant provisioning: creating tenants, toggling
+# their modules and cross-tenant owner operations. The owner dashboard shows
+# these controls but the APIs are gated behind SaaS mode.
+os.environ['ENABLE_SAAS_MODE'] = 'true'
 os.environ['TERMINOLOGY_PATH'] = 'D:\\recovers\\data\\medical\\data\\terminology'
-# Local dev: DB is already migrated + bootstrapped. Skip the 20s+ schema
-# reflection / terminology re-import that runs on every cold start.
-os.environ['SKIP_PLATFORM_BOOTSTRAP'] = '1'
+# Allow the platform bootstrap to create the master owner account and the
+# base catalogue on a fresh install. It is idempotent and cheap after the
+# first run, so it must not be skipped on a day-one database.
+os.environ.pop('SKIP_PLATFORM_BOOTSTRAP', None)
 
 from waitress import serve
 

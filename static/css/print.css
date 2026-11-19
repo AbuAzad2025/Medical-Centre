@@ -52,6 +52,19 @@ body.print-doc {
 
 .print-action-btn:hover { filter: brightness(0.92); }
 
+/* A second action (e.g. real PDF download) sits beside the print button. */
+
+.print-pdf-btn {
+  inset-inline-end: 9.5rem;
+  text-decoration: none;
+  background: #0f766e;
+}
+.print-pdf-btn:hover { color: #fff; filter: brightness(0.92); }
+
+@media print {
+  .print-pdf-btn { display: none !important; }
+}
+
 /* Header */
 .print-header { max-height: 120px; margin-bottom: 1rem; overflow: hidden; }
 

@@ -1088,7 +1088,10 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
             if not module_gate_active():
                 return None
 
-            # Admin bypass: global admins pass through all module guards
+            # Admin bypass: global admins pass through all module guards.
+            # Tenant admins do NOT bypass module guards — a module that is not
+            # in the tenant's bundle stays unavailable. Fix an incomplete bundle
+            # at its definition, never by weakening the enforcement here.
             try:
                 from flask_login import current_user
 

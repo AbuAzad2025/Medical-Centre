@@ -9,12 +9,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block doc_title %}مستند{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}?v=20261118b">
     <style id="print-brand-vars">:root { --print-primary: {{ pc.primary_color }}; }</style>
     {% block extra_print_head %}{% endblock %}
 </head>
 <body class="print-doc print-doc--{{ doc_type }}" data-doc-type="{{ doc_type }}">
     <button type="button" class="print-action-btn no-print" data-action="print">{% block print_button_label %}طباعة{% endblock %}</button>
+    {% block extra_print_actions %}{% endblock %}
 
     <div class="print-page">
         <!-- Corporate watermark — on every page -->

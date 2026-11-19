@@ -443,9 +443,13 @@ class TenantModuleSetting(db.Model):
 # ═══════════════════════════════════════════════════════════════
 _PRODUCT_PROFILE_SEED: dict[str, dict] = {
     'private_doctor_clinic': {
-        'modules': ['doctor', 'billing', 'appointments'],
+        # A solo doctor still needs intake (patients/visits), reporting
+        # (dashboard + prices/reports) and billing to run a real clinic — the
+        # doctor module alone cannot create a patient or a visit, and the
+        # dashboard snapshot API is reporting-gated.
+        'modules': ['reception', 'doctor', 'billing', 'appointments', 'reporting'],
         'dashboard_route': '/doctor/dashboard',
-        'description_ar': 'طبيب منفرد بعيادة خاصة مع فوترة ذاتية',
+        'description_ar': 'طبيب منفرد بعيادة خاصة مع استقبال وفوترة وتقارير وأسعار',
         'bundle_slug': 'private_doctor_clinic',
         'max_users': 3,
         'max_patients': 500,
