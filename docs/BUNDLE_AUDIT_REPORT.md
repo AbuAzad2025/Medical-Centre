@@ -92,16 +92,21 @@ def _deny(description):
 
 | API Blueprint | Prefix | Guard Module | Rationale |
 |---------------|--------|--------------|-----------|
-| `api_search_bp` | `/api/search` | `billing` | Cross-cutting; `billing` ships in every bundle |
-| `api_dashboard_bp` | `/api/dashboard` | `billing` | The command-center dashboard (used by 9 roles) polls `/api/dashboard/snapshot` for today's counters — a basic dashboard widget, not a report. Guarded by cross-cutting `billing`, like search/user, so the 11 bundles without `reporting` don't 403. Real report surfaces keep their own `reporting` guard. |
-| `api_user_bp` | `/api/user` | `billing` | Cross-cutting; `billing` ships in every bundle |
-
-> **Update (2026-11-19):** `private_doctor_clinic` now includes `reception` +
-> `reporting` (a solo clinic needs intake + dashboard/reports), and
-> `nursing_home` gained `billing` (cross-cutting API guard). All 23 bundles
-> now ship `billing`, so the cross-cutting API guards never 403 a valid bundle.
+| `api_search_bp` | `/api/search` | *(none — cross-cutting)* | Patient lookup is core infrastructure for every role; protected by `@login_required` + `@role_required`. A product-module guard here 403'd valid bundles. |
+| `api_dashboard_bp` | `/api/dashboard` | *(none — cross-cutting)* | The command-center dashboard (used by 9 roles) polls `/api/dashboard/snapshot` for today's counters — a basic dashboard widget, not a report. Protected by roles only; real report surfaces (`report_builder`, `data_warehouse`, ...) keep their own `reporting` guard. |
+| `api_user_bp` | `/api/user` | *(none — cross-cutting)* | Theme/density preferences — shared shell function, protected by roles only. |
 | `api_lab_bp` | `/api/lab` | `lab` | Same module as `lab_bp` |
 | `api_radiology_bp` | `/api/radiology` | `radiology` | Same module as `radiology_bp` |
+
+> **Correction (2026-11-19):** The cross-cutting APIs (search/user/dashboard)
+> had been given `billing`/`reporting` module guards in an earlier audit. That
+> was wrong: they are shared infrastructure already protected by roles, and the
+> guard 403'd valid bundles (`module_not_activated` on the command-center
+> dashboard for the 11 bundles without `reporting`). The guards were removed;
+> bundle definitions restored to what the customer actually buys
+> (`private_doctor_clinic` = doctor/billing/appointments, `nursing_home`
+> without billing). Access is controlled by roles, not by inflating small
+> bundles with modules they did not purchase.
 
 ---
 

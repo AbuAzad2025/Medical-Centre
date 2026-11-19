@@ -1228,16 +1228,17 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     _add_platform_cap_guard(biometric_bp, 'webauthn')
     _add_platform_cap_guard(fhir_bp, 'fhir_api')
     _add_platform_cap_guard(sso_bp, 'sso')
-    _add_guard_once(api_search_bp, 'billing')
-    # The command-center dashboard (render_command_center, used by 9 roles)
-    # polls /api/dashboard/snapshot for today's counters — that is a basic
-    # dashboard widget, not a "report". Guard it with the cross-cutting billing
-    # module (present in every bundle), like api_search/api_user. Guarding it
-    # with 'reporting' made the dashboard raise module_not_activated in the 11
-    # bundles that do not sell reporting. Real report surfaces (report_builder,
-    # data_warehouse, ...) keep their own reporting guard below.
-    _add_guard_once(api_dashboard_bp, 'billing')
-    _add_guard_once(api_user_bp, 'billing')
+    # cross-cutting APIs — no module guard on purpose.
+    #
+    # /api/search (patient lookup), /api/user (theme/density preferences) and
+    # /api/dashboard (today's counters) are shared infrastructure used by every
+    # role's dashboard and shell. Each route is already protected by
+    # @login_required + @role_required, which is the correct access control for
+    # a cross-cutting function. Guarding them with a product module ('billing'
+    # or 'reporting') was wrong: it 403'd valid bundles that never bought that
+    # module (module_not_activated on the command-center dashboard, search and
+    # preferences). Real report surfaces (report_builder, data_warehouse, ...)
+    # keep their own 'reporting' guard below; lab/radiology APIs keep theirs.
     _add_guard_once(api_lab_bp, 'lab')
     _add_guard_once(api_radiology_bp, 'radiology')
 

@@ -443,13 +443,9 @@ class TenantModuleSetting(db.Model):
 # ═══════════════════════════════════════════════════════════════
 _PRODUCT_PROFILE_SEED: dict[str, dict] = {
     'private_doctor_clinic': {
-        # A solo doctor still needs intake (patients/visits), reporting
-        # (dashboard + prices/reports) and billing to run a real clinic — the
-        # doctor module alone cannot create a patient or a visit, and the
-        # dashboard snapshot API is reporting-gated.
-        'modules': ['reception', 'doctor', 'billing', 'appointments', 'reporting'],
+        'modules': ['doctor', 'billing', 'appointments'],
         'dashboard_route': '/doctor/dashboard',
-        'description_ar': 'طبيب منفرد بعيادة خاصة مع استقبال وفوترة وتقارير وأسعار',
+        'description_ar': 'طبيب منفرد بعيادة خاصة مع فوترة ذاتية',
         'bundle_slug': 'private_doctor_clinic',
         'max_users': 3,
         'max_patients': 500,
@@ -610,13 +606,10 @@ _PRODUCT_PROFILE_SEED: dict[str, dict] = {
         'max_patients': 8000,
     },
     'nursing_home': {
-        # billing is cross-cutting (api_search / api_user / api_dashboard are
-        # guarded by it); without it the command-center dashboard 403s.
         'modules': [
             'reception',
             'nursing',
             'doctor',
-            'billing',
             'appointments',
             'pharmacy',
             'inventory',
