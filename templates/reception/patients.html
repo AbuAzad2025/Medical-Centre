@@ -72,13 +72,15 @@
                                     </td>
                                     <td>{{ p.created_at.strftime('%Y-%m-%d') if p.created_at else '-' }}</td>
                                     <td>
-                                        <a class="btn btn-sm btn-info me-1" href="{{ url_for('reception.view_patient', patient_id=p.id) }}">{{ _(_('عرض')) }}</a>
-                                        <a class="btn btn-sm btn-warning me-1" href="{{ url_for('reception.edit_patient', patient_id=p.id) }}">{{ _(_('تعديل')) }}</a>
-                                        <form method="POST" action="{{ url_for('reception.delete_patient', patient_id=p.id) }}" class="d-inline" onsubmit="return false;">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeletePatient(this)">{{ _(_('حذف')) }}</button>
-                                        </form>
-                                        <a class="btn btn-sm btn-primary mt-1" href="{{ url_for('reception.create_appointment', patient_id=p.id) }}">{{ _(_('حجز مسبق')) }}</a>
+                                        <div class="table-actions">
+                                            <a class="btn btn-sm btn-info" href="{{ url_for('reception.view_patient', patient_id=p.id) }}" title="{{ _('عرض') }}" aria-label="{{ _('عرض') }}"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                                            <a class="btn btn-sm btn-warning" href="{{ url_for('reception.edit_patient', patient_id=p.id) }}" title="{{ _('تعديل') }}" aria-label="{{ _('تعديل') }}"><i class="fas fa-edit" aria-hidden="true"></i></a>
+                                            <a class="btn btn-sm btn-primary" href="{{ url_for('reception.create_appointment', patient_id=p.id) }}" title="{{ _('حجز مسبق') }}" aria-label="{{ _('حجز مسبق') }}"><i class="fas fa-calendar-plus" aria-hidden="true"></i></a>
+                                            <form method="POST" action="{{ url_for('reception.delete_patient', patient_id=p.id) }}" class="d-inline" onsubmit="return false;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeletePatient(this)" title="{{ _('حذف') }}" aria-label="{{ _('حذف') }}"><i class="fas fa-trash" aria-hidden="true"></i></button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% else %}
@@ -96,7 +98,7 @@
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
                                href="{{ url_for('reception.patients', page=page-1) }}">{{ _(_('السابق')) }}</a>
-                            <span class="btn btn-outline-secondary">Page {{ page }} of {{ pages if pages > 0 else 1 }}</span>
+                            <span class="btn btn-outline-secondary">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
                                href="{{ url_for('reception.patients', page=page+1) }}">{{ _(_('التالي')) }}</a>
                         </div>

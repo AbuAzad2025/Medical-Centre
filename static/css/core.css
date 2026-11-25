@@ -495,3 +495,25 @@ img {
 .shadow { box-shadow: var(--shadow); }
 .shadow-lg { box-shadow: var(--shadow-lg); }
 .shadow-none { box-shadow: none; }
+
+/* Skip link — visible only when reached with the keyboard. The old rule
+   lived in dark-mode.css, which is not part of any shell's stylesheet list,
+   so the link was painted on every page of the app. */
+.skip-link {
+  position: absolute;
+  top: -60px;
+  inset-inline-start: 0;
+  z-index: 10000;
+  padding: 8px 16px;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  background: var(--color-primary, #0f4c81);
+  border-radius: 0 0 var(--radius, 6px) 0;
+  transition: top 0.2s;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0;
+}
