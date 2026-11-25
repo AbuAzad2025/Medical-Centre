@@ -177,6 +177,174 @@ a.btn-info {
   color: var(--med-primary) !important;
 }
 
+/* The off-canvas sidebar sits outside the viewport on small screens; without
+   clipping, the whole page becomes horizontally scrollable. */
+
+html,
+body.clinical-theme {
+  overflow-x: hidden;
+}
+
+@media (width <= 991.98px) {
+  body.clinical-theme .clinical-sidebar:not(.show) {
+    display: none;
+  }
+}
+
+/* Footer: calm clinical navy/teal, aligned three-column grid. */
+
+.luxury-footer {
+  background: linear-gradient(135deg, #0b2b36 0%, #0e7490 100%) !important;
+  border-top: 1px solid rgb(255 255 255 / 0.12) !important;
+  padding: 2rem 1.25rem !important;
+  text-align: start !important;
+}
+
+.luxury-footer::before {
+  background: radial-gradient(circle at 15% 0%, rgb(6 182 212 / 0.18), transparent 55%) !important;
+}
+
+.footer-grid {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(160px, 1fr) minmax(180px, 1fr) !important;
+  gap: 2rem !important;
+  align-items: start !important;
+  max-width: 1180px !important;
+  margin: 0 auto !important;
+}
+
+.footer-brand,
+.footer-nav,
+.footer-contact {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.45rem !important;
+}
+
+.luxury-footer-logo img {
+  max-height: 48px !important;
+  padding: 0.25rem 0.6rem;
+  background: rgb(255 255 255 / 0.92);
+  border-radius: 8px;
+}
+
+.luxury-footer-copyright,
+.luxury-footer-developer {
+  margin: 0 !important;
+  font-size: 0.85rem !important;
+  color: rgb(255 255 255 / 0.78) !important;
+  line-height: 1.7 !important;
+}
+
+.luxury-footer-developer {
+  font-weight: 500 !important;
+}
+
+.footer-nav-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.55);
+  margin-bottom: 0.35rem;
+}
+
+.luxury-footer-links {
+  margin: 0 !important;
+  gap: 0.5rem !important;
+}
+
+.luxury-footer-link {
+  color: rgb(255 255 255 / 0.82) !important;
+  font-size: 0.85rem !important;
+  line-height: 1.7 !important;
+}
+
+.luxury-footer-link:hover {
+  color: #a5f3fc !important;
+}
+
+.luxury-footer-divider {
+  display: none !important;
+}
+
+.luxury-footer-security {
+  margin-top: 0.6rem !important;
+  padding: 0.4rem 0.8rem !important;
+  font-size: 0.78rem !important;
+  color: #cffafe !important;
+  background: rgb(6 182 212 / 0.16) !important;
+  border: 1px solid rgb(165 243 252 / 0.28) !important;
+  border-radius: 999px !important;
+}
+
+.luxury-footer-security:hover {
+  background: rgb(6 182 212 / 0.26) !important;
+}
+
+/* Sidebar menu: even rows, aligned icons, clearer section titles. */
+
+.clinical-sidebar .nav-link {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.9rem;
+}
+
+.clinical-sidebar .nav-icon {
+  flex: 0 0 1.25rem;
+  text-align: center;
+}
+
+.nav-section-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--med-muted);
+  padding-inline-start: 0.75rem;
+}
+
+@media (width >= 992px) {
+  /* The sidebar is fixed for the full viewport height, so without this the
+     footer's first (brand) column sits underneath it. */
+
+  .luxury-footer {
+    padding-inline-start: calc(var(--sidebar-width, 260px) + 1.25rem) !important;
+  }
+}
+
+@media (width <= 768px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Keep dashboard cards inside the viewport on small screens. */
+
+  .cc-now-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .cc-widgets-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .cc-widget {
+    grid-column: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .cc-now-grid > *,
+  .command-center,
+  .main-container,
+  .main-layout {
+    min-width: 0 !important;
+  }
+}
+
 /* Empty states: readable and centered. */
 
 .text-muted {

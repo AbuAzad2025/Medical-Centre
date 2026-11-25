@@ -1,41 +1,44 @@
 <footer class="luxury-footer">
-    <div class="container">
-        <div class="luxury-footer-logo">
-            {% if branding and branding.logo_url %}
-                <img src="{{ branding.logo_url }}" alt="Logo">
-            {% elif branding and branding.logo_path %}
-                <img src="{{ branding.logo_path }}" alt="Logo">
-            {% else %}
-                <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="Medical Centre Platform">
-            {% endif %}
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <div class="luxury-footer-logo">
+                {% if branding and branding.logo_url %}
+                    <img src="{{ branding.logo_url }}" alt="Logo">
+                {% elif branding and branding.logo_path %}
+                    <img src="{{ branding.logo_path }}" alt="Logo">
+                {% else %}
+                    <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="Medical Centre Platform">
+                {% endif %}
+            </div>
+            <div class="luxury-footer-copyright">
+                &copy; {{ current_year or 2025 }} {{ branding.organization_name if branding else _('المركز الصحي المتخصص') }}. {{ _('جميع الحقوق محفوظة.') }}
+            </div>
+            <div class="luxury-footer-developer">
+                {{ _('تطوير:') }} {{ developer_company or _('شركة أزاد للأنظمة الذكية') }}
+                {% if developer_name %} · {{ developer_name }}{% endif %}
+            </div>
         </div>
-        <div class="luxury-footer-copyright">
-            &copy; {{ current_year or 2025 }} {{ branding.organization_name if branding else _('المركز الصحي المتخصص') }}. {{ _('جميع الحقوق محفوظة.') }}
-        </div>
-        <div class="luxury-footer-developer">
-            {{ _('تطوير:') }} {{ developer_company or _('شركة أزاد للأنظمة الذكية') }}
-            {% if developer_name %} | {{ developer_name }}{% endif %}
-        </div>
-        <div class="luxury-footer-links mt-neg-15">
+
+        <nav class="footer-nav" aria-label="{{ _('روابط التذييل') }}">
+            <span class="footer-nav-title">{{ _('روابط سريعة') }}</span>
+            <a href="{{ url_for('main.privacy_policy') }}" class="luxury-footer-link">{{ _('سياسة الخصوصية') }}</a>
+            <a href="{{ url_for('main.terms_of_use') }}" class="luxury-footer-link">{{ _('شروط الاستخدام') }}</a>
+            <a href="{{ url_for('main.technical_support') }}" class="luxury-footer-link">{{ _('الدعم الفني') }}</a>
+            <a href="{{ url_for('main.about_system') }}" class="luxury-footer-link">{{ _('حول النظام') }}</a>
+        </nav>
+
+        <div class="footer-contact">
+            <span class="footer-nav-title">{{ _('تواصل معنا') }}</span>
             {% if developer_mobile %}
-                <span class="luxury-footer-link"><i class="fas fa-phone me-1"></i> {{ developer_mobile }}</span>
+                <span class="luxury-footer-link"><i class="fas fa-phone me-1" aria-hidden="true"></i> {{ developer_mobile }}</span>
             {% endif %}
             {% if developer_location %}
-                <span class="luxury-footer-link"><i class="fas fa-map-marker-alt me-1"></i> {{ developer_location }}</span>
+                <span class="luxury-footer-link"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i> {{ developer_location }}</span>
             {% endif %}
-        </div>
-        <div class="luxury-footer-links">
-            <a href="{{ url_for('main.privacy_policy') }}" class="luxury-footer-link">{{ _('سياسة الخصوصية') }}</a>
-            <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.terms_of_use') }}" class="luxury-footer-link">{{ _('شروط الاستخدام') }}</a>
-            <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.technical_support') }}" class="luxury-footer-link">{{ _('الدعم الفني') }}</a>
-            <span class="luxury-footer-divider">|</span>
-            <a href="{{ url_for('main.about_system') }}" class="luxury-footer-link">{{ _('حول النظام') }}</a>
-        </div>
-        <div class="luxury-footer-security">
-            <i class="fas fa-shield-alt"></i>
-            {{ _('محمي بأعلى معايير الأمان العالمية') }}
+            <span class="luxury-footer-security">
+                <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                {{ _('محمي بأعلى معايير الأمان العالمية') }}
+            </span>
         </div>
     </div>
 </footer>
