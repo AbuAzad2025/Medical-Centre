@@ -2,7 +2,6 @@
 
 import os
 import sys
-from datetime import datetime
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, ROOT)
@@ -12,10 +11,11 @@ os.environ.setdefault('SECRET_KEY', 'ci-test-secret-key-for-jwt-hs256-min32')
 os.environ.setdefault('SKIP_PLATFORM_BOOTSTRAP', '1')
 os.environ.setdefault('RLS_BYPASS_ALLOWED', '1')
 
-from app_factory import create_app  # noqa: E402
+from sqlalchemy import select, text  # noqa: E402
+
 from app.core.tenant.models import ProductBundle, Tenant  # noqa: E402
 from app.extensions import db  # noqa: E402
-from sqlalchemy import select, text  # noqa: E402
+from app_factory import create_app  # noqa: E402
 
 app = create_app('development')
 problems = []

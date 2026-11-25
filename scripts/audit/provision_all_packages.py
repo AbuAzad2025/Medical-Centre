@@ -3,7 +3,6 @@
 import json
 import os
 import sys
-import time
 from datetime import datetime
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -63,7 +62,7 @@ with sync_playwright() as pw:
     login(pg)
     for version_id, slug, profile in PACKAGES:
         tenant_slug = 'pkg-' + slug.replace('_', '-')
-        for attempt in range(4):
+        for _attempt in range(4):
             try:
                 pg.goto(f'{BASE}/t/platform/owner/provision', wait_until='domcontentloaded')
                 pg.wait_for_timeout(250)
