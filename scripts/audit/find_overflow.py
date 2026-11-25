@@ -17,8 +17,9 @@ with sync_playwright() as pw:
             break
     pg.goto(f'{BASE}/t/full-demo-center/doctor/dashboard')
     pg.wait_for_timeout(500)
-    print(pg.evaluate(
-        """() => {
+    print(
+        pg.evaluate(
+            """() => {
           const out=[];
           document.querySelectorAll('body *').forEach(e=>{
             const r=e.getBoundingClientRect();
@@ -26,5 +27,6 @@ with sync_playwright() as pw:
           });
           return out.slice(0,20);
         }"""
-    ))
+        )
+    )
     b.close()

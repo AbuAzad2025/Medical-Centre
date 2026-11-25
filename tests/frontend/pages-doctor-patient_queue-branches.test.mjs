@@ -236,12 +236,17 @@ describe('patient_queue.js DOMContentLoaded wiring', () => {
     expect(row.style.backgroundColor).toBe('');
   });
 
-  it('submit buttons swap to a spinner state on click', async () => {
+  it('does not block native form submission on submit-button click', async () => {
     await loadModule('static/js/pages/doctor/patient_queue.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const btn = document.getElementById('doneBtn');
+    let submitted = false;
+    btn.closest('form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitted = true;
+    });
     btn.click();
-    expect(btn.disabled).toBe(true);
-    expect(btn.innerHTML).toContain('spinner-border');
+    expect(btn.disabled).toBe(false);
+    expect(submitted).toBe(true);
   });
 });

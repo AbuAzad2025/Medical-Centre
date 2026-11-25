@@ -37,8 +37,12 @@ with sync_playwright() as pw:
             pg.screenshot(path=path, full_page=True)
         else:
             pg.locator('.luxury-footer').screenshot(path=path)
-        print(label, 'columns', pg.evaluate(
-            "getComputedStyle(document.querySelector('.footer-grid')).gridTemplateColumns"
-        ))
+        print(
+            label,
+            'columns',
+            pg.evaluate(
+                "getComputedStyle(document.querySelector('.footer-grid')).gridTemplateColumns"
+            ),
+        )
         pg.close()
     b.close()

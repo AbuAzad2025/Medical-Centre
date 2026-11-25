@@ -17,13 +17,15 @@ with sync_playwright() as pw:
             break
     pg.goto(f'{BASE}/t/full-demo-center/doctor/dashboard')
     pg.wait_for_timeout(500)
-    print(pg.evaluate(
-        """() => { const f=document.querySelector('.luxury-footer'); const r=f.getBoundingClientRect();
+    print(
+        pg.evaluate(
+            """() => { const f=document.querySelector('.luxury-footer'); const r=f.getBoundingClientRect();
           const sb=document.querySelector('.clinical-sidebar');
           return {box:[r.x,r.y,r.width,r.height], display:getComputedStyle(f).display,
             sidebarDisplay:getComputedStyle(sb).display,
             docScrollWidth:document.documentElement.scrollWidth,
             bodyScrollWidth:document.body.scrollWidth,
             viewport:innerWidth}; }"""
-    ))
+        )
+    )
     b.close()

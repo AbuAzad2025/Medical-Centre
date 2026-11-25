@@ -27,7 +27,9 @@ with sync_playwright() as pw:
     r = pg.goto(f'{BASE}/t/full-demo-center/reception/queue', wait_until='domcontentloaded')
     pg.wait_for_timeout(1200)
     body = pg.locator('body').inner_text()
-    buttons = pg.locator('button[aria-label="إرجاع للطابور"], button[title="إرجاع للطابور"]').count()
+    buttons = pg.locator(
+        'button[aria-label="إرجاع للطابور"], button[title="إرجاع للطابور"]'
+    ).count()
     print('status', r.status, 'return buttons', buttons)
     print('has return text', 'إرجاع' in body)
     pg.screenshot(path=OUT)

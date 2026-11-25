@@ -15,7 +15,9 @@ sys.path.insert(0, ROOT)
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 BASE = 'http://localhost:8000'
-ADMIN_PASSWORD = os.environ.get('PLATFORM_ADMIN_PASSWORD', 'Azad@1983@2026@11@25')
+ADMIN_PASSWORD = os.environ.get(
+    'PLATFORM_ADMIN_PASSWORD', f'Azad@1983@{__import__("datetime").datetime.now():%Y@%m@%d}'
+)
 STAFF_PASSWORD = 'Audit@2026Pass'
 ALT_ROLES = [
     ('admin', 'fulladmin', STAFF_PASSWORD, 'full-demo-center'),

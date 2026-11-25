@@ -26,13 +26,19 @@ describe('emergency/patient_queue.js', () => {
     expect(rows[0].style.backgroundColor).toBe('');
   });
 
-  it('submit buttons are disabled with spinner on click', async () => {
+  it('does not mutate submit buttons on click so the form still submits', async () => {
     await loadModule('static/js/pages/emergency/patient_queue.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const btn = document.querySelector('button[type="submit"]');
+    let submitted = false;
+    btn.closest('form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitted = true;
+    });
     btn.click();
-    expect(btn.disabled).toBe(true);
-    expect(btn.innerHTML).toContain('fa-spinner');
+    expect(btn.disabled).toBe(false);
+    expect(btn.innerHTML).not.toContain('fa-spinner');
+    expect(submitted).toBe(true);
   });
 
   it('critical rows get pulse animation', async () => {

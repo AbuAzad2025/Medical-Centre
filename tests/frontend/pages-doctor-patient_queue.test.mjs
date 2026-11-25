@@ -123,12 +123,18 @@ describe('doctor/patient_queue.js', () => {
     expect(row.style.backgroundColor).toBe('');
   });
 
-  it('submit button click disables and shows spinner', async () => {
+  it('leaves submit buttons alone so call/start forms actually submit', async () => {
     await loadModule('static/js/pages/doctor/patient_queue.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const btn = document.querySelector('button[type="submit"]');
+    let submitted = false;
+    btn.closest('form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      submitted = true;
+    });
     btn.click();
-    expect(btn.disabled).toBe(true);
-    expect(btn.innerHTML).toContain('spinner-border');
+    expect(btn.disabled).toBe(false);
+    expect(btn.innerHTML).not.toContain('spinner-border');
+    expect(submitted).toBe(true);
   });
 });

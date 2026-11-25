@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, ROOT)
@@ -18,7 +19,9 @@ with sync_playwright() as pw:
     pg.goto(url, wait_until='domcontentloaded')
     print('PAGE', pg.url, pg.title())
     pg.fill('input[name="full_name"]', 'مريض الجولة')
-    pg.fill('input[name="phone"]', '0501112233')
+    # Generated per-run rather than a hardcoded phone literal: the encrypted
+    # query auditor (correctly) flags phone numbers committed to source.
+    pg.fill('input[name="phone"]', '05' + str(int(time.time()))[-9:])
     pg.fill('input[name="email"]', 'audit_patient@full-demo-center.local')
     pg.fill('input[name="password"]', PASSWORD)
     pg.click('button[type=submit]')

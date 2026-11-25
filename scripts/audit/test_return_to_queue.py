@@ -28,10 +28,17 @@ with sync_playwright() as pw:
     btn = pg.locator('button[aria-label="إرجاع للطابور"]').first
     print('buttons', pg.locator('button[aria-label="إرجاع للطابور"]').count())
     net = []
-    pg.on('response', lambda r: net.append((r.status, r.url)) if 'return-to-queue' in r.url else None)
+    pg.on(
+        'response', lambda r: net.append((r.status, r.url)) if 'return-to-queue' in r.url else None
+    )
     btn.click()
     pg.wait_for_timeout(500)
-    print('swal input', pg.locator('.swal2-input').count(), 'confirm', pg.locator('.swal2-confirm').count())
+    print(
+        'swal input',
+        pg.locator('.swal2-input').count(),
+        'confirm',
+        pg.locator('.swal2-confirm').count(),
+    )
     pg.fill('.swal2-input', 'استدعاء بالخطأ — يعاد للطابور')
     pg.click('.swal2-confirm')
     pg.wait_for_timeout(1500)
