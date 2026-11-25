@@ -1,5 +1,5 @@
 {
-  "total_routes": 966,
+  "total_routes": 967,
   "routes": [
     {
       "endpoint": "main.index",
@@ -2852,6 +2852,16 @@
     {
       "endpoint": "doctor.print_prescription",
       "path": "/doctor/print-prescription/<int:prescription_id>",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "doctor.download_prescription_pdf",
+      "path": "/doctor/download-prescription-pdf/<int:prescription_id>",
       "methods": [
         "GET",
         "HEAD",
