@@ -1,0 +1,32 @@
+[
+  {
+    "feature": "global search",
+    "status": "works",
+    "detail": "search dropdown responds"
+  },
+  {
+    "feature": "theme toggle",
+    "status": "works",
+    "detail": "data-theme=dark"
+  },
+  {
+    "feature": "notification bell",
+    "status": "works",
+    "detail": "لا توجد إشعارات جديدة"
+  },
+  {
+    "feature": "user preferences API",
+    "status": "works",
+    "detail": "JSON response"
+  },
+  {
+    "feature": "theme catalogue",
+    "status": "works",
+    "detail": "1 theme action buttons rendered"
+  },
+  {
+    "feature": "AI assistant",
+    "status": "works",
+    "detail": "3 bubbles, response present"
+  }
+]

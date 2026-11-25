@@ -1567,6 +1567,61 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
             pass
         return response
 
+    # Cover the Arabic literals that were hard-coded into templates instead of
+    # going through _(). Only HTML text nodes and UI attributes are touched;
+    # script/style bodies and data values are left alone.
+    @app.after_request
+    def _translate_html(response):
+        import re as _re
+
+        try:
+            if response.status_code != 200 or response.mimetype != 'text/html':
+                return response
+            from flask import session
+
+            loc = session.get('lang')
+            if not loc or str(loc).split('-')[0].lower() != 'en':
+                return response
+            body = response.get_data(as_text=True)
+            protected = []
+
+            def _stash(match):
+                protected.append(match.group(0))
+                return f'\x00{len(protected) - 1}\x00'
+
+            body = _re.sub(
+                r'<(script|style)\b[^>]*>.*?</\1>', _stash, body, flags=_re.DOTALL | _re.I
+            )
+
+            def _text(match):
+                value = match.group(1)
+                stripped = value.strip()
+                translated = _translate_ui(stripped, 'en')
+                if translated == stripped and len(stripped) < 90:
+                    # Text nodes often mix a label with a rendered value, e.g.
+                    # "الوردية: مساء" or " مواعيدي اليوم". Replace known
+                    # multi-word UI phrases inside them, longest first.
+                    from app.shared.i18n_runtime import AR_TO_EN as _UI_OVERRIDES
+                    from app.shared.i18n_runtime import CATALOG as _UI_CATALOG
+
+                    phrase_map = {**_UI_CATALOG, **_UI_OVERRIDES}
+                    for key in sorted(phrase_map, key=len, reverse=True):
+                        if len(key) >= 6 and key in translated:
+                            translated = translated.replace(key, phrase_map[key])
+                return '>' + translated + '<'
+
+            def _attr(match):
+                return match.group(1) + '="' + _translate_ui(match.group(2), 'en') + '"'
+
+            body = _re.sub(r'>([^<>]+)<', _text, body)
+            body = _re.sub(r'\b(title|placeholder|aria-label|alt)="([^"]*)"', _attr, body)
+            for idx, original in enumerate(protected):
+                body = body.replace(f'\x00{idx}\x00', original)
+            response.set_data(body)
+        except Exception:  # noqa: BLE001
+            pass
+        return response
+
     # Optional HL7 MLLP + DICOM MWL background listeners (Phase 5)
     if not app.testing and os.environ.get('HL7_MLLP_ENABLED', 'false').lower() in (
         '1',

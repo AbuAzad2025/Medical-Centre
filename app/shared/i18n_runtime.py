@@ -10,6 +10,17 @@ most common tables/buttons. Anything not in the dictionary stays as written.
 
 from __future__ import annotations
 
+import json
+import os
+
+_CATALOG_PATH = os.path.join(os.path.dirname(__file__), 'i18n_catalog.json')
+try:
+    with open(_CATALOG_PATH, encoding='utf-8') as _fh:
+        CATALOG: dict[str, str] = json.load(_fh)
+except Exception:  # noqa: BLE001
+    CATALOG = {}
+
+# Hand-curated overrides take precedence over machine-generated entries.
 AR_TO_EN: dict[str, str] = {
     # shell / navigation
     'الانتقال للمحتوى الرئيسي': 'Skip to main content',
@@ -146,6 +157,37 @@ AR_TO_EN: dict[str, str] = {
     'القائمة': 'Menu',
     'لوحة المالك': 'Owner dashboard',
     'المالك': 'Owner',
+    # doctor dashboard (seen open in the browser)
+    'الآن': 'Now',
+    'طابوري': 'My queue',
+    'ابدأ الكشف ←': 'Start examination ←',
+    'مرضى بالانتظار': 'Patients waiting',
+    'مواعيدي اليوم': 'My appointments today',
+    'لا مواعيد اليوم': 'No appointments today',
+    'طلبات المختبر المعلّقة': 'Pending lab requests',
+    'طلبات الأشعة المعلّقة': 'Pending radiology requests',
+    'لا طلبات معلقة': 'No pending requests',
+    'مرحباً،': 'Hello,',
+    'مرحباً': 'Hello',
+    'الوردية': 'Shift',
+    'الوردية:': 'Shift:',
+    'الوردية: مساء': 'Shift: Evening',
+    'الوردية: صباح': 'Shift: Morning',
+    'Shift: مساء': 'Shift: Evening',
+    'Shift: صباح': 'Shift: Morning',
+    'لوحة تحكم الأطباء': 'Doctor Dashboard',
+    'لوحة تحكم المدير النظام': 'Manager Dashboard',
+    'لوحة تحكم الممرضة': 'Nurse Dashboard',
+    'مساء': 'Evening',
+    'صباح': 'Morning',
+    'ظهر': 'Noon',
+    'الأحد': 'Sunday',
+    'الاثنين': 'Monday',
+    'الثلاثاء': 'Tuesday',
+    'الأربعاء': 'Wednesday',
+    'الخميس': 'Thursday',
+    'الجمعة': 'Friday',
+    'السبت': 'Saturday',
     'الفوترة': 'Billing',
     'بوابة المرضى': 'Patient portal',
     'التصوير بالذكاء الاصطناعي': 'AI imaging',
@@ -159,6 +201,10 @@ AR_TO_EN: dict[str, str] = {
     'الإقامة الداخلية': 'Inpatient admission',
     'إغلاق القائمة': 'Close menu',
     'التنقل الرئيسي': 'Main navigation',
+    'ابحث عن مريض، موعد، وصفة...': 'Search patient, appointment, prescription...',
+    'قائمة المستخدم': 'User menu',
+    'سياسة الخصوصية': 'Privacy policy',
+    'شروط الاستخدام': 'Terms of use',
 }
 
 
@@ -166,5 +212,5 @@ def translate(text, locale: str | None) -> str:
     """Translate *text* to English when *locale* is English."""
     value = str(text)
     if str(locale or 'ar').split('-')[0].lower() == 'en':
-        return AR_TO_EN.get(value, value)
+        return AR_TO_EN.get(value) or CATALOG.get(value, value)
     return value
