@@ -2007,7 +2007,23 @@ def owner_set_default_theme(theme_id):
         db.session.execute(update(SystemTheme).values(is_default=False))
         theme = db.get_or_404(SystemTheme, theme_id)
         theme.is_default = True
+        # A "default theme" that only changes a flag and a badge was a dead
+        # control: the interface kept the old colours. Apply the theme to the
+        # branding row so the choice is visible everywhere.
+        from routes.super_admin.branding import (
+            _get_or_create_branding,
+            _invalidate_branding_cache,
+            _sync_tenant_colors,
+        )
+
+        branding = _get_or_create_branding()
+        branding.primary_color = theme.primary_color
+        branding.secondary_color = theme.secondary_color
+        branding.accent_color = theme.accent_color
+        branding.updated_by = current_user.id
+        _sync_tenant_colors(branding)
         safe_commit(db.session, error_message='database commit failed', reraise=True)
+        _invalidate_branding_cache()
         _log_action('SET_DEFAULT_THEME', 'theme', theme_id, theme.name_ar)
         flash(f'تم تعيين {theme.name_ar} كافتراضي', 'success')
     except Exception as e:

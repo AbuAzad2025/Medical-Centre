@@ -386,7 +386,21 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
     app.jinja_env.filters['enum_label'] = enum_label
     app.jinja_env.filters['user_message'] = resolve_user_message
     app.jinja_env.globals['resolve_visit_payment_status_badge'] = resolve_visit_payment_status_badge
-    app.jinja_env.globals['_'] = lambda s: s
+    # Flask-Babel's gettext used to be replaced by an identity lambda, which
+    # made the language switcher cosmetic: the <html lang/dir> changed but no
+    # text was ever translated. Use the runtime dictionary instead. The old
+    # gettext catalogues were extracted from `_(_('...'))` calls and contain
+    # mangled msgids, so they cannot be used until regenerated.
+    from app.shared.i18n_runtime import translate as _translate_ui
+
+    def _template_gettext(text):
+        try:
+            loc = get_locale()
+        except Exception:  # noqa: BLE001
+            loc = 'ar'
+        return _translate_ui(text, str(loc) if loc else 'ar')
+
+    app.jinja_env.globals['_'] = _template_gettext
 
     # Flask-WTF exposes the CSRF helper as `csrf_token`. A number of templates
     # call `{{ csrf() }}` instead, which raised

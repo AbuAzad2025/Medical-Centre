@@ -12,7 +12,7 @@
             {% for section in nav_sections %}
                 {% if section.title_ar %}
                 <li class="nav-item mt-2">
-                    <span class="nav-section-title">{{ section.title_ar }}</span>
+                    <span class="nav-section-title">{{ section.title_en if current_locale == 'en' else section.title_ar }}</span>
                 </li>
                 {% endif %}
                 {% for item in section.items %}
@@ -28,7 +28,7 @@
                     <a class="nav-link {{ 'active' if is_active else '' }}"
                        href="{% if item.id == 'home' %}{{ url_for('main.index') }}{% else %}{{ item.href }}{% endif %}">
                         <i class="{{ item.icon }} nav-icon"></i>
-                        <span>{{ item.label_ar }}</span>
+                        <span>{{ item.label_en if current_locale == 'en' else item.label_ar }}</span>
                     </a>
                 </li>
                 {% endfor %}

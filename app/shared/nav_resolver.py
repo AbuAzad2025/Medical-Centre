@@ -45,12 +45,24 @@ class NavItem:
     module: str | None = None
     permission: str | None = None
 
+    @property
+    def label_en(self) -> str:
+        from app.shared.i18n_runtime import translate
+
+        return translate(self.label_ar, 'en')
+
 
 @dataclass
 class NavSection:
     id: str
     title_ar: str
     items: list[NavItem] = field(default_factory=list)
+
+    @property
+    def title_en(self) -> str:
+        from app.shared.i18n_runtime import translate
+
+        return translate(self.title_ar, 'en')
 
 
 def _normalize_module(name: str) -> str:
