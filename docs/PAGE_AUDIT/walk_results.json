@@ -467,14 +467,8 @@
       "endpoint": "finance.invoice_pdf",
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/finance/invoice/1/pdf",
-      "status": 404,
-      "final_url": "http://localhost:8000/t/full-demo-center/finance/invoice/1/pdf",
-      "title": "",
-      "is_json": true,
-      "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
-      ]
+      "status": null,
+      "error": "Page.goto: Download is starting\nCall log:\n  - navigating to \"http://localhost:8000/t/full-demo-center/finance/invoice/1/pdf\", waiting until \"domcontentloaded\"\n"
     },
     {
       "role": "accountant",
@@ -496,14 +490,8 @@
       "endpoint": "finance.invoice_pdf",
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/finance/invoices/1/download",
-      "status": 404,
-      "final_url": "http://localhost:8000/t/full-demo-center/finance/invoices/1/download",
-      "title": "",
-      "is_json": true,
-      "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
-      ]
+      "status": null,
+      "error": "Page.goto: Download is starting\nCall log:\n  - navigating to \"http://localhost:8000/t/full-demo-center/finance/invoices/1/download\", waiting until \"domcontentloaded\"\n"
     },
     {
       "role": "accountant",
@@ -511,14 +499,8 @@
       "endpoint": "finance.invoice_pdf",
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/finance/invoices/1/pdf",
-      "status": 404,
-      "final_url": "http://localhost:8000/t/full-demo-center/finance/invoices/1/pdf",
-      "title": "",
-      "is_json": true,
-      "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
-      ]
+      "status": null,
+      "error": "Page.goto: Download is starting\nCall log:\n  - navigating to \"http://localhost:8000/t/full-demo-center/finance/invoices/1/pdf\", waiting until \"domcontentloaded\"\n"
     },
     {
       "role": "accountant",
@@ -3002,8 +2984,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/print-invoice/1",
       "status": 200,
-      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
-      "title": "طابور المرضى - الطبيب",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/print-invoice/1",
+      "title": "فاتورة — Sarah Alotaibi",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3380,14 +3362,13 @@
       "endpoint": "emergency.index",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "لوحة تحكم الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0001_emergency.png"
     },
     {
       "role": "emergency",
@@ -3395,14 +3376,13 @@
       "endpoint": "emergency.list_emergency_cases",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0002_emergency_cases.png"
     },
     {
       "role": "emergency",
@@ -3410,14 +3390,13 @@
       "endpoint": "emergency.view_emergency_case",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases",
+      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0003_emergency_cases_1.png"
     },
     {
       "role": "emergency",
@@ -3425,14 +3404,13 @@
       "endpoint": "emergency.edit_emergency_case",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases/1/edit",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases/1/edit",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases",
+      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0004_emergency_cases_1_edit.png"
     },
     {
       "role": "emergency",
@@ -3440,14 +3418,13 @@
       "endpoint": "emergency.dashboard",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "لوحة تحكم الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0005_emergency_dashboard.png"
     },
     {
       "role": "emergency",
@@ -3455,14 +3432,13 @@
       "endpoint": "emergency.emergency_report",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-report/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-report/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0006_emergency_emergency-report_1.png"
     },
     {
       "role": "emergency",
@@ -3470,14 +3446,13 @@
       "endpoint": "emergency.emergency_treatment",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-treatment/1",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "زيارات الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0007_emergency_emergency-treatment_1.png"
     },
     {
       "role": "emergency",
@@ -3485,14 +3460,13 @@
       "endpoint": "emergency.emergency_visits",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "زيارات الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0008_emergency_emergency-visits.png"
     },
     {
       "role": "emergency",
@@ -3500,14 +3474,13 @@
       "endpoint": "emergency.lab_request",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/lab-request/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/lab-request/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0009_emergency_lab-request_1.png"
     },
     {
       "role": "emergency",
@@ -3515,14 +3488,13 @@
       "endpoint": "emergency.lab_results",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/lab-results/1",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/lab-results/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "نتائج مختبر الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0010_emergency_lab-results_1.png"
     },
     {
       "role": "emergency",
@@ -3530,14 +3502,13 @@
       "endpoint": "emergency.medical_history",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/medical-history/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/medical-history/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0011_emergency_medical-history_1.png"
     },
     {
       "role": "emergency",
@@ -3545,14 +3516,13 @@
       "endpoint": "emergency.patient_details",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patient-details/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-details/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0012_emergency_patient-details_1.png"
     },
     {
       "role": "emergency",
@@ -3560,14 +3530,13 @@
       "endpoint": "emergency.patient_queue",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0013_emergency_patient-queue.png"
     },
     {
       "role": "emergency",
@@ -3575,14 +3544,13 @@
       "endpoint": "emergency.patients",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patients",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patients",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0014_emergency_patients.png"
     },
     {
       "role": "emergency",
@@ -3590,14 +3558,13 @@
       "endpoint": "emergency.prescription",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/prescription/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/prescription/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0015_emergency_prescription_1.png"
     },
     {
       "role": "emergency",
@@ -3605,14 +3572,13 @@
       "endpoint": "emergency.prescriptions_history",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/prescriptions-history/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/prescriptions-history/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0016_emergency_prescriptions-history_1.png"
     },
     {
       "role": "emergency",
@@ -3620,14 +3586,13 @@
       "endpoint": "emergency.print_emergency_report",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/print-emergency-report/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/print-emergency-report/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0017_emergency_print-emergency-report_1.png"
     },
     {
       "role": "emergency",
@@ -3635,14 +3600,13 @@
       "endpoint": "emergency.print_prescription",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/print-prescription/1",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/print-prescription/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "روشتة طبية — Sarah Alotaibi",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0018_emergency_print-prescription_1.png"
     },
     {
       "role": "emergency",
@@ -3650,14 +3614,13 @@
       "endpoint": "emergency.queue",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/queue",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/queue",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0019_emergency_queue.png"
     },
     {
       "role": "emergency",
@@ -3665,14 +3628,13 @@
       "endpoint": "emergency.radiology_request",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/radiology-request/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/radiology-request/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0020_emergency_radiology-request_1.png"
     },
     {
       "role": "emergency",
@@ -3680,14 +3642,13 @@
       "endpoint": "emergency.radiology_results",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/radiology-results/1",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/radiology-results/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "نتائج أشعة الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0021_emergency_radiology-results_1.png"
     },
     {
       "role": "emergency",
@@ -3695,14 +3656,13 @@
       "endpoint": "emergency.reports",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/reports",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/reports",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "تقارير الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0022_emergency_reports.png"
     },
     {
       "role": "emergency",
@@ -3710,14 +3670,13 @@
       "endpoint": "emergency.treatment",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/treatment/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/treatment/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0023_emergency_treatment_1.png"
     },
     {
       "role": "emergency",
@@ -3725,14 +3684,13 @@
       "endpoint": "emergency.triage_list",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/triage",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0024_emergency_triage.png"
     },
     {
       "role": "emergency",
@@ -3740,14 +3698,13 @@
       "endpoint": "emergency.triage",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/triage/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/emergency/triage/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "طابور الطوارئ",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0025_emergency_triage_1.png"
     },
     {
       "role": "lab",
@@ -3755,14 +3712,13 @@
       "endpoint": "lab.index",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "قسم المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0001_lab.png"
     },
     {
       "role": "lab",
@@ -3921,13 +3877,13 @@
       "endpoint": "lab.barcode_print",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/barcode/print/1",
-      "status": 403,
+      "status": 404,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/barcode/print/1",
-      "title": "403 — لا يمكن عرض الصفحة",
-      "is_json": false,
+      "title": "",
+      "is_json": true,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
       ]
     },
     {
@@ -3936,13 +3892,13 @@
       "endpoint": "lab.barcode_scan",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/barcode/scan/<barcode>",
-      "status": 403,
+      "status": 404,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/barcode/scan/%3Cbarcode%3E",
-      "title": "403 — لا يمكن عرض الصفحة",
-      "is_json": false,
+      "title": "",
+      "is_json": true,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
       ]
     },
     {
@@ -3990,14 +3946,13 @@
       "endpoint": "lab.dashboard",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "قسم المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0018_lab_dashboard.png"
     },
     {
       "role": "lab",
@@ -4018,14 +3973,13 @@
       "endpoint": "lab.print_request",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/print_request/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/print_request/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0020_lab_print_request_1.png"
     },
     {
       "role": "lab",
@@ -4033,13 +3987,13 @@
       "endpoint": "lab.print_request_pdf",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/print_request/1/pdf",
-      "status": 403,
+      "status": 404,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/print_request/1/pdf",
-      "title": "403 — لا يمكن عرض الصفحة",
-      "is_json": false,
+      "title": "",
+      "is_json": true,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
       ]
     },
     {
@@ -4048,14 +4002,13 @@
       "endpoint": "lab.quality",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/quality",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/quality",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "جودة المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0022_lab_quality.png"
     },
     {
       "role": "lab",
@@ -4063,14 +4016,13 @@
       "endpoint": "lab.quality_control",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/quality-control",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/quality-control",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "ضبط جودة المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0023_lab_quality-control.png"
     },
     {
       "role": "lab",
@@ -4078,14 +4030,13 @@
       "endpoint": "lab.reagents",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "مواد المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0024_lab_reagents.png"
     },
     {
       "role": "lab",
@@ -4093,14 +4044,13 @@
       "endpoint": "lab.edit_reagent",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents/1/edit",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents/1/edit",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents",
+      "title": "مواد المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0025_lab_reagents_1_edit.png"
     },
     {
       "role": "lab",
@@ -4108,14 +4058,13 @@
       "endpoint": "lab.add_reagent",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents/add",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents/add",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "إضافة مادة",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0026_lab_reagents_add.png"
     },
     {
       "role": "lab",
@@ -4123,14 +4072,13 @@
       "endpoint": "lab.reports",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reports",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reports",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "تقرير التحليل",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0027_lab_reports.png"
     },
     {
       "role": "lab",
@@ -4138,14 +4086,13 @@
       "endpoint": "lab.requests",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/requests",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/requests",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0028_lab_requests.png"
     },
     {
       "role": "lab",
@@ -4196,14 +4143,13 @@
       "endpoint": "lab.results",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/results",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/results",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist?status=DONE_TODAY",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0032_lab_results.png"
     },
     {
       "role": "lab",
@@ -4239,14 +4185,13 @@
       "endpoint": "lab.test_catalog",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/test-catalog/",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/test-catalog/",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "كتالوج الفحوصات المخبرية",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0035_lab_test-catalog.png"
     },
     {
       "role": "lab",
@@ -4254,14 +4199,13 @@
       "endpoint": "lab.test_panels",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/test-panels/",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/test-panels/",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "باقات الفحوصات المخبرية",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0036_lab_test-panels.png"
     },
     {
       "role": "lab",
@@ -4269,14 +4213,13 @@
       "endpoint": "lab.tests",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/tests",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/tests",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0037_lab_tests.png"
     },
     {
       "role": "lab",
@@ -4284,14 +4227,13 @@
       "endpoint": "lab.worklist",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/worklist",
-      "status": 403,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0038_lab_worklist.png"
     },
     {
       "role": "lab",
@@ -4299,14 +4241,13 @@
       "endpoint": "lab.worklist_request",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/worklist/request/1",
-      "status": 403,
-      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist/request/1",
-      "title": "403 — لا يمكن عرض الصفحة",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
+      "title": "قائمة عمل المختبر",
       "is_json": false,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
-      ]
+      "console_errors": [],
+      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0039_lab_worklist_request_1.png"
     },
     {
       "role": "manager",
@@ -7339,8 +7280,8 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/print_invoice/1",
       "status": 200,
-      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
-      "title": "إدارة الطابور الموحد",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/print_invoice/1",
+      "title": "فاتورة — Sarah Alotaibi",
       "is_json": false,
       "markers": [],
       "console_errors": [],
