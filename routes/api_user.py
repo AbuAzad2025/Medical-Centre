@@ -22,6 +22,9 @@ api_user_bp = Blueprint('api_user', __name__)
     'lab_tech',
     'radiology',
     'accountant',
+    'emergency',
+    'er_doctor',
+    'technician',
     'super_admin',
 )
 @limit_payload_size(256 * 1024)

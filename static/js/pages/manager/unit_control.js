@@ -28,6 +28,12 @@ export function exportUnitsReport() {
 
 export function toggleUnit(moduleName, btn) {
     var toggleUrl = (window.API_ROUTES && window.API_ROUTES.unit_toggle) || '/manager/api/units/toggle';
+    // Some call sites invoke toggleUnit() with no arguments. Recover the
+    // module from the button instead of posting an empty module_name, which
+    // the API rejects with a silent 400.
+    if (!moduleName && btn) {
+        moduleName = btn.getAttribute('data-module');
+    }
     var arName = btn ? btn.getAttribute('data-name-ar') || moduleName : moduleName;
     Swal.fire({
         title: '\u062a\u0623\u0643\u064a\u062f',

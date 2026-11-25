@@ -468,10 +468,15 @@ def owner_tenant_detail(tenant_id):
                 if existing:
                     flash('اسم المستخدم موجود بالفعل', 'error')
                 else:
+                    # The tenant contact email is already used by the tenant's
+                    # admin account. Reusing it for every new user made the
+                    # second user in a tenant fail on uq_user_tenant_email, so
+                    # only one staff account could ever be provisioned here.
+                    email = f'{username}@{tenant.slug}.local'
                     user = UserModel(
                         tenant_id=tenant_id,
                         username=username,
-                        email=tenant.contact_email or f'{username}@{tenant.slug}.local',
+                        email=email,
                         password_hash=generate_password_hash(password),
                         full_name=full_name,
                         role='admin',

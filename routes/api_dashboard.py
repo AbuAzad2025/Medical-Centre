@@ -11,7 +11,24 @@ api_dashboard_bp = Blueprint('api_dashboard', __name__)
 
 @api_dashboard_bp.route('/snapshot')
 @login_required
-@role_required('admin', 'manager', 'doctor', 'nurse', 'reception', 'super_admin')
+# Dashboard counters are cross-cutting: every staff dashboard paints its KPI
+# cards from this endpoint. Restricting it to a subset of roles made the
+# pharmacy/finance/lab pages poll a URL that 403'd for their own user.
+@role_required(
+    'admin',
+    'manager',
+    'doctor',
+    'er_doctor',
+    'nurse',
+    'reception',
+    'emergency',
+    'pharmacist',
+    'lab',
+    'radiology',
+    'accountant',
+    'technician',
+    'super_admin',
+)
 def dashboard_snapshot():
     """Poll-friendly metrics for [data-widget-id] cards."""
     try:

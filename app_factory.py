@@ -397,6 +397,16 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
 
     app.jinja_env.globals.setdefault('csrf', generate_csrf)
 
+    # A second spelling used by several templates is `forms.csrf()`. Without
+    # a global for `forms`, those pages rendered an HTTP 500 ("'forms' is
+    # undefined") instead of a CSRF-protected form. Expose the same helper.
+    class _TemplateFormHelpers:
+        @staticmethod
+        def csrf():
+            return generate_csrf()
+
+    app.jinja_env.globals.setdefault('forms', _TemplateFormHelpers())
+
     from app.shared.branding_context import get_branding_row
     from app.shared.print_context import resolve_print_context
 

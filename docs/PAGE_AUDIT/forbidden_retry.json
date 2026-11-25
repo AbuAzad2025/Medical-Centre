@@ -1,0 +1,817 @@
+{
+  "total": 116,
+  "results": [
+    {
+      "path": "/payment/methods",
+      "original_role": "accountant",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/payment/methods"
+    },
+    {
+      "path": "/cds/rules",
+      "original_role": "doctor",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/cds/rules"
+    },
+    {
+      "path": "/clinical-coding/drg",
+      "original_role": "doctor",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/reception/dashboard"
+    },
+    {
+      "path": "/doctor/dashboard/1",
+      "original_role": "doctor",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/reception/dashboard"
+    },
+    {
+      "path": "/patient-education/edit/1",
+      "original_role": "doctor",
+      "tried_role": "manager",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/edit/1"
+    },
+    {
+      "path": "/patient-education/new",
+      "original_role": "doctor",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/new"
+    },
+    {
+      "path": "/nursing-assessment/dashboard",
+      "original_role": "nurse",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/nursing-assessment/dashboard"
+    },
+    {
+      "path": "/order-sets/",
+      "original_role": "nurse",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/"
+    },
+    {
+      "path": "/order-sets/1",
+      "original_role": "nurse",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/1"
+    },
+    {
+      "path": "/portal/",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/"
+    },
+    {
+      "path": "/portal/appointments",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/appointments"
+    },
+    {
+      "path": "/portal/bills",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/bills"
+    },
+    {
+      "path": "/portal/book-appointment",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/book-appointment"
+    },
+    {
+      "path": "/portal/dashboard",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/dashboard"
+    },
+    {
+      "path": "/portal/documents",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents"
+    },
+    {
+      "path": "/portal/documents/1",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents/1"
+    },
+    {
+      "path": "/portal/feedback",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/feedback"
+    },
+    {
+      "path": "/portal/lab-results",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/lab-results"
+    },
+    {
+      "path": "/portal/link-account",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/link-account"
+    },
+    {
+      "path": "/portal/medical-records",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/medical-records"
+    },
+    {
+      "path": "/portal/prescriptions",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/prescriptions"
+    },
+    {
+      "path": "/portal/radiology-results",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/radiology-results"
+    },
+    {
+      "path": "/portal/settings",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/settings"
+    },
+    {
+      "path": "/portal/vaccinations",
+      "original_role": "patient",
+      "tried_role": "manager",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/vaccinations"
+    },
+    {
+      "path": "/reception/print_prescription/1",
+      "original_role": "reception",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/reception/queue"
+    },
+    {
+      "path": "/api/fhir/Patient",
+      "original_role": "super_admin",
+      "tried_role": "manager",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient"
+    },
+    {
+      "path": "/api/fhir/Patient/1",
+      "original_role": "super_admin",
+      "tried_role": "manager",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient/1"
+    },
+    {
+      "path": "/api/fhir/VisionPrescription",
+      "original_role": "super_admin",
+      "tried_role": "manager",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/VisionPrescription"
+    },
+    {
+      "path": "/barcode/registry",
+      "original_role": "technician",
+      "tried_role": "manager",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/barcode/registry"
+    },
+    {
+      "path": "/payment/methods",
+      "original_role": "accountant",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/payment/methods"
+    },
+    {
+      "path": "/cds/rules",
+      "original_role": "doctor",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/cds/rules"
+    },
+    {
+      "path": "/clinical-coding/drg",
+      "original_role": "doctor",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/clinical-coding/drg"
+    },
+    {
+      "path": "/doctor/dashboard/1",
+      "original_role": "doctor",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard/1"
+    },
+    {
+      "path": "/patient-education/edit/1",
+      "original_role": "doctor",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/edit/1"
+    },
+    {
+      "path": "/patient-education/new",
+      "original_role": "doctor",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/new"
+    },
+    {
+      "path": "/nursing-assessment/dashboard",
+      "original_role": "nurse",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/nursing-assessment/dashboard"
+    },
+    {
+      "path": "/order-sets/",
+      "original_role": "nurse",
+      "tried_role": "doctor",
+      "status": 200,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/"
+    },
+    {
+      "path": "/order-sets/1",
+      "original_role": "nurse",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/1"
+    },
+    {
+      "path": "/portal/",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/"
+    },
+    {
+      "path": "/portal/appointments",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/appointments"
+    },
+    {
+      "path": "/portal/bills",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/bills"
+    },
+    {
+      "path": "/portal/book-appointment",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/book-appointment"
+    },
+    {
+      "path": "/portal/dashboard",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/dashboard"
+    },
+    {
+      "path": "/portal/documents",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents"
+    },
+    {
+      "path": "/portal/documents/1",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents/1"
+    },
+    {
+      "path": "/portal/feedback",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/feedback"
+    },
+    {
+      "path": "/portal/lab-results",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/lab-results"
+    },
+    {
+      "path": "/portal/link-account",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/link-account"
+    },
+    {
+      "path": "/portal/medical-records",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/medical-records"
+    },
+    {
+      "path": "/portal/prescriptions",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/prescriptions"
+    },
+    {
+      "path": "/portal/radiology-results",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/radiology-results"
+    },
+    {
+      "path": "/portal/settings",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/settings"
+    },
+    {
+      "path": "/portal/vaccinations",
+      "original_role": "patient",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/vaccinations"
+    },
+    {
+      "path": "/reception/print_prescription/1",
+      "original_role": "reception",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/reception/queue"
+    },
+    {
+      "path": "/api/fhir/Patient",
+      "original_role": "super_admin",
+      "tried_role": "doctor",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient"
+    },
+    {
+      "path": "/api/fhir/Patient/1",
+      "original_role": "super_admin",
+      "tried_role": "doctor",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient/1"
+    },
+    {
+      "path": "/api/fhir/VisionPrescription",
+      "original_role": "super_admin",
+      "tried_role": "doctor",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/VisionPrescription"
+    },
+    {
+      "path": "/barcode/registry",
+      "original_role": "technician",
+      "tried_role": "doctor",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/barcode/registry"
+    },
+    {
+      "path": "/payment/methods",
+      "original_role": "accountant",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/payment/methods"
+    },
+    {
+      "path": "/cds/rules",
+      "original_role": "doctor",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/cds/rules"
+    },
+    {
+      "path": "/clinical-coding/drg",
+      "original_role": "doctor",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/clinical-coding/drg"
+    },
+    {
+      "path": "/doctor/dashboard/1",
+      "original_role": "doctor",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard/1"
+    },
+    {
+      "path": "/patient-education/edit/1",
+      "original_role": "doctor",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/edit/1"
+    },
+    {
+      "path": "/patient-education/new",
+      "original_role": "doctor",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/patient-education/new"
+    },
+    {
+      "path": "/nursing-assessment/dashboard",
+      "original_role": "nurse",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/nursing-assessment/dashboard"
+    },
+    {
+      "path": "/order-sets/",
+      "original_role": "nurse",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/"
+    },
+    {
+      "path": "/order-sets/1",
+      "original_role": "nurse",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/order-sets/1"
+    },
+    {
+      "path": "/portal/",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/"
+    },
+    {
+      "path": "/portal/appointments",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/appointments"
+    },
+    {
+      "path": "/portal/bills",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/bills"
+    },
+    {
+      "path": "/portal/book-appointment",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/book-appointment"
+    },
+    {
+      "path": "/portal/dashboard",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/dashboard"
+    },
+    {
+      "path": "/portal/documents",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents"
+    },
+    {
+      "path": "/portal/documents/1",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/documents/1"
+    },
+    {
+      "path": "/portal/feedback",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/feedback"
+    },
+    {
+      "path": "/portal/lab-results",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/lab-results"
+    },
+    {
+      "path": "/portal/link-account",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/link-account"
+    },
+    {
+      "path": "/portal/medical-records",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/medical-records"
+    },
+    {
+      "path": "/portal/prescriptions",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/prescriptions"
+    },
+    {
+      "path": "/portal/radiology-results",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/radiology-results"
+    },
+    {
+      "path": "/portal/settings",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/settings"
+    },
+    {
+      "path": "/portal/vaccinations",
+      "original_role": "patient",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/portal/vaccinations"
+    },
+    {
+      "path": "/reception/print_prescription/1",
+      "original_role": "reception",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/print_prescription/1"
+    },
+    {
+      "path": "/api/fhir/Patient",
+      "original_role": "super_admin",
+      "tried_role": "reception",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient"
+    },
+    {
+      "path": "/api/fhir/Patient/1",
+      "original_role": "super_admin",
+      "tried_role": "reception",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/Patient/1"
+    },
+    {
+      "path": "/api/fhir/VisionPrescription",
+      "original_role": "super_admin",
+      "tried_role": "reception",
+      "status": 404,
+      "final_url": "http://localhost:8000/t/full-demo-center/api/fhir/VisionPrescription"
+    },
+    {
+      "path": "/barcode/registry",
+      "original_role": "technician",
+      "tried_role": "reception",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/barcode/registry"
+    },
+    {
+      "path": "/payment/methods",
+      "original_role": "accountant",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/payment/methods"
+    },
+    {
+      "path": "/cds/rules",
+      "original_role": "doctor",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/cds/rules"
+    },
+    {
+      "path": "/clinical-coding/drg",
+      "original_role": "doctor",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/owner/dashboard"
+    },
+    {
+      "path": "/doctor/dashboard/1",
+      "original_role": "doctor",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/doctor/dashboard/1"
+    },
+    {
+      "path": "/patient-education/edit/1",
+      "original_role": "doctor",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/patient-education/edit/1"
+    },
+    {
+      "path": "/patient-education/new",
+      "original_role": "doctor",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/patient-education/new"
+    },
+    {
+      "path": "/nursing-assessment/dashboard",
+      "original_role": "nurse",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/nursing-assessment/dashboard"
+    },
+    {
+      "path": "/order-sets/",
+      "original_role": "nurse",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/order-sets/"
+    },
+    {
+      "path": "/order-sets/1",
+      "original_role": "nurse",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/order-sets/1"
+    },
+    {
+      "path": "/portal/",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/"
+    },
+    {
+      "path": "/portal/appointments",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/appointments"
+    },
+    {
+      "path": "/portal/bills",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/bills"
+    },
+    {
+      "path": "/portal/book-appointment",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/book-appointment"
+    },
+    {
+      "path": "/portal/dashboard",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/dashboard"
+    },
+    {
+      "path": "/portal/documents",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/documents"
+    },
+    {
+      "path": "/portal/documents/1",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/documents/1"
+    },
+    {
+      "path": "/portal/feedback",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/feedback"
+    },
+    {
+      "path": "/portal/lab-results",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/lab-results"
+    },
+    {
+      "path": "/portal/link-account",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/link-account"
+    },
+    {
+      "path": "/portal/medical-records",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/medical-records"
+    },
+    {
+      "path": "/portal/prescriptions",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/prescriptions"
+    },
+    {
+      "path": "/portal/radiology-results",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/radiology-results"
+    },
+    {
+      "path": "/portal/settings",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/settings"
+    },
+    {
+      "path": "/portal/vaccinations",
+      "original_role": "patient",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/portal/vaccinations"
+    },
+    {
+      "path": "/reception/print_prescription/1",
+      "original_role": "reception",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/reception/print_prescription/1"
+    },
+    {
+      "path": "/api/fhir/Patient",
+      "original_role": "super_admin",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/api/fhir/Patient"
+    },
+    {
+      "path": "/api/fhir/Patient/1",
+      "original_role": "super_admin",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/api/fhir/Patient/1"
+    },
+    {
+      "path": "/api/fhir/VisionPrescription",
+      "original_role": "super_admin",
+      "tried_role": "super_admin",
+      "status": 403,
+      "final_url": "http://localhost:8000/api/fhir/VisionPrescription"
+    },
+    {
+      "path": "/barcode/registry",
+      "original_role": "technician",
+      "tried_role": "super_admin",
+      "status": 200,
+      "final_url": "http://localhost:8000/barcode/registry"
+    }
+  ]
+}

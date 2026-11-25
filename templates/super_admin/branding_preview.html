@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>معاينة ترويسة — {{ doc_type_label }}</title>
     {% set doc_type = doc_type %}
-    {% set pc = get_print_context(doc_type) %}
-    {% set print_header_html = print_header_html or pc.header_html %}
-    {% set print_footer_html = print_footer_html or pc.footer_html %}
+    {# The route already resolved the header/footer slots. Calling
+       get_print_context() here re-applied tenant module guards, so the
+       platform-level branding preview crashed on an install whose platform
+       tenant has no clinical modules. Branding is platform configuration,
+       not a tenant document. #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
-    <style id="print-brand-vars">:root { --print-primary: {{ pc.primary_color }}; }</style>
+    <style id="print-brand-vars">:root { --print-primary: {{ ui.primary_color }}; }</style>
     <style>
         body { margin: 0; padding: 1rem; background: #f8fafc; }
         .preview-frame { background: #fff; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; max-width: 800px; margin: 0 auto; }

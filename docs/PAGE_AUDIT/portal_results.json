@@ -1,0 +1,92 @@
+[
+  {
+    "path": "/portal/",
+    "status": 200,
+    "title": "الرئيسية — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/portal/dashboard"
+  },
+  {
+    "path": "/portal/appointments",
+    "status": 200,
+    "title": "المواعيد — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/appointments"
+  },
+  {
+    "path": "/portal/bills",
+    "status": 200,
+    "title": "الفواتير — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/bills"
+  },
+  {
+    "path": "/portal/book-appointment",
+    "status": 200,
+    "title": "إنشاء حجز",
+    "final_url": "http://localhost:8000/booking/create"
+  },
+  {
+    "path": "/portal/dashboard",
+    "status": 200,
+    "title": "الرئيسية — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/dashboard"
+  },
+  {
+    "path": "/portal/documents",
+    "status": 200,
+    "title": "الوثائق — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/documents"
+  },
+  {
+    "path": "/portal/documents/1",
+    "status": 404,
+    "title": "404 — الصفحة غير متاحة",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/documents/1"
+  },
+  {
+    "path": "/portal/feedback",
+    "status": 200,
+    "title": "التقييم — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/feedback"
+  },
+  {
+    "path": "/portal/lab-results",
+    "status": 200,
+    "title": "نتائج المختبر — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/lab-results"
+  },
+  {
+    "path": "/portal/link-account",
+    "status": 200,
+    "title": "الرئيسية — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/portal/dashboard"
+  },
+  {
+    "path": "/portal/medical-records",
+    "status": 200,
+    "title": "السجل الطبي — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/medical-records"
+  },
+  {
+    "path": "/portal/prescriptions",
+    "status": 200,
+    "title": "الوصفات — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/prescriptions"
+  },
+  {
+    "path": "/portal/radiology-results",
+    "status": 200,
+    "title": "نتائج الأشعة — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/radiology-results"
+  },
+  {
+    "path": "/portal/settings",
+    "status": 200,
+    "title": "الإعدادات والموافقات — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/settings"
+  },
+  {
+    "path": "/portal/vaccinations",
+    "status": 200,
+    "title": "التطعيمات — المركز الطبي الشامل",
+    "final_url": "http://localhost:8000/t/full-demo-center/portal/vaccinations"
+  }
+]

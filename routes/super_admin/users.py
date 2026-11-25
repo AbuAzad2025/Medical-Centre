@@ -98,7 +98,10 @@ def create_user():
                 full_name=request.form.get('full_name'),
                 role=request.form.get('role'),
                 department_id=request.form.get('department_id') or None,
-                phone=request.form.get('phone'),
+                # An empty optional phone is not a phone number; passing ''
+                # into the encrypted phone column trips its validator and the
+                # whole create form fails with an opaque error.
+                phone=request.form.get('phone') or None,
                 doctor_room=request.form.get('doctor_room'),
                 is_active=bool(request.form.get('is_active')),
                 is_admin=bool(request.form.get('is_admin')),
@@ -150,7 +153,10 @@ def create_user():
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Create user error: %s')
+            # A stray '%s' with no argument made logging raise while reporting
+            # the real failure, so the admin saw an opaque message and the
+            # cause never reached the log.
+            logging.exception('Create user error')
             flash('تعذر إنشاء المستخدم، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     # جلب البيانات المطلوبة للنموذج
@@ -159,16 +165,24 @@ def create_user():
     departments = db.session.execute(select(Department).filter_by(is_active=True)).scalars().all()
 
     # الأدوار المتاحة
+    # Keep this list in sync with ASSIGNABLE_ROLES / CLINICAL_STAFF_ROLES. The
+    # form used to omit pharmacist and technician even though the role policy
+    # allows them, which made it impossible to provision those staff through
+    # the UI - the only UI in the system that can create tenant staff.
     roles = [
         ('super_admin', 'السوبر أدمن'),
         ('manager', 'مدير المركز'),
         ('reception', 'استقبال'),
         ('doctor', 'طبيب'),
+        ('er_doctor', 'طبيب طوارئ'),
         ('radiology', 'أشعة'),
         ('lab', 'مختبر'),
         ('emergency', 'طوارئ'),
         ('nurse', 'ممرض'),
         ('accountant', 'محاسب'),
+        ('pharmacist', 'صيدلي'),
+        ('technician', 'فني'),
+        ('patient', 'مريض'),
     ]
 
     return render_template('super_admin/create_user.html', departments=departments, roles=roles)

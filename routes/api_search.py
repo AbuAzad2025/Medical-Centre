@@ -22,7 +22,24 @@ _ALLOWED_PATIENT_ROLES = frozenset(
 
 @api_search_bp.route('/patients')
 @login_required
-@role_required_json('reception', 'super_admin', 'admin', 'manager', 'doctor', 'nurse', 'emergency')
+# Search is shared infrastructure used by every staff shell, not a feature of
+# one product module. Keep the whole clinical staff in the allow-list so a
+# pharmacist or accountant never gets a 403 from the global search box.
+@role_required_json(
+    'reception',
+    'super_admin',
+    'admin',
+    'manager',
+    'doctor',
+    'er_doctor',
+    'nurse',
+    'emergency',
+    'pharmacist',
+    'lab',
+    'radiology',
+    'accountant',
+    'technician',
+)
 def search_patients():
     from app.shared.search_service import SearchService
 

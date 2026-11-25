@@ -198,7 +198,10 @@ def resolve_nav_for_user(user) -> list[NavSection]:
     if modules.items:
         sections.append(modules)
 
-    if role in ('manager', 'admin') and 'reporting' in allowed:
+    # The manager navigation lives on /manager, which the reporting guard
+    # protects. Showing it to an admin whose package has no reporting module
+    # produced a sidebar full of links that all answered 403.
+    if role in ('manager', 'admin') and 'reporting' in allowed and 'reporting' in enabled:
         from app.shared.manager_nav_registry import resolve_manager_nav_sections
 
         sections.extend(resolve_manager_nav_sections())
