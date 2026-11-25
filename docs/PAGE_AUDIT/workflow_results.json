@@ -1,0 +1,44 @@
+[
+  {
+    "step": "reception: add patient",
+    "ok": true,
+    "detail": "['تم إضافة المريض بنجاح.']",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\01_patient_added.png"
+  },
+  {
+    "step": "reception: add to queue",
+    "ok": true,
+    "detail": "url=http://localhost:8000/reception/queue flash=['تم إضافة المريض إلى الطابور - الرقم Q1795635998']",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\02_queue_added.png"
+  },
+  {
+    "step": "doctor: visits list",
+    "ok": true,
+    "detail": "الانتقال للمحتوى الرئيسي / المركز الطبي الشامل /  21:46 / العربية / طبيب الجولة / الرئيسية / صندوق العمل / الوحدات / الأطباء / الرئيسية / ال",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\03_doctor_visits.png"
+  },
+  {
+    "step": "doctor: save diagnosis",
+    "ok": true,
+    "detail": "visit 6",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\04_diagnosis_saved.png"
+  },
+  {
+    "step": "doctor: save prescription",
+    "ok": true,
+    "detail": "visit 6 flash=['حدث خطأ في تحميل تفاصيل المريض', 'لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال']",
+    "screenshot": null
+  },
+  {
+    "step": "doctor: create lab request",
+    "ok": true,
+    "detail": "visit 6 flash=['تم تسجيل إنهاء العلاج وإخطار الاستقبال', 'لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال']",
+    "screenshot": null
+  },
+  {
+    "step": "doctor: create radiology request",
+    "ok": true,
+    "detail": "visit 6 flash=['تم تسجيل إنهاء العلاج وإخطار الاستقبال', 'لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال']",
+    "screenshot": null
+  }
+]

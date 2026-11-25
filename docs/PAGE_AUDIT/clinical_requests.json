@@ -1,0 +1,26 @@
+[
+  {
+    "step": "reception: fresh queue entry",
+    "ok": false,
+    "detail": "['تم إضافة المريض إلى الطابور - الرقم Q1795636532']",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\10_fresh_queue.png"
+  },
+  {
+    "step": "doctor: call + start treatment",
+    "ok": true,
+    "detail": "visit 11 flash=[]",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\10b_started.png"
+  },
+  {
+    "step": "doctor: lab note",
+    "ok": true,
+    "detail": "visit 11 flash=[]",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\11_lab_note.png"
+  },
+  {
+    "step": "doctor: radiology note",
+    "ok": true,
+    "detail": "visit 11 flash=[]",
+    "screenshot": "D:\\recovers\\data\\medical\\docs\\PAGE_AUDIT\\workflow_shots\\12_radiology_note.png"
+  }
+]
