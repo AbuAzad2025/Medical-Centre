@@ -47,13 +47,15 @@ STYLESHEET_SHELL_EXTRAS = {
         'css/journey.css',
         'css/touch.css',
         'css/motion.css',
+        'css/medical-polish.css',
     ),
-    'platform': ('css/platform.css',),
+    'platform': ('css/platform.css', 'css/medical-polish.css'),
     'portal': (
         'css/portal.css',
         'css/touch.css',
+        'css/medical-polish.css',
     ),
-    'kiosk': ('css/touch.css', 'css/kiosk.css'),
+    'kiosk': ('css/touch.css', 'css/kiosk.css', 'css/medical-polish.css'),
     'pwa': (),
 }
 

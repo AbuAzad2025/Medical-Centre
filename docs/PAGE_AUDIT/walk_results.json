@@ -8,7 +8,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/accountant/",
       "status": 200,
-      "final_url": "http://localhost:8000/accountant/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/accountant/dashboard",
       "title": "لوحة تحكم الفوترة",
       "is_json": false,
       "markers": [],
@@ -92,7 +92,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/accountant/audit/export/<report_type>",
       "status": 200,
-      "final_url": "http://localhost:8000/accountant/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/accountant/dashboard",
       "title": "لوحة تحكم الفوترة",
       "is_json": false,
       "markers": [],
@@ -290,7 +290,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/accountant/reports",
       "status": 200,
-      "final_url": "http://localhost:8000/payment/reports",
+      "final_url": "http://localhost:8000/t/full-demo-center/payment/reports",
       "title": "التقارير المالية",
       "is_json": false,
       "markers": [],
@@ -318,7 +318,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/finance/",
       "status": 200,
-      "final_url": "http://localhost:8000/finance/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/finance/dashboard",
       "title": "لوحة تحكم الفوترة",
       "is_json": false,
       "markers": [],
@@ -625,7 +625,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/finance/slow-queries/weekly/1",
       "status": 200,
-      "final_url": "http://localhost:8000/finance/slow-queries/weekly",
+      "final_url": "http://localhost:8000/t/full-demo-center/finance/slow-queries/weekly",
       "title": "تقارير الاستعلامات الأسبوعية",
       "is_json": false,
       "markers": [],
@@ -652,7 +652,7 @@
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/payment/",
       "status": 200,
-      "final_url": "http://localhost:8000/payment/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/payment/dashboard",
       "title": "لوحة تحكم المحاسب",
       "is_json": false,
       "markers": [],
@@ -680,14 +680,12 @@
       "endpoint": "payment.lookup_prescription_for_pos",
       "module": "billing",
       "url": "http://localhost:8000/t/full-demo-center/payment/api/pos/prescriptions/1/lookup",
-      "status": 404,
+      "status": 200,
       "final_url": "http://localhost:8000/t/full-demo-center/payment/api/pos/prescriptions/1/lookup",
       "title": "",
       "is_json": true,
       "markers": [],
-      "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
-      ]
+      "console_errors": []
     },
     {
       "role": "accountant",
@@ -768,7 +766,7 @@
       "module": "uncategorized:main",
       "url": "http://localhost:8000/t/full-demo-center/",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard",
       "title": "لوحة تحكم الأطباء",
       "is_json": false,
       "markers": [],
@@ -900,7 +898,7 @@
       "module": "uncategorized:main",
       "url": "http://localhost:8000/t/full-demo-center/appointments",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/appointments",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/appointments",
       "title": "مواعيد الطبيب",
       "is_json": false,
       "markers": [],
@@ -983,7 +981,7 @@
       "module": "uncategorized:auth",
       "url": "http://localhost:8000/t/full-demo-center/auth/register",
       "status": 200,
-      "final_url": "http://localhost:8000/saas/signup",
+      "final_url": "http://localhost:8000/t/full-demo-center/saas/signup",
       "title": "تسجيل منشأة جديدة — منصة أزاد الطبية",
       "is_json": false,
       "markers": [],
@@ -2018,7 +2016,7 @@
       "module": "uncategorized:_root_patients",
       "url": "http://localhost:8000/t/full-demo-center/patients",
       "status": 200,
-      "final_url": "http://localhost:8000/auth/login?next=/reception/patients?",
+      "final_url": "http://localhost:8000/auth/login?next=%2Freception%2Fpatients",
       "title": "تسجيل الدخول - المركز الطبي",
       "is_json": false,
       "markers": [],
@@ -2171,7 +2169,7 @@
       "module": "uncategorized:main",
       "url": "http://localhost:8000/t/full-demo-center/set-language/<lang_code>",
       "status": 200,
-      "final_url": "http://localhost:8000/",
+      "final_url": "http://localhost:8000/t/full-demo-center/",
       "title": "AZAD Medical — منصة أزاد الطبية",
       "is_json": false,
       "markers": [],
@@ -2475,7 +2473,7 @@
       "module": "uncategorized:_root_visits",
       "url": "http://localhost:8000/t/full-demo-center/visits",
       "status": 200,
-      "final_url": "http://localhost:8000/auth/login?next=/reception/visits?",
+      "final_url": "http://localhost:8000/auth/login?next=%2Freception%2Fvisits",
       "title": "تسجيل الدخول - المركز الطبي",
       "is_json": false,
       "markers": [],
@@ -2572,7 +2570,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/clinical-coding/cpt",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard",
       "title": "لوحة تحكم الأطباء",
       "is_json": false,
       "markers": [],
@@ -2601,7 +2599,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/clinical-coding/icd10",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard",
       "title": "لوحة تحكم الأطباء",
       "is_json": false,
       "markers": [],
@@ -2630,7 +2628,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/clinical-coding/patient/1/diagnoses",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard",
       "title": "لوحة تحكم الأطباء",
       "is_json": false,
       "markers": [],
@@ -2658,7 +2656,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/dashboard",
       "title": "لوحة تحكم الأطباء",
       "is_json": false,
       "markers": [],
@@ -2808,8 +2806,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/diagnosis/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2822,8 +2820,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/lab-request/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2836,8 +2834,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/lab-requests",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2878,7 +2876,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/medical-records",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/patients",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patients",
       "title": "بحث عن المرضى",
       "is_json": false,
       "markers": [],
@@ -2892,8 +2890,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/notes/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2906,8 +2904,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/patient-details/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2920,8 +2918,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -2962,8 +2960,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/prescription/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3004,8 +3002,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/print-invoice/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3018,8 +3016,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/print-medical-report/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3032,8 +3030,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/print-prescription/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/print-prescription/1",
+      "title": "روشتة طبية — Sarah Alotaibi",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3045,13 +3043,8 @@
       "endpoint": "doctor.download_prescription_pdf",
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/download-prescription-pdf/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
-      "is_json": false,
-      "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/doctor/0041_doctor_download-prescription-pdf_1.png"
+      "status": null,
+      "error": "Page.goto: Download is starting\nCall log:\n  - navigating to \"http://localhost:8000/t/full-demo-center/doctor/download-prescription-pdf/1\", waiting until \"domcontentloaded\"\n"
     },
     {
       "role": "doctor",
@@ -3060,8 +3053,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/print-receipt/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3074,8 +3067,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/radiology-request/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3088,8 +3081,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/radiology-requests",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3116,8 +3109,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/view_patient/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3130,8 +3123,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/visit-summary/1",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3144,8 +3137,8 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/doctor/visits",
       "status": 200,
-      "final_url": "http://localhost:8000/doctor/dashboard",
-      "title": "لوحة تحكم الأطباء",
+      "final_url": "http://localhost:8000/t/full-demo-center/doctor/patient-queue",
+      "title": "طابور المرضى - الطبيب",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -3317,7 +3310,7 @@
       "module": "doctor",
       "url": "http://localhost:8000/t/full-demo-center/telemedicine/1",
       "status": 200,
-      "final_url": "http://localhost:8000/telemedicine/",
+      "final_url": "http://localhost:8000/t/full-demo-center/telemedicine/",
       "title": "المركز الصحي المتخصص - نظام إدارة متطور",
       "is_json": false,
       "markers": [],
@@ -3387,13 +3380,14 @@
       "endpoint": "emergency.index",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/dashboard",
-      "title": "لوحة تحكم الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0001_emergency.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3401,13 +3395,14 @@
       "endpoint": "emergency.list_emergency_cases",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases",
-      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0002_emergency_cases.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3415,13 +3410,14 @@
       "endpoint": "emergency.view_emergency_case",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/cases",
-      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0003_emergency_cases_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3429,13 +3425,14 @@
       "endpoint": "emergency.edit_emergency_case",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/cases/1/edit",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/cases",
-      "title": "قائمة حالات الطوارئ - النظام الصحي المتكامل",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/cases/1/edit",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0004_emergency_cases_1_edit.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3443,13 +3440,14 @@
       "endpoint": "emergency.dashboard",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/dashboard",
-      "title": "لوحة تحكم الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0005_emergency_dashboard.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3457,13 +3455,14 @@
       "endpoint": "emergency.emergency_report",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-report/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-report/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0006_emergency_emergency-report_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3471,13 +3470,14 @@
       "endpoint": "emergency.emergency_treatment",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-treatment/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/emergency-visits",
-      "title": "زيارات الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0007_emergency_emergency-treatment_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3485,13 +3485,14 @@
       "endpoint": "emergency.emergency_visits",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/emergency-visits",
-      "title": "زيارات الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0008_emergency_emergency-visits.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3499,13 +3500,14 @@
       "endpoint": "emergency.lab_request",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/lab-request/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/lab-request/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0009_emergency_lab-request_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3513,13 +3515,14 @@
       "endpoint": "emergency.lab_results",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/lab-results/1",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/lab-results/1",
-      "title": "نتائج مختبر الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0010_emergency_lab-results_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3527,13 +3530,14 @@
       "endpoint": "emergency.medical_history",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/medical-history/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/medical-history/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0011_emergency_medical-history_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3541,13 +3545,14 @@
       "endpoint": "emergency.patient_details",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patient-details/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-details/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0012_emergency_patient-details_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3555,13 +3560,14 @@
       "endpoint": "emergency.patient_queue",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0013_emergency_patient-queue.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3569,13 +3575,14 @@
       "endpoint": "emergency.patients",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/patients",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patients",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0014_emergency_patients.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3583,13 +3590,14 @@
       "endpoint": "emergency.prescription",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/prescription/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/prescription/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0015_emergency_prescription_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3597,13 +3605,14 @@
       "endpoint": "emergency.prescriptions_history",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/prescriptions-history/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/prescriptions-history/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0016_emergency_prescriptions-history_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3611,13 +3620,14 @@
       "endpoint": "emergency.print_emergency_report",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/print-emergency-report/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/print-emergency-report/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0017_emergency_print-emergency-report_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3625,13 +3635,14 @@
       "endpoint": "emergency.print_prescription",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/print-prescription/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/print-prescription/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0018_emergency_print-prescription_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3639,13 +3650,14 @@
       "endpoint": "emergency.queue",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/queue",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/queue",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0019_emergency_queue.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3653,13 +3665,14 @@
       "endpoint": "emergency.radiology_request",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/radiology-request/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/radiology-request/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0020_emergency_radiology-request_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3667,13 +3680,14 @@
       "endpoint": "emergency.radiology_results",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/radiology-results/1",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/radiology-results/1",
-      "title": "نتائج أشعة الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0021_emergency_radiology-results_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3681,13 +3695,14 @@
       "endpoint": "emergency.reports",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/reports",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/emergency/reports",
-      "title": "تقارير الطوارئ",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0022_emergency_reports.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3695,13 +3710,14 @@
       "endpoint": "emergency.treatment",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/treatment/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/treatment/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0023_emergency_treatment_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3709,13 +3725,14 @@
       "endpoint": "emergency.triage_list",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/triage",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/patient-queue",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0024_emergency_triage.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "emergency",
@@ -3723,13 +3740,14 @@
       "endpoint": "emergency.triage",
       "module": "emergency",
       "url": "http://localhost:8000/t/full-demo-center/emergency/triage/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/emergency/patient-queue",
-      "title": "طابور الطوارئ",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/emergency/triage/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/emergency/0025_emergency_triage_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -3737,13 +3755,14 @@
       "endpoint": "lab.index",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/dashboard",
-      "title": "قسم المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0001_lab.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -3902,13 +3921,13 @@
       "endpoint": "lab.barcode_print",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/barcode/print/1",
-      "status": 404,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/barcode/print/1",
-      "title": "",
-      "is_json": true,
+      "title": "403 — لا يمكن عرض الصفحة",
+      "is_json": false,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
       ]
     },
     {
@@ -3917,13 +3936,13 @@
       "endpoint": "lab.barcode_scan",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/barcode/scan/<barcode>",
-      "status": 404,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/barcode/scan/%3Cbarcode%3E",
-      "title": "",
-      "is_json": true,
+      "title": "403 — لا يمكن عرض الصفحة",
+      "is_json": false,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
       ]
     },
     {
@@ -3971,13 +3990,14 @@
       "endpoint": "lab.dashboard",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/dashboard",
-      "title": "قسم المختبر",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0018_lab_dashboard.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -3998,13 +4018,14 @@
       "endpoint": "lab.print_request",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/print_request/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/worklist",
-      "title": "قائمة عمل المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/print_request/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0020_lab_print_request_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4012,13 +4033,13 @@
       "endpoint": "lab.print_request_pdf",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/print_request/1/pdf",
-      "status": 404,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/print_request/1/pdf",
-      "title": "",
-      "is_json": true,
+      "title": "403 — لا يمكن عرض الصفحة",
+      "is_json": false,
       "markers": [],
       "console_errors": [
-        "Failed to load resource: the server responded with a status of 404 (NOT FOUND)"
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
       ]
     },
     {
@@ -4027,13 +4048,14 @@
       "endpoint": "lab.quality",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/quality",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/quality",
-      "title": "جودة المختبر",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0022_lab_quality.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4041,13 +4063,14 @@
       "endpoint": "lab.quality_control",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/quality-control",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/quality-control",
-      "title": "ضبط جودة المختبر",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0023_lab_quality-control.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4055,13 +4078,14 @@
       "endpoint": "lab.reagents",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents",
-      "title": "مواد المختبر",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0024_lab_reagents.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4069,13 +4093,14 @@
       "endpoint": "lab.edit_reagent",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents/1/edit",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/reagents",
-      "title": "مواد المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents/1/edit",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0025_lab_reagents_1_edit.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4083,13 +4108,14 @@
       "endpoint": "lab.add_reagent",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reagents/add",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reagents/add",
-      "title": "إضافة مادة",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0026_lab_reagents_add.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4097,13 +4123,14 @@
       "endpoint": "lab.reports",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/reports",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/reports",
-      "title": "تقرير التحليل",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0027_lab_reports.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4111,13 +4138,14 @@
       "endpoint": "lab.requests",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/requests",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/worklist",
-      "title": "قائمة عمل المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/requests",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0028_lab_requests.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4168,13 +4196,14 @@
       "endpoint": "lab.results",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/results",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/worklist?status=DONE_TODAY",
-      "title": "قائمة عمل المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/results",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0032_lab_results.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4210,13 +4239,14 @@
       "endpoint": "lab.test_catalog",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/test-catalog/",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/test-catalog/",
-      "title": "كتالوج الفحوصات المخبرية",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0035_lab_test-catalog.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4224,13 +4254,14 @@
       "endpoint": "lab.test_panels",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/test-panels/",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/test-panels/",
-      "title": "باقات الفحوصات المخبرية",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0036_lab_test-panels.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4238,13 +4269,14 @@
       "endpoint": "lab.tests",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/tests",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/worklist",
-      "title": "قائمة عمل المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/tests",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0037_lab_tests.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4252,13 +4284,14 @@
       "endpoint": "lab.worklist",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/worklist",
-      "status": 200,
+      "status": 403,
       "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist",
-      "title": "قائمة عمل المختبر",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0038_lab_worklist.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "lab",
@@ -4266,13 +4299,14 @@
       "endpoint": "lab.worklist_request",
       "module": "lab",
       "url": "http://localhost:8000/t/full-demo-center/lab/worklist/request/1",
-      "status": 200,
-      "final_url": "http://localhost:8000/lab/worklist",
-      "title": "قائمة عمل المختبر",
+      "status": 403,
+      "final_url": "http://localhost:8000/t/full-demo-center/lab/worklist/request/1",
+      "title": "403 — لا يمكن عرض الصفحة",
       "is_json": false,
       "markers": [],
-      "console_errors": [],
-      "screenshot": "docs/PAGE_AUDIT/screenshots/lab/0039_lab_worklist_request_1.png"
+      "console_errors": [
+        "Failed to load resource: the server responded with a status of 403 (FORBIDDEN)"
+      ]
     },
     {
       "role": "manager",
@@ -4364,7 +4398,7 @@
       "module": "reporting",
       "url": "http://localhost:8000/t/full-demo-center/manager/custom-service-approvals",
       "status": 200,
-      "final_url": "http://localhost:8000/manager/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/manager/dashboard",
       "title": "لوحة القيادة الإدارية",
       "is_json": false,
       "markers": [],
@@ -4406,7 +4440,7 @@
       "module": "reporting",
       "url": "http://localhost:8000/t/full-demo-center/manager/drill-down/<report_type>",
       "status": 200,
-      "final_url": "http://localhost:8000/manager/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/manager/dashboard",
       "title": "لوحة القيادة الإدارية",
       "is_json": false,
       "markers": [],
@@ -5004,7 +5038,7 @@
       "module": "nursing",
       "url": "http://localhost:8000/t/full-demo-center/nurse/",
       "status": 200,
-      "final_url": "http://localhost:8000/nurse/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/nurse/dashboard",
       "title": "لوحة القيادة التمريضية",
       "is_json": false,
       "markers": [],
@@ -5101,7 +5135,7 @@
       "module": "nursing",
       "url": "http://localhost:8000/t/full-demo-center/nurse/patients",
       "status": 200,
-      "final_url": "http://localhost:8000/nurse/patient-care",
+      "final_url": "http://localhost:8000/t/full-demo-center/nurse/patient-care",
       "title": "رعاية المرضى",
       "is_json": false,
       "markers": [],
@@ -5157,7 +5191,7 @@
       "module": "nursing",
       "url": "http://localhost:8000/t/full-demo-center/nurse/vitals",
       "status": 200,
-      "final_url": "http://localhost:8000/nurse/vital-signs",
+      "final_url": "http://localhost:8000/t/full-demo-center/nurse/vital-signs",
       "title": "العلامات الحيوية",
       "is_json": false,
       "markers": [],
@@ -5540,7 +5574,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/dashboard",
       "title": "لوحة تحكم الصيدلية",
       "is_json": false,
       "markers": [],
@@ -5700,7 +5734,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/edit/1",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/list",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/list",
       "title": "قائمة الأدوية",
       "is_json": false,
       "markers": [],
@@ -5918,7 +5952,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/sales/1",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/sales-history",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/sales-history",
       "title": "المبيعات",
       "is_json": false,
       "markers": [],
@@ -5932,7 +5966,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/sales/1/print",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/sales-history",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/sales-history",
       "title": "المبيعات",
       "is_json": false,
       "markers": [],
@@ -6054,7 +6088,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/suppliers/1/edit",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/suppliers",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/suppliers",
       "title": "الموردين",
       "is_json": false,
       "markers": [],
@@ -6096,7 +6130,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medication/supply-requests/1",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/supply-requests",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/supply-requests",
       "title": "طلبات التوريد",
       "is_json": false,
       "markers": [],
@@ -6124,7 +6158,7 @@
       "module": "pharmacy",
       "url": "http://localhost:8000/t/full-demo-center/medications",
       "status": 200,
-      "final_url": "http://localhost:8000/medication/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/medication/dashboard",
       "title": "لوحة تحكم الصيدلية",
       "is_json": false,
       "markers": [],
@@ -6221,7 +6255,7 @@
       "module": "radiology",
       "url": "http://localhost:8000/t/full-demo-center/radiology/",
       "status": 200,
-      "final_url": "http://localhost:8000/radiology/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/radiology/dashboard",
       "title": "قسم الأشعة",
       "is_json": false,
       "markers": [],
@@ -6333,7 +6367,7 @@
       "module": "radiology",
       "url": "http://localhost:8000/t/full-demo-center/radiology/files/1",
       "status": 200,
-      "final_url": "http://localhost:8000/radiology/worklist",
+      "final_url": "http://localhost:8000/t/full-demo-center/radiology/worklist",
       "title": "قائمة عمل الأشعة",
       "is_json": false,
       "markers": [],
@@ -6347,7 +6381,7 @@
       "module": "radiology",
       "url": "http://localhost:8000/t/full-demo-center/radiology/images",
       "status": 200,
-      "final_url": "http://localhost:8000/radiology/worklist",
+      "final_url": "http://localhost:8000/t/full-demo-center/radiology/worklist",
       "title": "قائمة عمل الأشعة",
       "is_json": false,
       "markers": [],
@@ -6361,7 +6395,7 @@
       "module": "radiology",
       "url": "http://localhost:8000/t/full-demo-center/radiology/print_report/1",
       "status": 200,
-      "final_url": "http://localhost:8000/radiology/reports",
+      "final_url": "http://localhost:8000/t/full-demo-center/radiology/reports",
       "title": "تقرير الأشعة",
       "is_json": false,
       "markers": [],
@@ -6474,7 +6508,7 @@
       "module": "radiology",
       "url": "http://localhost:8000/t/full-demo-center/radiology/worklist/request/1",
       "status": 200,
-      "final_url": "http://localhost:8000/radiology/worklist",
+      "final_url": "http://localhost:8000/t/full-demo-center/radiology/worklist",
       "title": "قائمة عمل الأشعة",
       "is_json": false,
       "markers": [],
@@ -6610,7 +6644,7 @@
       "module": "appointments",
       "url": "http://localhost:8000/t/full-demo-center/booking/confirmation/1",
       "status": 200,
-      "final_url": "http://localhost:8000/booking/",
+      "final_url": "http://localhost:8000/t/full-demo-center/booking/",
       "title": "الحجز",
       "is_json": false,
       "markers": [],
@@ -6707,7 +6741,7 @@
       "module": "appointments",
       "url": "http://localhost:8000/t/full-demo-center/booking/telemedicine/1",
       "status": 200,
-      "final_url": "http://localhost:8000/booking/",
+      "final_url": "http://localhost:8000/t/full-demo-center/booking/",
       "title": "الحجز",
       "is_json": false,
       "markers": [],
@@ -6734,7 +6768,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/dashboard",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/dashboard",
       "title": "لوحة تحكم الاستقبال",
       "is_json": false,
       "markers": [],
@@ -6748,7 +6782,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/add_patient",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/patients?show_add=1",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/patients?show_add=1",
       "title": "قائمة المرضى - الاستقبال",
       "is_json": false,
       "markers": [],
@@ -7199,7 +7233,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/edit_appointment/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7227,7 +7261,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/edit_visit/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7305,7 +7339,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/print_invoice/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7334,7 +7368,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/print_receipt/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7376,7 +7410,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/queue/call-next/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7390,7 +7424,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/queue/complete-treatment/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7404,7 +7438,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/queue/start-treatment/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7473,7 +7507,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/view_appointment/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -7501,7 +7535,7 @@
       "module": "reception",
       "url": "http://localhost:8000/t/full-demo-center/reception/view_visit/1",
       "status": 200,
-      "final_url": "http://localhost:8000/reception/queue",
+      "final_url": "http://localhost:8000/t/full-demo-center/reception/queue",
       "title": "إدارة الطابور الموحد",
       "is_json": false,
       "markers": [],
@@ -8891,7 +8925,7 @@
       "url": "http://localhost:8000/owner/tenant-usage/1",
       "status": 200,
       "final_url": "http://localhost:8000/owner/tenant-usage/1",
-      "title": "استخدام موارد العميل — Platform",
+      "title": "استخدام موارد العميل — المركز الصحي المتخصص",
       "is_json": false,
       "markers": [],
       "console_errors": [],
@@ -8919,7 +8953,7 @@
       "url": "http://localhost:8000/owner/tenants/1",
       "status": 200,
       "final_url": "http://localhost:8000/owner/tenants/1",
-      "title": "تفاصيل العميل — Platform",
+      "title": "تفاصيل العميل — المركز الصحي المتخصص",
       "is_json": false,
       "markers": [],
       "console_errors": [],
