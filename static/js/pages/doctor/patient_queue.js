@@ -99,8 +99,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const buttons = document.querySelectorAll('button[type="submit"]');
     buttons.forEach(button => {
         button.addEventListener('click', function() {
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>جاري المعالجة...';
-            this.disabled = true;
+            const btn = this;
+            // Disabling the submit button synchronously inside the click
+            // handler cancels the browser's native form submission, so the
+            // "call patient" POST never reached the server and the ticket
+            // stayed "waiting". Defer the busy state until after dispatch.
+            setTimeout(function() {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>جاري المعالجة...';
+                btn.disabled = true;
+            }, 0);
         });
     });
 });

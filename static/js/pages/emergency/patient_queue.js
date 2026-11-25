@@ -25,8 +25,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const buttons = document.querySelectorAll('button[type="submit"]');
     buttons.forEach(button => {
         button.addEventListener('click', function() {
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري المعالجة...';
-            this.disabled = true;
+            const btn = this;
+            // Do not disable synchronously: that cancels native form submit.
+            setTimeout(function() {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>جاري المعالجة...';
+                btn.disabled = true;
+            }, 0);
         });
     });
 
