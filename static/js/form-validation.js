@@ -59,7 +59,7 @@ export function preventDoubleSubmit(form) {
     });
   });
 
-  window.addEventListener('pageshow', function () {
+  const restore = function () {
     delete form.dataset.submitting;
     form.querySelectorAll('[type="submit"]').forEach(function (btn) {
       if (btn.disabled && btn._origHtml !== undefined) {
@@ -67,7 +67,11 @@ export function preventDoubleSubmit(form) {
         btn.innerHTML = btn._origHtml;
       }
     });
-  });
+  };
+  window.addEventListener('pageshow', restore);
+  // If navigation never happened (blocked submit), do not leave the button
+  // frozen on "جاري المعالجة..." forever.
+  setTimeout(restore, 8000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

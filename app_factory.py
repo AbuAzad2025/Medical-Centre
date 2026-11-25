@@ -1567,6 +1567,28 @@ def create_app(config_name: str | None = None) -> Flask:  # noqa: RET503
             pass
         return response
 
+    # Server-side redirects use Flask's real url_for(), not the template-only
+    # override, so every action (call patient, start treatment, save form)
+    # bounced the browser to a bare /doctor/... URL and lost the tenant prefix.
+    # Keep the tenant path prefix on redirect targets.
+    @app.after_request
+    def _keep_tenant_prefix_on_redirect(response):
+        try:
+            if response.status_code not in (301, 302, 303, 305, 307, 308):
+                return response
+            slug = request.environ.get('tenant.slug') or getattr(g, 'tenant_slug', None)
+            if not slug:
+                return response
+            location = response.headers.get('Location') or ''
+            if not location.startswith('/') or location.startswith(
+                ('/t/', '/static/', '/auth/', '/owner/', '/super-admin/', '/api/')
+            ):
+                return response
+            response.headers['Location'] = f'/t/{slug}{location}'
+        except Exception:  # noqa: BLE001
+            pass
+        return response
+
     # Cover the Arabic literals that were hard-coded into templates instead of
     # going through _(). Only HTML text nodes and UI attributes are touched;
     # script/style bodies and data values are left alone.
