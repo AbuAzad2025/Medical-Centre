@@ -1,0 +1,655 @@
+[
+  {
+    "pkg": "private_doctor_clinic",
+    "login": true,
+    "pages": 9,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "doctor_clinic_reception",
+    "login": true,
+    "pages": 12,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "doctor_clinic_full",
+    "login": true,
+    "pages": 24,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "small_clinic",
+    "login": true,
+    "pages": 12,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "clinic_with_lab",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "clinic_with_radiology",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "clinic_with_lab_radiology",
+    "login": true,
+    "pages": 18,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "standalone_lab",
+    "login": true,
+    "pages": 9,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "lab_with_reception",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "standalone_radiology",
+    "login": true,
+    "pages": 9,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "radiology_with_reception",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "standalone_pharmacy",
+    "login": true,
+    "pages": 8,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "standalone_emergency",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "walkin_clinic",
+    "login": true,
+    "pages": 12,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "urgent_care",
+    "login": true,
+    "pages": 24,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "diagnostic_center",
+    "login": true,
+    "pages": 15,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "community_clinic",
+    "login": true,
+    "pages": 24,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "nursing_home",
+    "login": true,
+    "pages": 17,
+    "bad": [
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "multi_department_center",
+    "login": true,
+    "pages": 32,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "polyclinic",
+    "login": true,
+    "pages": 35,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/appointments",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/bills",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "hospital",
+    "login": true,
+    "pages": 37,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "doctor",
+        "path": "/cds/patient/1/alerts",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "integration",
+        "path": "/sso/config",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "lab",
+        "path": "/lab/barcode/print/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "nursing",
+        "path": "/bed/admission/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/appointments",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "portal",
+        "path": "/portal/bills",
+        "status": 403,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/study/1",
+        "status": 404,
+        "marker": false
+      },
+      {
+        "module": "radiology",
+        "path": "/dicom/viewer/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "billing_only",
+    "login": true,
+    "pages": 6,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  },
+  {
+    "pkg": "custom",
+    "login": true,
+    "pages": 6,
+    "bad": [
+      {
+        "module": "billing",
+        "path": "/accountant/accounts/1",
+        "status": 404,
+        "marker": false
+      }
+    ]
+  }
+]

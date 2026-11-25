@@ -1,0 +1,188 @@
+[
+  {
+    "version_id": 1,
+    "slug": "private_doctor_clinic",
+    "tenant_slug": "pkg-private-doctor-clinic",
+    "ok": false,
+    "flash": [
+      "فشل إنشاء العميل: Tenant slug 'pkg-private-doctor-clinic' already exists."
+    ],
+    "url": "http://localhost:8000/owner/provision"
+  },
+  {
+    "version_id": 2,
+    "slug": "doctor_clinic_reception",
+    "tenant_slug": "pkg-doctor-clinic-reception",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 3,
+    "slug": "doctor_clinic_full",
+    "tenant_slug": "pkg-doctor-clinic-full",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 4,
+    "slug": "small_clinic",
+    "tenant_slug": "pkg-small-clinic",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 5,
+    "slug": "clinic_with_lab",
+    "tenant_slug": "pkg-clinic-with-lab",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 6,
+    "slug": "clinic_with_radiology",
+    "tenant_slug": "pkg-clinic-with-radiology",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 7,
+    "slug": "clinic_with_lab_radiology",
+    "tenant_slug": "pkg-clinic-with-lab-radiology",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 8,
+    "slug": "standalone_lab",
+    "tenant_slug": "pkg-standalone-lab",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 9,
+    "slug": "lab_with_reception",
+    "tenant_slug": "pkg-lab-with-reception",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 10,
+    "slug": "standalone_radiology",
+    "tenant_slug": "pkg-standalone-radiology",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 11,
+    "slug": "radiology_with_reception",
+    "tenant_slug": "pkg-radiology-with-reception",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 12,
+    "slug": "standalone_pharmacy",
+    "tenant_slug": "pkg-standalone-pharmacy",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 13,
+    "slug": "standalone_emergency",
+    "tenant_slug": "pkg-standalone-emergency",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 14,
+    "slug": "walkin_clinic",
+    "tenant_slug": "pkg-walkin-clinic",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 15,
+    "slug": "urgent_care",
+    "tenant_slug": "pkg-urgent-care",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 16,
+    "slug": "diagnostic_center",
+    "tenant_slug": "pkg-diagnostic-center",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 17,
+    "slug": "community_clinic",
+    "tenant_slug": "pkg-community-clinic",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 18,
+    "slug": "nursing_home",
+    "tenant_slug": "pkg-nursing-home",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 19,
+    "slug": "multi_department_center",
+    "tenant_slug": "pkg-multi-department-center",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 20,
+    "slug": "polyclinic",
+    "tenant_slug": "pkg-polyclinic",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 21,
+    "slug": "hospital",
+    "tenant_slug": "pkg-hospital",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 22,
+    "slug": "billing_only",
+    "tenant_slug": "pkg-billing-only",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  },
+  {
+    "version_id": 23,
+    "slug": "custom",
+    "tenant_slug": "pkg-custom",
+    "ok": false,
+    "flash": [],
+    "url": "http://localhost:8000/t/platform/owner/provision"
+  }
+]

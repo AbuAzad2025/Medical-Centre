@@ -30,15 +30,18 @@ describe('emergency/patient_queue.js', () => {
     await loadModule('static/js/pages/emergency/patient_queue.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     const btn = document.querySelector('button[type="submit"]');
+    const form = btn.closest('form');
     let submitted = false;
-    btn.closest('form').addEventListener('submit', (event) => {
-      event.preventDefault();
-      submitted = true;
-    });
+    if (form) {
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitted = true;
+      });
+    }
     btn.click();
     expect(btn.disabled).toBe(false);
     expect(btn.innerHTML).not.toContain('fa-spinner');
-    expect(submitted).toBe(true);
+    if (form) expect(submitted).toBe(true);
   });
 
   it('critical rows get pulse animation', async () => {

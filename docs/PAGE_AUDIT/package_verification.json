@@ -1,0 +1,521 @@
+{
+  "checked": 23,
+  "problems": [],
+  "rows": [
+    {
+      "slug": "private_doctor_clinic",
+      "tenant_id": 4,
+      "version_id": 1,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor"
+      ],
+      "capabilities": 11,
+      "ok": true
+    },
+    {
+      "slug": "doctor_clinic_reception",
+      "tenant_id": 5,
+      "version_id": 2,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "capabilities": 14,
+      "ok": true
+    },
+    {
+      "slug": "doctor_clinic_full",
+      "tenant_id": 6,
+      "version_id": 3,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 31,
+      "ok": true
+    },
+    {
+      "slug": "small_clinic",
+      "tenant_id": 7,
+      "version_id": 4,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "capabilities": 14,
+      "ok": true
+    },
+    {
+      "slug": "clinic_with_lab",
+      "tenant_id": 8,
+      "version_id": 5,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "reception"
+      ],
+      "capabilities": 19,
+      "ok": true
+    },
+    {
+      "slug": "clinic_with_radiology",
+      "tenant_id": 9,
+      "version_id": 6,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "radiology",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "radiology",
+        "reception"
+      ],
+      "capabilities": 18,
+      "ok": true
+    },
+    {
+      "slug": "clinic_with_lab_radiology",
+      "tenant_id": 10,
+      "version_id": 7,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "radiology",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "radiology",
+        "reception"
+      ],
+      "capabilities": 23,
+      "ok": true
+    },
+    {
+      "slug": "standalone_lab",
+      "tenant_id": 11,
+      "version_id": 8,
+      "expected": [
+        "billing",
+        "lab",
+        "reporting"
+      ],
+      "actual": [
+        "billing",
+        "lab",
+        "reporting"
+      ],
+      "capabilities": 14,
+      "ok": true
+    },
+    {
+      "slug": "lab_with_reception",
+      "tenant_id": 12,
+      "version_id": 9,
+      "expected": [
+        "appointments",
+        "billing",
+        "lab",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "lab",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 19,
+      "ok": true
+    },
+    {
+      "slug": "standalone_radiology",
+      "tenant_id": 13,
+      "version_id": 10,
+      "expected": [
+        "billing",
+        "radiology",
+        "reporting"
+      ],
+      "actual": [
+        "billing",
+        "radiology",
+        "reporting"
+      ],
+      "capabilities": 13,
+      "ok": true
+    },
+    {
+      "slug": "radiology_with_reception",
+      "tenant_id": 14,
+      "version_id": 11,
+      "expected": [
+        "appointments",
+        "billing",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 18,
+      "ok": true
+    },
+    {
+      "slug": "standalone_pharmacy",
+      "tenant_id": 15,
+      "version_id": 12,
+      "expected": [
+        "billing",
+        "inventory",
+        "pharmacy"
+      ],
+      "actual": [
+        "billing",
+        "inventory",
+        "pharmacy"
+      ],
+      "capabilities": 12,
+      "ok": true
+    },
+    {
+      "slug": "standalone_emergency",
+      "tenant_id": 16,
+      "version_id": 13,
+      "expected": [
+        "billing",
+        "doctor",
+        "emergency",
+        "nursing",
+        "reception"
+      ],
+      "actual": [
+        "billing",
+        "doctor",
+        "emergency",
+        "nursing",
+        "reception"
+      ],
+      "capabilities": 17,
+      "ok": true
+    },
+    {
+      "slug": "walkin_clinic",
+      "tenant_id": 17,
+      "version_id": 14,
+      "expected": [
+        "billing",
+        "doctor",
+        "pharmacy",
+        "reception"
+      ],
+      "actual": [
+        "billing",
+        "doctor",
+        "pharmacy",
+        "reception"
+      ],
+      "capabilities": 15,
+      "ok": true
+    },
+    {
+      "slug": "urgent_care",
+      "tenant_id": 18,
+      "version_id": 15,
+      "expected": [
+        "billing",
+        "doctor",
+        "emergency",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception"
+      ],
+      "actual": [
+        "billing",
+        "doctor",
+        "emergency",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception"
+      ],
+      "capabilities": 30,
+      "ok": true
+    },
+    {
+      "slug": "diagnostic_center",
+      "tenant_id": 19,
+      "version_id": 16,
+      "expected": [
+        "billing",
+        "lab",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "billing",
+        "lab",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 20,
+      "ok": true
+    },
+    {
+      "slug": "community_clinic",
+      "tenant_id": 20,
+      "version_id": 17,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 31,
+      "ok": true
+    },
+    {
+      "slug": "nursing_home",
+      "tenant_id": 21,
+      "version_id": 18,
+      "expected": [
+        "appointments",
+        "doctor",
+        "inventory",
+        "nursing",
+        "pharmacy",
+        "reception"
+      ],
+      "actual": [
+        "appointments",
+        "doctor",
+        "inventory",
+        "nursing",
+        "pharmacy",
+        "reception"
+      ],
+      "capabilities": 22,
+      "ok": true
+    },
+    {
+      "slug": "multi_department_center",
+      "tenant_id": 22,
+      "version_id": 19,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 41,
+      "ok": true
+    },
+    {
+      "slug": "polyclinic",
+      "tenant_id": 23,
+      "version_id": 20,
+      "expected": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 45,
+      "ok": true
+    },
+    {
+      "slug": "hospital",
+      "tenant_id": 24,
+      "version_id": 21,
+      "expected": [
+        "ai_imaging",
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "integration",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "actual": [
+        "ai_imaging",
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "integration",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "capabilities": 51,
+      "ok": true
+    },
+    {
+      "slug": "billing_only",
+      "tenant_id": 25,
+      "version_id": 22,
+      "expected": [
+        "appointments",
+        "billing"
+      ],
+      "actual": [
+        "appointments",
+        "billing"
+      ],
+      "capabilities": 7,
+      "ok": true
+    },
+    {
+      "slug": "custom",
+      "tenant_id": 26,
+      "version_id": 23,
+      "expected": [
+        "billing",
+        "reporting"
+      ],
+      "actual": [
+        "billing",
+        "reporting"
+      ],
+      "capabilities": 8,
+      "ok": true
+    }
+  ]
+}
