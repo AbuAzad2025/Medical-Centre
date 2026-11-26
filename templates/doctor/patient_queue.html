@@ -213,7 +213,7 @@
                                                 {% if patient.status == 'IN_PROGRESS' %}
                                                     <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=patient.id) }}" class="d-inline">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, _('هل أنت متأكد من إنهاء العلاج؟'))">
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, {{ _('هل أنت متأكد من إنهاء العلاج؟')|tojson }})">
                                                             <i class="fas fa-stop me-1"></i>{{ _(_('إنهاء')) }}
                                                         </button>
                                                     </form>

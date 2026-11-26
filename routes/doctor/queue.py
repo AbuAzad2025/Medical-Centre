@@ -15,6 +15,7 @@ from models.lab_request import LabRequest
 from models.radiology_request import RadiologyRequest
 from models.visit import Visit
 from routes.doctor import doctor_bp
+from services.feature_gate_service import FeatureGateService
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
@@ -78,6 +79,16 @@ def patient_queue():
             if v.id not in can_start_map:
                 can_start_map[v.id] = False
 
+        # Solo clinics have no reception module, so no queue ticket can exist.
+        # The doctor starts treatment directly on the open visit in that case.
+        reception_enabled = (
+            FeatureGateService.module_enabled(g.tenant_id, 'reception') if g.tenant_id else False
+        )
+        if not reception_enabled:
+            for v in patients:
+                if v.status == VisitState.OPEN:
+                    can_start_map[v.id] = True
+
         today = date.today()
         todays_visits = (
             db.session.execute(
@@ -128,13 +139,15 @@ def patient_queue():
                     }
                 )
 
-        flash('لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال', 'info')
+        if reception_enabled:
+            flash('لزيارة قسم أو طبيب آخر، يرجى إنشاء زيارة جديدة من الاستقبال', 'info')
         return render_template(
             'doctor/patient_queue.html',
             patients=patients,
             queue_stats=queue_stats,
             linked_requests=linked_requests,
             can_start_map=can_start_map,
+            reception_enabled=reception_enabled,
             page=page,
             pages=pages,
             total=total,

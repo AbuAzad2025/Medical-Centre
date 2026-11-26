@@ -21,6 +21,7 @@ from routes.doctor.diagnosis import (
     get_data_based_recommendations,
     get_standardized_pathways,
 )
+from services.feature_gate_service import FeatureGateService
 from services.visit_state_machine_service import VisitStateMachineService
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
@@ -79,25 +80,38 @@ def start_treatment(visit_id):
             except Exception:
                 flash('خطأ في تحديد القسم للزيارة', 'error')
                 return redirect(url_for('doctor.patient_queue'))
-        from models.queue_management import QueueManagement
-        from services.queue_management_service import QueueManagementService
-
-        ticket = (
-            db.session.execute(
-                select(QueueManagement)
-                .filter_by(visit_id=visit_id, department_id=dep_id)
-                .order_by(desc(QueueManagement.called_at), QueueManagement.queued_at.asc())
-            )
-            .scalars()
-            .first()
+        reception_enabled = (
+            FeatureGateService.module_enabled(g.tenant_id, 'reception') if g.tenant_id else False
         )
-        if not ticket:
-            flash('لا يمكن بدء العلاج قبل إدراج الزيارة في طابور القسم عبر الاستقبال', 'warning')
-            return redirect(url_for('doctor.patient_queue'))
-        ok, msg = QueueManagementService().start_treatment(ticket.id, started_by=current_user.id)
-        if not ok:
-            flash(msg, 'warning')
-            return redirect(url_for('doctor.patient_queue'))
+        if reception_enabled:
+            from models.queue_management import QueueManagement
+            from services.queue_management_service import QueueManagementService
+
+            ticket = (
+                db.session.execute(
+                    select(QueueManagement)
+                    .filter_by(visit_id=visit_id, department_id=dep_id)
+                    .order_by(desc(QueueManagement.called_at), QueueManagement.queued_at.asc())
+                )
+                .scalars()
+                .first()
+            )
+            if not ticket:
+                flash(
+                    'لا يمكن بدء العلاج قبل إدراج الزيارة في طابور القسم عبر الاستقبال', 'warning'
+                )
+                return redirect(url_for('doctor.patient_queue'))
+            ok, msg = QueueManagementService().start_treatment(
+                ticket.id, started_by=current_user.id
+            )
+            if not ok:
+                flash(msg, 'warning')
+                return redirect(url_for('doctor.patient_queue'))
+        else:
+            # Simple clinic: the doctor starts care on the open visit directly.
+            for target in (VisitState.CHECKED_IN, VisitState.IN_PROGRESS):
+                if VisitStateMachineService.can_transition(visit, target):
+                    VisitStateMachineService.transition(visit, target, actor=current_user)
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,
             visit_id=visit_id,
