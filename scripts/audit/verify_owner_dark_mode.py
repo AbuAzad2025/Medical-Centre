@@ -26,10 +26,10 @@ with sync_playwright() as pw:
         print(mode, pg.evaluate(
             """() => {
               const i=document.querySelector('input[name="name"]');
-              const l=document.querySelector('label[for="name"]');
+              const l=i.closest('.owner-form-group')?.querySelector('label') || document.querySelector('label');
               const bg=getComputedStyle(i).backgroundColor, fg=getComputedStyle(i).color;
               return {theme:document.documentElement.getAttribute('data-theme'), bg, fg,
-                      label:getComputedStyle(l).color, labelText:l.innerText.trim()};
+                      label:l?getComputedStyle(l).color:null, labelText:l?l.innerText.trim():null};
             }"""
         ))
     b.close()
