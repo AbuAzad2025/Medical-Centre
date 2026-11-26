@@ -4,7 +4,8 @@ import re
 import sys
 
 path = sys.argv[1]
-text = open(path, encoding='utf-8').read()
+with open(path, encoding='utf-8') as fh:
+    text = fh.read()
 AR = re.compile(r'[\u0600-\u06ff]')
 
 
@@ -36,8 +37,9 @@ text = re.sub(r'>([^<>]+)<', wrap_text, text)
 # Attribute values
 text = re.sub(
     r'(title|placeholder|aria-label)="([^"]*[\u0600-\u06ff][^"]*)"',
-    lambda m: f"{m.group(1)}=\"{{{{ _('{m.group(2)}') }}}}\"",
+    lambda m: f'{m.group(1)}="{{{{ _(\'{m.group(2)}\') }}}}"',
     text,
 )
-open(path, 'w', encoding='utf-8', newline='').write(text)
+with open(path, 'w', encoding='utf-8', newline='') as fh:
+    fh.write(text)
 print('wrapped', path)
