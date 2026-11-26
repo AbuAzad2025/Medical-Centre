@@ -12,6 +12,13 @@ from utils.tenant_query import get_tenant_record
 order_set_bp = Blueprint('order_set', __name__)
 
 
+@order_set_bp.before_request
+def _guard_order_set_module():
+    from services.feature_gate_service import guard_module
+
+    guard_module('doctor')
+
+
 @order_set_bp.route('/')
 @login_required
 @role_required('doctor', 'admin', 'manager')

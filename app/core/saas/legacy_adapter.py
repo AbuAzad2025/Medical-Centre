@@ -20,6 +20,42 @@ class LegacyEntitlementAdapter:
     """Map legacy bundle/module data to capability keys and usage limits."""
 
     @classmethod
+    def _bundle_for_tenant(cls, tenant):
+        """Prefer the purchased package; fall back to the canonical profile.
+
+        ``product_profile_code`` stores the canonical profile (a tenant bought
+        ``doctor_clinic_reception`` but its profile may be
+        ``private_doctor_clinic``), so resolving only from it gives the wrong
+        bundle to the legacy fallback and to dashboard routing.
+        """
+        from app.core.saas.models import Package, PackageVersion, SubscriptionLine
+        from app.core.tenant.models import ProductBundle, get_bundle_for_profile
+
+        slug = (
+            db.session.execute(
+                select(Package.slug)
+                .join(PackageVersion, PackageVersion.package_id == Package.id)
+                .join(SubscriptionLine, SubscriptionLine.package_version_id == PackageVersion.id)
+                .filter(SubscriptionLine.tenant_id == tenant.id, SubscriptionLine.status == 'active')
+                .order_by(SubscriptionLine.effective_from.desc())
+                .limit(1)
+            )
+            .scalars()
+            .first()
+        )
+        if slug:
+            purchased = (
+                db.session.execute(
+                    select(ProductBundle).filter_by(slug=slug, is_active=True)
+                )
+                .scalars()
+                .first()
+            )
+            if purchased:
+                return purchased
+        return get_bundle_for_profile(getattr(tenant, 'product_profile_code', None) or '')
+
+    @classmethod
     def is_entitled(cls, tenant, capability_key: str) -> bool:
         if tenant is None:
             return False
@@ -48,9 +84,9 @@ class LegacyEntitlementAdapter:
         if not profile_code:
             return True  # No profile — don't block
 
-        from app.core.tenant.models import _PRODUCT_PROFILE_SEED, get_bundle_for_profile
+        from app.core.tenant.models import _PRODUCT_PROFILE_SEED
 
-        bundle = get_bundle_for_profile(profile_code)
+        bundle = cls._bundle_for_tenant(tenant)
         if bundle:
             bundle_modules = bundle.get_modules()
         else:
@@ -61,12 +97,12 @@ class LegacyEntitlementAdapter:
 
     @classmethod
     def get_limits(cls, tenant_id: int) -> dict[str, int | None]:
-        from app.core.tenant.models import Tenant, get_bundle_for_profile
+        from app.core.tenant.models import Tenant
 
         tenant = db.session.get(Tenant, tenant_id)
         if tenant is None or not tenant.product_profile_code:
             return {}
-        bundle = get_bundle_for_profile(tenant.product_profile_code)
+        bundle = cls._bundle_for_tenant(tenant)
         if bundle is None:
             return {}
         return {

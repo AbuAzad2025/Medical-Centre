@@ -1,0 +1,2652 @@
+{
+  "report": "all_packages_isolation_audit",
+  "generated_at_utc": "2026-11-26T20:27:17.757678+00:00",
+  "scope": {
+    "database": "PostgreSQL 18.4 at 127.0.0.1:5433 / Medical2026",
+    "tenants": "23 package tenants (ids 4-26, slug prefix pkg-)",
+    "reference_definitions": [
+      "app/core/tenant/models.py::_PRODUCT_PROFILE_SEED",
+      "app/core/tenant/models.py::canonical_profile_for",
+      "app/core/module/registry.py::MODULE_REGISTRY",
+      "app/core/saas/resolver.py",
+      "app/core/saas/legacy_adapter.py"
+    ],
+    "application_code_edited": false
+  },
+  "summary": {
+    "tenants_verified": 23,
+    "tenants_with_active_base_subscription": 23,
+    "module_mismatches": [],
+    "entitlement_mismatches": [],
+    "limit_mismatches_vs_seed": [],
+    "profile_code_vs_package_slug_mismatches": [
+      {
+        "tenant_id": 5,
+        "slug": "pkg-doctor-clinic-reception",
+        "product_profile_code": "private_doctor_clinic",
+        "package_slug": "doctor_clinic_reception"
+      },
+      {
+        "tenant_id": 6,
+        "slug": "pkg-doctor-clinic-full",
+        "product_profile_code": "private_doctor_clinic",
+        "package_slug": "doctor_clinic_full"
+      },
+      {
+        "tenant_id": 8,
+        "slug": "pkg-clinic-with-lab",
+        "product_profile_code": "small_clinic",
+        "package_slug": "clinic_with_lab"
+      },
+      {
+        "tenant_id": 9,
+        "slug": "pkg-clinic-with-radiology",
+        "product_profile_code": "small_clinic",
+        "package_slug": "clinic_with_radiology"
+      },
+      {
+        "tenant_id": 10,
+        "slug": "pkg-clinic-with-lab-radiology",
+        "product_profile_code": "small_clinic",
+        "package_slug": "clinic_with_lab_radiology"
+      },
+      {
+        "tenant_id": 12,
+        "slug": "pkg-lab-with-reception",
+        "product_profile_code": "standalone_lab",
+        "package_slug": "lab_with_reception"
+      },
+      {
+        "tenant_id": 14,
+        "slug": "pkg-radiology-with-reception",
+        "product_profile_code": "standalone_radiology",
+        "package_slug": "radiology_with_reception"
+      },
+      {
+        "tenant_id": 16,
+        "slug": "pkg-standalone-emergency",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "standalone_emergency"
+      },
+      {
+        "tenant_id": 17,
+        "slug": "pkg-walkin-clinic",
+        "product_profile_code": "small_clinic",
+        "package_slug": "walkin_clinic"
+      },
+      {
+        "tenant_id": 18,
+        "slug": "pkg-urgent-care",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "urgent_care"
+      },
+      {
+        "tenant_id": 19,
+        "slug": "pkg-diagnostic-center",
+        "product_profile_code": "standalone_lab",
+        "package_slug": "diagnostic_center"
+      },
+      {
+        "tenant_id": 20,
+        "slug": "pkg-community-clinic",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "community_clinic"
+      },
+      {
+        "tenant_id": 21,
+        "slug": "pkg-nursing-home",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "nursing_home"
+      },
+      {
+        "tenant_id": 23,
+        "slug": "pkg-polyclinic",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "polyclinic"
+      },
+      {
+        "tenant_id": 24,
+        "slug": "pkg-hospital",
+        "product_profile_code": "multi_department_center",
+        "package_slug": "hospital"
+      },
+      {
+        "tenant_id": 25,
+        "slug": "pkg-billing-only",
+        "product_profile_code": "custom",
+        "package_slug": "billing_only"
+      }
+    ],
+    "rls": {
+      "tenant_scoped_tables": 218,
+      "rls_enabled": 218,
+      "rls_forced": 218,
+      "tables_missing_rls_or_policy": [],
+      "verdict": "INTACT"
+    },
+    "tenant_filter": {
+      "auto_filter": "app/shared/tenant_filter.py:487-557 (Query) and 569-651 (2.0 select)",
+      "fail_closed": "app/shared/tenant_filter.py:130-174, 492-508, 604-618, 737-753",
+      "module_scope": "app/shared/tenant_filter.py:256-286 (reads), 460-479 and 794-818 (writes)",
+      "limits_enforcement": "app/shared/tenant_filter.py:427-457, 821-849",
+      "status": "INTACT"
+    },
+    "product_bundle_row_limit_mismatches_vs_seed": [
+      {
+        "tenant_id": 4,
+        "slug": "pkg-private-doctor-clinic",
+        "product_bundle_row": {
+          "max_users": null,
+          "max_patients": null
+        },
+        "seed": {
+          "max_users": 3,
+          "max_patients": 500
+        }
+      }
+    ]
+  },
+  "tenants": [
+    {
+      "tenant_id": 4,
+      "slug": "pkg-private-doctor-clinic",
+      "status": "ACTIVE",
+      "product_profile_code": "private_doctor_clinic",
+      "canonical_profile": "private_doctor_clinic",
+      "package_slug": "private_doctor_clinic",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 3,
+        "package_version_id": 1,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:08:12.918784+02",
+        "effective_to": "2026-12-26 00:08:12.918784+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 11,
+        "effective_capability_keys": [
+          "clinical_encounter",
+          "debt_management",
+          "invoice",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "payment",
+          "prescription",
+          "receipt",
+          "reminder",
+          "schedule"
+        ],
+        "version_distinct_capability_count": 11,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 10000,
+          "max_patients": 500,
+          "max_users": 3,
+          "storage_gb": 5
+        },
+        "seed_definition": {
+          "max_users": 3,
+          "max_patients": 500
+        },
+        "product_bundle_row": {
+          "max_users": null,
+          "max_patients": null,
+          "storage_gb": null,
+          "api_calls_per_month": null
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": false,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 3,
+        "patients": 2
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 5,
+      "slug": "pkg-doctor-clinic-reception",
+      "status": "ACTIVE",
+      "product_profile_code": "private_doctor_clinic",
+      "canonical_profile": "private_doctor_clinic",
+      "package_slug": "doctor_clinic_reception",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 4,
+        "package_version_id": 2,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:09:14.819408+02",
+        "effective_to": "2026-12-26 00:09:14.819408+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 14,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "invoice",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "receipt",
+          "reminder",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 14,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 25000,
+          "max_patients": 1000,
+          "max_users": 5,
+          "storage_gb": 10
+        },
+        "seed_definition": {
+          "max_users": 5,
+          "max_patients": 1000
+        },
+        "product_bundle_row": {
+          "max_users": 5,
+          "max_patients": 1000,
+          "storage_gb": 10,
+          "api_calls_per_month": 25000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 6,
+      "slug": "pkg-doctor-clinic-full",
+      "status": "ACTIVE",
+      "product_profile_code": "private_doctor_clinic",
+      "canonical_profile": "private_doctor_clinic",
+      "package_slug": "doctor_clinic_full",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 5,
+        "package_version_id": 3,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:09:57.158903+02",
+        "effective_to": "2026-12-26 00:09:57.158903+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 31,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "image_upload",
+          "invoice",
+          "lab_order",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "radiology_order",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "stock_view",
+          "substitution",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 31,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 75000,
+          "max_patients": 3000,
+          "max_users": 10,
+          "storage_gb": 30
+        },
+        "seed_definition": {
+          "max_users": 10,
+          "max_patients": 3000
+        },
+        "product_bundle_row": {
+          "max_users": 10,
+          "max_patients": 3000,
+          "storage_gb": 30,
+          "api_calls_per_month": 75000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 7,
+      "slug": "pkg-small-clinic",
+      "status": "ACTIVE",
+      "product_profile_code": "small_clinic",
+      "canonical_profile": "small_clinic",
+      "package_slug": "small_clinic",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 6,
+        "package_version_id": 4,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:10:12.073644+02",
+        "effective_to": "2026-12-26 00:10:12.073644+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 14,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "invoice",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "receipt",
+          "reminder",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 14,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 50000,
+          "max_patients": 2000,
+          "max_users": 10,
+          "storage_gb": 20
+        },
+        "seed_definition": {
+          "max_users": 10,
+          "max_patients": 2000
+        },
+        "product_bundle_row": {
+          "max_users": 10,
+          "max_patients": 2000,
+          "storage_gb": 20,
+          "api_calls_per_month": 50000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 8,
+      "slug": "pkg-clinic-with-lab",
+      "status": "ACTIVE",
+      "product_profile_code": "small_clinic",
+      "canonical_profile": "small_clinic",
+      "package_slug": "clinic_with_lab",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 7,
+        "package_version_id": 5,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:10:23.937601+02",
+        "effective_to": "2026-12-26 00:10:23.937601+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 19,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "invoice",
+          "lab_order",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "receipt",
+          "reminder",
+          "report_delivery",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 19,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 60000,
+          "max_patients": 3000,
+          "max_users": 12,
+          "storage_gb": 25
+        },
+        "seed_definition": {
+          "max_users": 12,
+          "max_patients": 3000
+        },
+        "product_bundle_row": {
+          "max_users": 12,
+          "max_patients": 3000,
+          "storage_gb": 25,
+          "api_calls_per_month": 60000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 9,
+      "slug": "pkg-clinic-with-radiology",
+      "status": "ACTIVE",
+      "product_profile_code": "small_clinic",
+      "canonical_profile": "small_clinic",
+      "package_slug": "clinic_with_radiology",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 8,
+        "package_version_id": 6,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:10:35.289749+02",
+        "effective_to": "2026-12-26 00:10:35.289749+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "radiology",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 18,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "image_upload",
+          "invoice",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "radiology_order",
+          "receipt",
+          "reminder",
+          "report_draft",
+          "report_sign",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 18,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 60000,
+          "max_patients": 3000,
+          "max_users": 12,
+          "storage_gb": 60
+        },
+        "seed_definition": {
+          "max_users": 12,
+          "max_patients": 3000
+        },
+        "product_bundle_row": {
+          "max_users": 12,
+          "max_patients": 3000,
+          "storage_gb": 60,
+          "api_calls_per_month": 60000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 10,
+      "slug": "pkg-clinic-with-lab-radiology",
+      "status": "ACTIVE",
+      "product_profile_code": "small_clinic",
+      "canonical_profile": "small_clinic",
+      "package_slug": "clinic_with_lab_radiology",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 9,
+        "package_version_id": 7,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:10:55.580717+02",
+        "effective_to": "2026-12-26 00:10:55.580717+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "radiology",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 23,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "image_upload",
+          "invoice",
+          "lab_order",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "radiology_order",
+          "receipt",
+          "reminder",
+          "report_delivery",
+          "report_draft",
+          "report_sign",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 23,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 100000,
+          "max_patients": 5000,
+          "max_users": 15,
+          "storage_gb": 70
+        },
+        "seed_definition": {
+          "max_users": 15,
+          "max_patients": 5000
+        },
+        "product_bundle_row": {
+          "max_users": 15,
+          "max_patients": 5000,
+          "storage_gb": 70,
+          "api_calls_per_month": 100000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 11,
+      "slug": "pkg-standalone-lab",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_lab",
+      "canonical_profile": "standalone_lab",
+      "package_slug": "standalone_lab",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 10,
+        "package_version_id": 8,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:11:01.575629+02",
+        "effective_to": "2026-12-26 00:11:01.575629+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "lab",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "lab",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "lab",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 14,
+        "effective_capability_keys": [
+          "analytics",
+          "debt_management",
+          "invoice",
+          "lab_order",
+          "patient_lookup",
+          "payment",
+          "receipt",
+          "report_create",
+          "report_delivery",
+          "report_export",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection"
+        ],
+        "version_distinct_capability_count": 14,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 20000,
+          "max_patients": 1000,
+          "max_users": 5,
+          "storage_gb": 10
+        },
+        "seed_definition": {
+          "max_users": 5,
+          "max_patients": 1000
+        },
+        "product_bundle_row": {
+          "max_users": 5,
+          "max_patients": 1000,
+          "storage_gb": 10,
+          "api_calls_per_month": 20000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 12,
+      "slug": "pkg-lab-with-reception",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_lab",
+      "canonical_profile": "standalone_lab",
+      "package_slug": "lab_with_reception",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 11,
+        "package_version_id": 9,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:11:10.079339+02",
+        "effective_to": "2026-12-26 00:11:10.079339+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "lab",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "lab",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "lab",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 19,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "debt_management",
+          "invoice",
+          "lab_order",
+          "online_booking",
+          "patient_lookup",
+          "payment",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_export",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 19,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 30000,
+          "max_patients": 2000,
+          "max_users": 8,
+          "storage_gb": 15
+        },
+        "seed_definition": {
+          "max_users": 8,
+          "max_patients": 2000
+        },
+        "product_bundle_row": {
+          "max_users": 8,
+          "max_patients": 2000,
+          "storage_gb": 15,
+          "api_calls_per_month": 30000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 13,
+      "slug": "pkg-standalone-radiology",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_radiology",
+      "canonical_profile": "standalone_radiology",
+      "package_slug": "standalone_radiology",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 12,
+        "package_version_id": 10,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:11:16.952575+02",
+        "effective_to": "2026-12-26 00:11:16.952575+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "radiology",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "radiology",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "radiology",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 13,
+        "effective_capability_keys": [
+          "analytics",
+          "debt_management",
+          "image_upload",
+          "invoice",
+          "patient_lookup",
+          "payment",
+          "radiology_order",
+          "receipt",
+          "report_create",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view"
+        ],
+        "version_distinct_capability_count": 13,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 20000,
+          "max_patients": 1000,
+          "max_users": 5,
+          "storage_gb": 50
+        },
+        "seed_definition": {
+          "max_users": 5,
+          "max_patients": 1000
+        },
+        "product_bundle_row": {
+          "max_users": 5,
+          "max_patients": 1000,
+          "storage_gb": 50,
+          "api_calls_per_month": 20000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 14,
+      "slug": "pkg-radiology-with-reception",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_radiology",
+      "canonical_profile": "standalone_radiology",
+      "package_slug": "radiology_with_reception",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 13,
+        "package_version_id": 11,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:11:23.276793+02",
+        "effective_to": "2026-12-26 00:11:23.276793+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 18,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "debt_management",
+          "image_upload",
+          "invoice",
+          "online_booking",
+          "patient_lookup",
+          "payment",
+          "radiology_order",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "schedule",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 18,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 30000,
+          "max_patients": 2000,
+          "max_users": 8,
+          "storage_gb": 60
+        },
+        "seed_definition": {
+          "max_users": 8,
+          "max_patients": 2000
+        },
+        "product_bundle_row": {
+          "max_users": 8,
+          "max_patients": 2000,
+          "storage_gb": 60,
+          "api_calls_per_month": 30000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 15,
+      "slug": "pkg-standalone-pharmacy",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_pharmacy",
+      "canonical_profile": "standalone_pharmacy",
+      "package_slug": "standalone_pharmacy",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 14,
+        "package_version_id": 12,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:11:31.324646+02",
+        "effective_to": "2026-12-26 00:11:31.324646+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "inventory",
+        "pharmacy"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "inventory",
+        "pharmacy"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "inventory",
+        "pharmacy"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 12,
+        "effective_capability_keys": [
+          "barcode_scan",
+          "debt_management",
+          "dispense",
+          "inventory_report",
+          "invoice",
+          "payment",
+          "pos_sale",
+          "purchase_order",
+          "receipt",
+          "stock_manage",
+          "stock_view",
+          "substitution"
+        ],
+        "version_distinct_capability_count": 12,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 30000,
+          "max_patients": 1000,
+          "max_users": 5,
+          "storage_gb": 10
+        },
+        "seed_definition": {
+          "max_users": 5,
+          "max_patients": 1000
+        },
+        "product_bundle_row": {
+          "max_users": 5,
+          "max_patients": 1000,
+          "storage_gb": 10,
+          "api_calls_per_month": 30000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 16,
+      "slug": "pkg-standalone-emergency",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "standalone_emergency",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 15,
+        "package_version_id": 13,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:12:06.468079+02",
+        "effective_to": "2026-12-26 00:12:06.468079+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "doctor",
+        "emergency",
+        "nursing",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "doctor",
+        "emergency",
+        "nursing",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "doctor",
+        "emergency",
+        "nursing",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 17,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "emergency_care",
+          "invoice",
+          "medication_admin",
+          "nursing_notes",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "prescription",
+          "rapid_assessment",
+          "receipt",
+          "triage",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 17,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 50000,
+          "max_patients": 3000,
+          "max_users": 15,
+          "storage_gb": 20
+        },
+        "seed_definition": {
+          "max_users": 15,
+          "max_patients": 3000
+        },
+        "product_bundle_row": {
+          "max_users": 15,
+          "max_patients": 3000,
+          "storage_gb": 20,
+          "api_calls_per_month": 50000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 17,
+      "slug": "pkg-walkin-clinic",
+      "status": "ACTIVE",
+      "product_profile_code": "small_clinic",
+      "canonical_profile": "small_clinic",
+      "package_slug": "walkin_clinic",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 16,
+        "package_version_id": 14,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:12:13.245035+02",
+        "effective_to": "2026-12-26 00:12:13.245035+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "doctor",
+        "pharmacy",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "doctor",
+        "pharmacy",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "doctor",
+        "pharmacy",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 15,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "invoice",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "receipt",
+          "stock_view",
+          "substitution",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 15,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 40000,
+          "max_patients": 2000,
+          "max_users": 8,
+          "storage_gb": 15
+        },
+        "seed_definition": {
+          "max_users": 8,
+          "max_patients": 2000
+        },
+        "product_bundle_row": {
+          "max_users": 8,
+          "max_patients": 2000,
+          "storage_gb": 15,
+          "api_calls_per_month": 40000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 18,
+      "slug": "pkg-urgent-care",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "urgent_care",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 17,
+        "package_version_id": 15,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:12:18.869137+02",
+        "effective_to": "2026-12-26 00:12:18.869137+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "doctor",
+        "emergency",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "doctor",
+        "emergency",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "doctor",
+        "emergency",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 30,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "emergency_care",
+          "image_upload",
+          "invoice",
+          "lab_order",
+          "medication_admin",
+          "nursing_notes",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "radiology_order",
+          "rapid_assessment",
+          "receipt",
+          "report_delivery",
+          "report_draft",
+          "report_sign",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "stock_view",
+          "substitution",
+          "triage",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 30,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 150000,
+          "max_patients": 5000,
+          "max_users": 25,
+          "storage_gb": 50
+        },
+        "seed_definition": {
+          "max_users": 25,
+          "max_patients": 5000
+        },
+        "product_bundle_row": {
+          "max_users": 25,
+          "max_patients": 5000,
+          "storage_gb": 50,
+          "api_calls_per_month": 150000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 19,
+      "slug": "pkg-diagnostic-center",
+      "status": "ACTIVE",
+      "product_profile_code": "standalone_lab",
+      "canonical_profile": "standalone_lab",
+      "package_slug": "diagnostic_center",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 18,
+        "package_version_id": 16,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:12:25.619767+02",
+        "effective_to": "2026-12-26 00:12:25.619767+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "lab",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "lab",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "lab",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 20,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "debt_management",
+          "image_upload",
+          "invoice",
+          "lab_order",
+          "patient_lookup",
+          "payment",
+          "radiology_order",
+          "receipt",
+          "report_create",
+          "report_delivery",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "visit_create"
+        ],
+        "version_distinct_capability_count": 20,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 50000,
+          "max_patients": 3000,
+          "max_users": 10,
+          "storage_gb": 100
+        },
+        "seed_definition": {
+          "max_users": 10,
+          "max_patients": 3000
+        },
+        "product_bundle_row": {
+          "max_users": 10,
+          "max_patients": 3000,
+          "storage_gb": 100,
+          "api_calls_per_month": 50000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 20,
+      "slug": "pkg-community-clinic",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "community_clinic",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 19,
+        "package_version_id": 17,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:13:02.15938+02",
+        "effective_to": "2026-12-26 00:13:02.15938+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 31,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "invoice",
+          "lab_order",
+          "medication_admin",
+          "nursing_notes",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_export",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "stock_view",
+          "substitution",
+          "triage",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 31,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 100000,
+          "max_patients": 8000,
+          "max_users": 20,
+          "storage_gb": 40
+        },
+        "seed_definition": {
+          "max_users": 20,
+          "max_patients": 8000
+        },
+        "product_bundle_row": {
+          "max_users": 20,
+          "max_patients": 8000,
+          "storage_gb": 40,
+          "api_calls_per_month": 100000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 21,
+      "slug": "pkg-nursing-home",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "nursing_home",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 20,
+        "package_version_id": 18,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:13:42.703253+02",
+        "effective_to": "2026-12-26 00:13:42.703253+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "doctor",
+        "inventory",
+        "nursing",
+        "pharmacy",
+        "reception"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "doctor",
+        "inventory",
+        "nursing",
+        "pharmacy",
+        "reception"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "doctor",
+        "inventory",
+        "nursing",
+        "pharmacy",
+        "reception"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 22,
+        "effective_capability_keys": [
+          "appointment_manage",
+          "barcode_scan",
+          "clinical_encounter",
+          "dispense",
+          "inventory_report",
+          "medication_admin",
+          "nursing_notes",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "pos_sale",
+          "prescription",
+          "purchase_order",
+          "reminder",
+          "schedule",
+          "stock_manage",
+          "stock_view",
+          "substitution",
+          "triage",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 22,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 40000,
+          "max_patients": 500,
+          "max_users": 15,
+          "storage_gb": 20
+        },
+        "seed_definition": {
+          "max_users": 15,
+          "max_patients": 500
+        },
+        "product_bundle_row": {
+          "max_users": 15,
+          "max_patients": 500,
+          "storage_gb": 20,
+          "api_calls_per_month": 40000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 22,
+      "slug": "pkg-multi-department-center",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "multi_department_center",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 21,
+        "package_version_id": 19,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:13:52.194716+02",
+        "effective_to": "2026-12-26 00:13:52.194716+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 41,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "barcode_scan",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "emergency_care",
+          "image_upload",
+          "inventory_report",
+          "invoice",
+          "lab_order",
+          "medication_admin",
+          "nursing_notes",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "purchase_order",
+          "radiology_order",
+          "rapid_assessment",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "stock_manage",
+          "stock_view",
+          "substitution",
+          "triage",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 41,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 200000,
+          "max_patients": 10000,
+          "max_users": 50,
+          "storage_gb": 100
+        },
+        "seed_definition": {
+          "max_users": 50,
+          "max_patients": 10000
+        },
+        "product_bundle_row": {
+          "max_users": 50,
+          "max_patients": 10000,
+          "storage_gb": 100,
+          "api_calls_per_month": 200000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 23,
+      "slug": "pkg-polyclinic",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "polyclinic",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 22,
+        "package_version_id": 20,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:13:59.674153+02",
+        "effective_to": "2026-12-26 00:13:59.674153+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 45,
+        "effective_capability_keys": [
+          "analytics",
+          "appointment_manage",
+          "barcode_scan",
+          "book_appointment",
+          "clinical_encounter",
+          "debt_management",
+          "dispense",
+          "emergency_care",
+          "image_upload",
+          "inventory_report",
+          "invoice",
+          "lab_order",
+          "medication_admin",
+          "nursing_notes",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "patient_self_service",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "purchase_order",
+          "radiology_order",
+          "rapid_assessment",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "stock_manage",
+          "stock_view",
+          "substitution",
+          "triage",
+          "view_bills",
+          "view_results",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 45,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 500000,
+          "max_patients": 20000,
+          "max_users": 100,
+          "storage_gb": 200
+        },
+        "seed_definition": {
+          "max_users": 100,
+          "max_patients": 20000
+        },
+        "product_bundle_row": {
+          "max_users": 100,
+          "max_patients": 20000,
+          "storage_gb": 200,
+          "api_calls_per_month": 500000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 24,
+      "slug": "pkg-hospital",
+      "status": "ACTIVE",
+      "product_profile_code": "multi_department_center",
+      "canonical_profile": "multi_department_center",
+      "package_slug": "hospital",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 23,
+        "package_version_id": 21,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:14:38.681897+02",
+        "effective_to": "2026-12-26 00:14:38.681897+02"
+      },
+      "enabled_modules": [
+        "ai_imaging",
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "integration",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "ai_imaging",
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "integration",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "ai_imaging",
+        "appointments",
+        "billing",
+        "doctor",
+        "emergency",
+        "integration",
+        "inventory",
+        "lab",
+        "nursing",
+        "pharmacy",
+        "portal",
+        "radiology",
+        "reception",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 51,
+        "effective_capability_keys": [
+          "ai_analysis",
+          "analytics",
+          "appointment_manage",
+          "auto_report",
+          "barcode_scan",
+          "book_appointment",
+          "clinical_encounter",
+          "debt_management",
+          "dicom_listener",
+          "dispense",
+          "emergency_care",
+          "fhir_api",
+          "image_enhancement",
+          "image_upload",
+          "inventory_report",
+          "invoice",
+          "lab_order",
+          "medication_admin",
+          "nursing_notes",
+          "online_booking",
+          "order_lab",
+          "order_radiology",
+          "patient_lookup",
+          "patient_self_service",
+          "payment",
+          "pos_sale",
+          "prescription",
+          "purchase_order",
+          "radiology_order",
+          "rapid_assessment",
+          "receipt",
+          "reminder",
+          "report_create",
+          "report_delivery",
+          "report_draft",
+          "report_export",
+          "report_sign",
+          "report_view",
+          "result_entry",
+          "result_validation",
+          "sample_collection",
+          "schedule",
+          "sso",
+          "stock_manage",
+          "stock_view",
+          "substitution",
+          "triage",
+          "view_bills",
+          "view_results",
+          "visit_create",
+          "vital_signs"
+        ],
+        "version_distinct_capability_count": 51,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 2000000,
+          "max_patients": 100000,
+          "max_users": 500,
+          "storage_gb": 500
+        },
+        "seed_definition": {
+          "max_users": 500,
+          "max_patients": 100000
+        },
+        "product_bundle_row": {
+          "max_users": 500,
+          "max_patients": 100000,
+          "storage_gb": 500,
+          "api_calls_per_month": 2000000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 25,
+      "slug": "pkg-billing-only",
+      "status": "ACTIVE",
+      "product_profile_code": "custom",
+      "canonical_profile": "custom",
+      "package_slug": "billing_only",
+      "profile_code_equals_package_slug": false,
+      "active_subscription_line": {
+        "id": 24,
+        "package_version_id": 22,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:15:21.851032+02",
+        "effective_to": "2026-12-26 00:15:21.851032+02"
+      },
+      "enabled_modules": [
+        "appointments",
+        "billing"
+      ],
+      "expected_modules_seed": [
+        "appointments",
+        "billing"
+      ],
+      "expected_modules_bundle": [
+        "appointments",
+        "billing"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 7,
+        "effective_capability_keys": [
+          "debt_management",
+          "invoice",
+          "online_booking",
+          "payment",
+          "receipt",
+          "reminder",
+          "schedule"
+        ],
+        "version_distinct_capability_count": 7,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {
+          "api_calls_per_month": 5000,
+          "max_patients": 500,
+          "max_users": 3,
+          "storage_gb": 5
+        },
+        "seed_definition": {
+          "max_users": 3,
+          "max_patients": 500
+        },
+        "product_bundle_row": {
+          "max_users": 3,
+          "max_patients": 500,
+          "storage_gb": 5,
+          "api_calls_per_month": 5000
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": false,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    },
+    {
+      "tenant_id": 26,
+      "slug": "pkg-custom",
+      "status": "ACTIVE",
+      "product_profile_code": "custom",
+      "canonical_profile": "custom",
+      "package_slug": "custom",
+      "profile_code_equals_package_slug": true,
+      "active_subscription_line": {
+        "id": 25,
+        "package_version_id": 23,
+        "version": "1.0.0",
+        "status": "active",
+        "line_type": "base",
+        "effective_from": "2026-11-26 00:15:31.458407+02",
+        "effective_to": "2026-12-26 00:15:31.458407+02"
+      },
+      "enabled_modules": [
+        "billing",
+        "reporting"
+      ],
+      "expected_modules_seed": [
+        "billing",
+        "reporting"
+      ],
+      "expected_modules_bundle": [
+        "billing",
+        "reporting"
+      ],
+      "modules_match_bundle": true,
+      "entitlements": {
+        "effective_capability_count": 8,
+        "effective_capability_keys": [
+          "analytics",
+          "debt_management",
+          "invoice",
+          "payment",
+          "receipt",
+          "report_create",
+          "report_export",
+          "report_view"
+        ],
+        "version_distinct_capability_count": 8,
+        "capabilities_match_registry_and_package": true,
+        "module_name_populated": false,
+        "calculation_version": 1
+      },
+      "limits": {
+        "effective_from_package_version": {},
+        "seed_definition": {
+          "max_users": null,
+          "max_patients": null
+        },
+        "product_bundle_row": {
+          "max_users": null,
+          "max_patients": null,
+          "storage_gb": null,
+          "api_calls_per_month": null
+        },
+        "effective_matches_seed": true,
+        "bundle_row_matches_seed": true,
+        "unlimited_by_seed": true,
+        "storage_and_api_limits_source": "package_version_limits only; _PRODUCT_PROFILE_SEED defines max_users/max_patients"
+      },
+      "usage": {
+        "users": 1,
+        "patients": 0
+      },
+      "verdict": "OK"
+    }
+  ],
+  "guards": {
+    "blueprint_guards_verified": {
+      "routes/reception/__init__.py:47": "reception",
+      "routes/doctor/__init__.py:49": "doctor",
+      "routes/lab/__init__.py:47": "lab",
+      "routes/radiology/__init__.py:49": "radiology",
+      "routes/emergency/__init__.py:46": "emergency",
+      "routes/nurse_routes/__init__.py:35": "nursing",
+      "routes/medication_routes/__init__.py:37": "pharmacy",
+      "routes/accountant/__init__.py:39": "billing"
+    },
+    "central_guards": "app_factory.py:1093-1149 (guard factory, super_admin-only bypass), 1211-1267 and 1312-1332 (all guarded blueprints incl. finance/manager/booking/procurement/portal/integration)",
+    "guard_weakened_or_removed": false,
+    "notes": "Blueprint-local guard_module in services/feature_gate_service.py:198-217 bypasses tenant admin for billing/reporting/appointments/inventory, but the central guard in app_factory.py:1115-1137 re-checks the same module and denies tenant admins; both run for all eight locally-guarded blueprints."
+  },
+  "test_summary": {
+    "command_prefix": "TEST_DATABASE_URL=postgresql://postgres:testpass@127.0.0.1:5433/medical2026_route_test .venv/Scripts/python.exe -m pytest -q --tb=short",
+    "groups": [
+      {
+        "subset": "RLS / cross-tenant isolation core",
+        "files": [
+          "tests/test_rls_isolation.py",
+          "tests/test_tenant_rls.py",
+          "tests/test_multi_layer_isolation.py",
+          "tests/test_tenant_route_isolation.py",
+          "tests/test_rls_deployment_guard.py",
+          "tests/test_notification_rls_lifecycle.py"
+        ],
+        "passed": 55,
+        "failed": 0,
+        "skipped": 4,
+        "errors": 0,
+        "duration_seconds": 289.14
+      },
+      {
+        "subset": "bundle / module commercial boundary isolation",
+        "files": [
+          "tests/test_bundle_isolation_audit.py",
+          "tests/test_bundle_isolation_deep.py",
+          "tests/test_dynamic_bundle_isolation.py",
+          "tests/test_module_commercial_boundary.py",
+          "tests/test_module_route_map.py",
+          "tests/test_module_table_ownership.py",
+          "tests/test_module_validators.py",
+          "tests/test_role_functional_isolation.py",
+          "tests/test_scenarios_executable_isolation.py",
+          "tests/test_scenarios_executable_tenant.py",
+          "tests/test_shared_tenant_uncap.py"
+        ],
+        "passed": 141,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "duration_seconds": 856.02
+      },
+      {
+        "subset": "tenant filter / background context / module smoke",
+        "files": [
+          "tests/unit/test_tenant_filter_coverage.py",
+          "tests/test_background_tenant_isolation.py",
+          "tests/test_module_smoke.py",
+          "tests/test_module_require_service.py",
+          "tests/test_notification_module_guard.py"
+        ],
+        "passed": 60,
+        "failed": 0,
+        "skipped": 0,
+        "errors": 0,
+        "duration_seconds": 166.15
+      }
+    ],
+    "totals": {
+      "passed": 256,
+      "failed": 0,
+      "skipped": 4,
+      "errors": 0,
+      "duration_seconds": 1311.31
+    },
+    "skip_reason": "tests/test_notification_rls_lifecycle.py:55 - current database user is superuser; RLS is bypassed (4 skips). RLS behaviour for that subset is covered by the other RLS tests and by the pg_catalog policy check."
+  },
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "medium",
+      "title": "product_profile_code stores canonical category, not the purchased package slug",
+      "evidence": [
+        "app/core/tenant/models.py:96-133",
+        "app/core/saas/legacy_adapter.py:47-60",
+        "app/core/saas/legacy_adapter.py:63-77",
+        "app/core/saas/legacy_adapter.py:96-102",
+        "services/dashboard_routing.py:103-120",
+        "app/modules/owner/routes.py:508-509",
+        "app/modules/owner/routes.py:2527"
+      ],
+      "detail": "16 of 23 package tenants have product_profile_code set to a canonical ProductProfile category (e.g. pkg-hospital -> multi_department_center, pkg-billing-only -> custom) rather than the slug of the package they bought. The purchase boundary itself is correct because app/core/module/validators.py:86-108 reads the active SubscriptionLine first, and all 23 tenants have one, but every legacy/fallback path that resolves get_bundle_for_profile(product_profile_code) sees the wrong bundle.",
+      "impact": "Owner console labels the wrong bundle; legacy entitlement fallback and admin/manager dashboard routing can under-grant or misroute for those tenants if the subscription/projection is absent.",
+      "status": "open"
+    },
+    {
+      "id": "R-02",
+      "severity": "medium",
+      "title": "Legacy bundle row private_doctor_clinic has NULL max_users/max_patients",
+      "evidence": [
+        "app/core/tenant/models.py:445-452",
+        "app/core/saas/legacy_adapter.py:72-77",
+        "migrations/versions/prod_baseline_20260622.py"
+      ],
+      "detail": "product_bundles row slug=private_doctor_clinic has max_users=NULL and max_patients=NULL while _PRODUCT_PROFILE_SEED (app/core/tenant/models.py:445-452) defines 3 and 500. package_version_limits version 1 supplies the correct 3/500 (storage_gb=5 and api_calls_per_month=10000 are defined only in package_version_limits, not in the seed). All 23 package tenants have active subscription lines, so EntitlementResolver.get_effective_limits() returns the correct package-version limits; only the legacy fallback (app/core/saas/legacy_adapter.py:72-77) would see unlimited.",
+      "impact": "A tenant whose subscription line is missing, ended, or not yet migrated would have no effective user/patient cap on the legacy path.",
+      "status": "open"
+    },
+    {
+      "id": "R-03",
+      "severity": "low",
+      "title": "Service-level module decorators bypass tenant admin for non-clinical modules",
+      "evidence": [
+        "services/feature_gate_service.py:154-155",
+        "services/feature_gate_service.py:182-183",
+        "services/feature_gate_service.py:209-210",
+        "app_factory.py:1115-1123",
+        "app_factory.py:1211-1250"
+      ],
+      "detail": "require_module(), require_module_route() and guard_module() skip the check for role admin/super_admin/owner/platform_owner when the module is billing, reporting, appointments or inventory. The central blueprint guard only exempts super_admin and re-checks the same modules, so tenant admins are denied on all guarded blueprints; the bypass is latent and would become live on any new blueprint guarded only by the local decorator.",
+      "impact": "Future route using only require_module/guard_module can be opened to a tenant admin without the module in the bundle.",
+      "status": "latent"
+    },
+    {
+      "id": "R-04",
+      "severity": "low",
+      "title": "Compliance APIs are role-gated but not module-gated",
+      "evidence": [
+        "routes/compliance_routes.py:143",
+        "routes/compliance_routes.py:342",
+        "routes/compliance_routes.py:372",
+        "routes/compliance_routes.py:383",
+        "routes/compliance_routes.py:396",
+        "routes/compliance_routes.py:409",
+        "routes/compliance_routes.py:424",
+        "routes/compliance_routes.py:437",
+        "routes/compliance_routes.py:450",
+        "routes/compliance_routes.py:465",
+        "app_factory.py:1344-1349"
+      ],
+      "detail": "compliance_bp is registered without _add_guard_once and reads Patient, Visit, Appointment, LabResult, RadiologyResult, Prescription, MedicalRecord, PatientAllergy and PatientConsent. Access is restricted by @role_required(super_admin/admin/manager) only. ORM tenant_filter module scope still empties tables no active module touches (app/shared/tenant_filter.py:256-286, 624-630), so no data was observed to leak, but the module boundary is not enforced at the route layer.",
+      "impact": "A raw-SQL or bypassed read added to this blueprint would expose out-of-package clinical tables.",
+      "status": "open"
+    },
+    {
+      "id": "R-05",
+      "severity": "medium",
+      "title": "Unguarded blueprints read tables absent from MODULE_REGISTRY",
+      "evidence": [
+        "routes/order_set_routes.py:8",
+        "routes/order_set_routes.py:15-20",
+        "routes/order_set_routes.py:38-59",
+        "routes/order_set_routes.py:62-76",
+        "routes/device_integration_routes.py:7-8",
+        "routes/device_integration_routes.py:20-35",
+        "routes/device_integration_routes.py:38-70",
+        "app_factory.py:1286",
+        "app_factory.py:1334",
+        "app/core/module/registry.py:8-38"
+      ],
+      "detail": "order_set_bp and device_bp have no module guard, and the tables they use (order_sets, order_set_items, best_practice_advisories, iot_devices, iot_readings, medical_devices) are not listed by any ModuleMeta, so tenant_filter._table_out_of_scope() cannot restrict them by purchased modules. Only login_required/role_required and tenant_id filtering apply.",
+      "impact": "Any authenticated user with the required role can read/write these resources regardless of the tenant package (e.g. a billing-only tenant can register devices and order sets).",
+      "status": "open"
+    },
+    {
+      "id": "R-06",
+      "severity": "low",
+      "title": "Recent booking-to-visit conversion writes clinical tables from an appointments-only route",
+      "evidence": [
+        "routes/booking_routes.py:320-374",
+        "services/booking_conversion_service.py:62-88",
+        "app_factory.py:1220",
+        "app_factory.py:1294"
+      ],
+      "detail": "Commit cdb6ecb8 added convert_booking_to_visit on booking_bp (guarded by appointments). It creates Patient/Visit and a MedicalRecord and transitions the visit to IN_PROGRESS. For pkg-billing-only (appointments + billing, no doctor/reception) tenant_filter._assert_table_writable() refuses the visits/medical_records write (app/shared/tenant_filter.py:460-479, 794-818), so no data leak occurs; the endpoint only flashes an error.",
+      "impact": "Functional break for appointments-only bundles; if the write bypass is ever used, it would create clinical care data outside the purchased package.",
+      "status": "open"
+    }
+  ],
+  "recent_changes_reviewed": [
+    {
+      "commit": "a32e4525",
+      "title": "doctor lab/imaging request forms in any clinic",
+      "evidence": [
+        "routes/doctor/lab.py:28-29",
+        "routes/doctor/lab.py:70-89",
+        "routes/doctor/radiology.py:28-29",
+        "routes/doctor/radiology.py:76-93",
+        "services/lab_service.py:26",
+        "services/radiology_service.py:29",
+        "app/core/module/registry.py:101-147"
+      ],
+      "verdict": "no cross-package data leak: route-level module checks were removed, but structured orders still go through @require_module(lab/radiology) on the services; without those modules the route records a memo in visit.notes only (visits are in-scope for the doctor module)."
+    },
+    {
+      "commit": "cdb6ecb8",
+      "title": "booking conversion and walk-in start treatment",
+      "evidence": [
+        "routes/booking_routes.py:320-374",
+        "routes/doctor/queue.py:38-44",
+        "services/booking_conversion_service.py:62-88"
+      ],
+      "verdict": "doctor/queue walk-in path checks reception explicitly and deliberately supports clinics without reception; booking conversion is contained by tenant_filter module-scope write guard (see R-06)."
+    },
+    {
+      "commit": "3bd40cb5",
+      "title": "public clinic picker / prefilled booking",
+      "evidence": [
+        "routes/booking_routes.py",
+        "app_factory.py:1220"
+      ],
+      "verdict": "no new module bypass found; booking_bp remains guarded by appointments."
+    }
+  ]
+}

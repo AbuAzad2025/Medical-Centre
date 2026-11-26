@@ -333,6 +333,10 @@ def convert_booking_to_visit(booking_id):
     if (booking.status or '').lower() in {'cancelled', 'converted', 'expired'}:
         flash('لا يمكن تحويل هذا الحجز إلى زيارة', 'warning')
         return redirect(url_for('booking.dashboard_portal'))
+    enabled_modules = getattr(g, 'enabled_modules', set()) or set()
+    if enabled_modules and 'doctor' not in enabled_modules:
+        flash('تحويل الحجز إلى زيارة يتطلب وحدة الطبيب في باقتك', 'warning')
+        return redirect(url_for('booking.dashboard_portal'))
 
     from services.booking_conversion_service import OnlineBookingConversionService
 

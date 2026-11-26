@@ -14,6 +14,13 @@ from utils.decorators import handle_route_errors, role_required
 device_bp = Blueprint('device_integration', __name__)
 
 
+@device_bp.before_request
+def _guard_device_module():
+    from services.feature_gate_service import guard_module
+
+    guard_module('integration')
+
+
 # === IoT Device Routes ===
 
 
