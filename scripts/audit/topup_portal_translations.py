@@ -12,11 +12,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.insert(0, ROOT)
 
 CATALOG = os.path.join(ROOT, 'app', 'shared', 'i18n_catalog.json')
-SOURCES = (
-    glob.glob(os.path.join(ROOT, 'templates', 'portal', '*.html'))
-    + glob.glob(os.path.join(ROOT, 'templates', 'auth', '*.html'))
-    + glob.glob(os.path.join(ROOT, 'templates', 'kiosk', '*.html'))
-)
+SOURCES = glob.glob(os.path.join(ROOT, 'templates', '**', '*.html'), recursive=True)
 ENDPOINT = 'https://translate.googleapis.com/translate_a/single'
 
 with open(CATALOG, encoding='utf-8') as fh:

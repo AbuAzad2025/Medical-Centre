@@ -132,7 +132,25 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             var target = this;
             var type = this.tagName === 'A' ? 'link' : 'button';
-            if (typeof Swal !== 'undefined') {
+            var perform = function() {
+                if (type === 'link') {
+                    var href = target.getAttribute('href');
+                    // Placeholder links may have been rewritten to javascript: by
+                    // enforceSafeLinks at load, so '#' alone is not enough here.
+                    var looksPlaceholder = !href || href.trim() === '' || href.trim() === '#' || href.indexOf('javascript:') === 0;
+                    if (!looksPlaceholder) window.location.href = href;
+                } else {
+                    var form = target.form || target.closest('form');
+                    if (form) form.submit();
+                }
+            };
+            // If SweetAlert2 failed to load, still let the action proceed after
+            // a native confirmation instead of silently doing nothing.
+            if (typeof Swal === 'undefined') {
+                if (window.confirm(msg)) perform();
+                return;
+            }
+            {
                 Swal.fire({
                     title: 'تأكيد',
                     text: msg,
@@ -141,18 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     confirmButtonText: 'نعم',
                     cancelButtonText: 'إلغاء'
                 }).then(function(result) {
-                    if (result.isConfirmed) {
-                        if (type === 'link') {
-                            var href = target.getAttribute('href');
-                            // Placeholder links may have been rewritten to javascript: by
-                            // enforceSafeLinks at load, so '#' alone is not enough here.
-                            var looksPlaceholder = !href || href.trim() === '' || href.trim() === '#' || href.indexOf('javascript:') === 0;
-                            if (!looksPlaceholder) window.location.href = href;
-                        } else {
-                            var form = target.form || target.closest('form');
-                            if (form) form.submit();
-                        }
-                    }
+                    if (result.isConfirmed) perform();
                 });
             }
         });
