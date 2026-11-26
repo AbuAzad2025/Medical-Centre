@@ -15,6 +15,7 @@ PAGES = [
     ('patient_details', '/doctor/patient-details/17'),
     ('prescriptions', '/doctor/prescriptions'),
     ('appointments', '/doctor/appointments'),
+    ('inbox', '/inbox'),
     ('settings', '/doctor/settings'),
 ]
 
