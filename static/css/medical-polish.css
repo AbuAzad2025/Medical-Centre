@@ -199,6 +199,13 @@ body.platform-theme .main-container {
   margin-inline: 0 var(--owner-sidebar-width, 280px) !important;
 }
 
+/* owner/base.html pages use platform_shell with a .clinical-sidebar pinned on
+   the inline-start side; the usual owner-modern offset would be mirrored. */
+
+body.platform-theme:has(aside.clinical-sidebar) .main-container {
+  margin-inline: var(--sidebar-width, 260px) 0 !important;
+}
+
 .main-container > [class*='container'],
 .main-container > .row > [class*='col'] {
   min-width: 0;
