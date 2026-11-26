@@ -108,6 +108,9 @@ MODULE_REGISTRY: dict[str, ModuleMeta] = {
             'coded_procedures',
             'prescriptions',
             'prescription_items',
+            # A doctor writes prescriptions even when the clinic has no
+            # pharmacy module; the catalogue must be readable for that.
+            'medications',
             'lab_requests',
             'radiology_requests',
             'follow_up_requests',

@@ -83,6 +83,7 @@ def test_a_table_is_claimed_by_every_module_that_touches_it(app):
     from a clinic that still had the other one.
     """
     assert get_modules_for_table('prescriptions') == frozenset({'doctor', 'pharmacy'})
+    assert get_modules_for_table('medications') >= frozenset({'doctor', 'pharmacy'})
     assert get_modules_for_table('visits') >= frozenset(
         {'reception', 'doctor', 'emergency', 'nursing', 'inpatient'}
     )

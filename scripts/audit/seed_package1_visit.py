@@ -20,7 +20,7 @@ from services.queue_management_service import QueueManagementService
 from wsgi import app
 
 TENANT_SLUG = 'dr-ahmed-clinic'
-PATIENT_PHONE_END = '0001'
+PATIENT_PHONE_END = os.environ.get('PATIENT_PHONE_END', '0001')
 DEPARTMENT_NAME = 'العيادة العامة'
 ADMIN_USERNAME = 'admin'
 

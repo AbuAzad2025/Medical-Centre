@@ -499,8 +499,10 @@ class PrescriptionService:
     # ==================== AUDIT ====================
 
     @staticmethod
-    @require_module('pharmacy')
     def get_medication(medication_id: int):
+        # Shared catalogue lookup: a doctor prescribes from it even in a clinic
+        # without a pharmacy module. Row visibility is still enforced by the
+        # tenant/module filter (the doctor module now claims `medications`).
         from models.medication import Medication
 
         return (
