@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% from "partials/_page_header.html" import page_header %}
 {% block title %}{{ _('مواعيد الطبيب') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> {{ _('المواعيد') }}</h2>
+  {{ page_header(_('المواعيد'), subtitle=_('حجوزات العيادة والقادمة'), icon='fas fa-calendar-alt', actions=[
+      {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.dashboard'), 'style': 'secondary'}
+  ]) }}
   <!-- Stats Cards -->
   <div class="row g-3 mb-4">
     <div class="col-md-3">

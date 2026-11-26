@@ -13,7 +13,9 @@
     {% if module_active('reception') %}
     {{ patient_context_panel(visit.patient) }}
     {% endif %}
+    {% if visit.status in ['OPEN', 'IN_PROGRESS'] %}
     {{ workflow_next_actions(visit) }}
+    {% endif %}
 
     {% set actions = [
         {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},

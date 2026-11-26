@@ -509,3 +509,53 @@ body:has(.owner-shell) textarea::placeholder {
 .text-muted {
   color: var(--med-muted) !important;
 }
+
+/* Compact clinical context bar — no wasted vertical space above the chart. */
+
+.patient-context-bar {
+  margin-bottom: 0.75rem !important;
+}
+
+.patient-context-bar .card-body {
+  padding: 0.5rem 0.9rem !important;
+}
+
+.patient-context-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 0.9rem !important;
+}
+
+/* Dark mode: the token layer is correct, but Bootstrap and body.clinical-theme
+   with equal-or-higher specificity kept light surfaces and dark text. */
+
+[data-theme='dark'] body.clinical-theme {
+  background: var(--color-bg) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme='dark'] .card:not(.card-stat) {
+  background: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme='dark'] .table {
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+[data-theme='dark'] .table td,
+[data-theme='dark'] .table th {
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+[data-theme='dark'] .table-hover tr:hover td {
+  background: var(--color-surface-elevated) !important;
+}
+
+[data-theme='dark'] .text-muted {
+  color: var(--color-text-muted) !important;
+}
