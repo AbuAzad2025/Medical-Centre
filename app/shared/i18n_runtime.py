@@ -216,6 +216,19 @@ AR_TO_EN: dict[str, str] = {
     'قائمة المستخدم': 'User menu',
     'سياسة الخصوصية': 'Privacy policy',
     'شروط الاستخدام': 'Terms of use',
+    # strings reported by the page-polish agents
+    'لوحة تحكم الصيدلية': 'Pharmacy Dashboard',
+    'تنبيهات المخزون': 'Stock Alerts',
+    'طلبات التوريد': 'Supply Requests',
+    'تقرير الاستهلاك': 'Consumption Report',
+    'الفاتورة': 'Invoice',
+    'شكل الجرعة *': 'Dosage Form *',
+    'التركيز': 'Concentration',
+    'متوسط': 'Medium',
+    'ملخص الحالة الحالية': 'Current Condition Summary',
+    'خطة العلاج والمتابعة': 'Treatment & Follow-up Plan',
+    'لم يتم إدخالها': 'Not recorded',
+    'مسار التنقل': 'Breadcrumb',
 }
 
 
