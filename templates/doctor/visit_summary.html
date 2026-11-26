@@ -42,7 +42,7 @@
                                     <div class="card-body">
                                         <h6 class="text-warning">{{ _(_('بيانات الطبيب')) }}</h6>
                                         <p><strong>{{ _(_('الطبيب:')) }}</strong> {{ current_user.full_name if current_user.full_name and current_user.full_name.startswith('د.') else 'د. ' ~ (current_user.full_name or '') }}</p>
-                                        <p><strong>{{ _(_('التخصص:')) }}</strong> {{ current_user.department }}</p>
+                                        <p><strong>{{ _(_('التخصص:')) }}</strong> {{ current_user.department.name if current_user.department else _('غير محدد') }}</p>
                                         <p><strong>{{ _(_('رقم الطبيب:')) }}</strong> {{ current_user.id }}</p>
                                         <p><strong>{{ _(_('تاريخ التقرير:')) }}</strong> {{ moment().format('YYYY-MM-DD') }}</p>
                                     </div>
