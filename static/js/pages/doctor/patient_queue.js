@@ -93,10 +93,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('table tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {
-            this.classList.add('row-hover');
+            const elevated = getComputedStyle(document.documentElement)
+                .getPropertyValue('--color-surface-elevated').trim();
+            this.style.backgroundColor = elevated || '#f8f9fa';
         });
         row.addEventListener('mouseleave', function() {
-            this.classList.remove('row-hover');
+            this.style.backgroundColor = '';
         });
     });
 
