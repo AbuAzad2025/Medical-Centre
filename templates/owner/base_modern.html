@@ -12,27 +12,27 @@
     <div class="owner-sidebar-overlay" id="ownerSidebarOverlay" aria-hidden="true"></div>
 
     <!-- Sidebar -->
-    <aside class="owner-sidebar" id="ownerSidebar" aria-label="قائمة التنقل">
+    <aside class="owner-sidebar" id="ownerSidebar" aria-label="{{ _('قائمة التنقل') }}">
         <div class="owner-sidebar-brand">
-            <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="شعار منصة المركز الطبي" loading="lazy">
+            <img src="{{ url_for('static', filename='img/medical_logo.png') }}" alt="{{ _('شعار منصة المركز الطبي') }}" loading="lazy">
             <div>
                 <div class="brand-title">AZAD Platform</div>
                 <div class="brand-sub">OWNER CONSOLE</div>
             </div>
         </div>
         
-        <nav class="owner-nav" aria-label="تنقل المالك">
+        <nav class="owner-nav" aria-label="{{ _('تنقل المالك') }}">
             {% block sidebar_nav %}
                 {% for section in owner_nav_sections %}
                     {% if section.title_ar %}
-                    <div class="owner-nav-section">{{ section.title_ar }}</div>
+                    <div class="owner-nav-section">{{ _(section.title_ar) }}</div>
                     {% endif %}
                     {% for item in section.items %}
                         {% set href = owner_nav_href(item) if owner_nav_href is defined else url_for(item.endpoint) %}
                         {% set is_active = item.active_prefix and request.path.startswith(item.active_prefix) %}
                         <a class="owner-nav-link {{ 'active' if is_active else '' }}" href="{{ href }}" {% if is_active %}aria-current="page"{% endif %}>
                             <i class="{{ item.icon }} nav-icon" aria-hidden="true"></i>
-                            <span>{{ item.label_ar }}</span>
+                            <span>{{ _(item.label_ar) if item.label_ar else '' }}</span>
                         </a>
                     {% endfor %}
                 {% endfor %}
@@ -56,13 +56,13 @@
     <div class="owner-main">
         <header class="owner-header" role="banner">
             <div class="owner-header-left">
-                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="ownerSidebar">
+                <button class="owner-mobile-toggle d-md-none" id="ownerMobileToggle" aria-label="{{ _('فتح القائمة') }}" aria-expanded="false" aria-controls="ownerSidebar">
                     <i class="fas fa-bars"></i>
                 </button>
-                <button class="owner-sidebar-collapse-btn d-none d-md-inline-flex" id="ownerSidebarCollapse" aria-label="إخفاء/إظهار القائمة" aria-expanded="true" aria-controls="ownerSidebar">
+                <button class="owner-sidebar-collapse-btn d-none d-md-inline-flex" id="ownerSidebarCollapse" aria-label="{{ _('إخفاء/إظهار القائمة') }}" aria-expanded="true" aria-controls="ownerSidebar">
                     <i class="fas fa-chevron-left" id="ownerSidebarCollapseIcon"></i>
                 </button>
-                <nav class="owner-header-breadcrumb" aria-label="مسار التنقل">
+                <nav class="owner-header-breadcrumb" aria-label="{{ _('مسار التنقل') }}">
                     <a href="{{ url_for('owner.owner_dashboard') }}">{{ _(_('الرئيسية')) }}</a>
                     {% block breadcrumbs %}{% endblock %}
                 </nav>

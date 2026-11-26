@@ -15,7 +15,7 @@ from flask import (
     send_file,
     url_for,
 )
-from flask_login import login_required
+from flask_login import current_user, login_required
 from sqlalchemy import select
 
 from app.extensions import db
@@ -23,16 +23,57 @@ from app.shared.print_context import generate_qr_data_uri
 from models.radiology_request import RadiologyRequest
 from models.radiology_result import RadiologyResult
 from routes.radiology import radiology_bp
+from utils.db_safety import safe_commit
 from utils.decorators import role_required
 
 # REPORTS ROUTES
 
 
-@radiology_bp.route('/reports')
+@radiology_bp.route('/reports', methods=['GET', 'POST'])
 @login_required
 @role_required('radiology', 'manager')
 def reports():
     """تقارير الأشعة"""
+
+    if request.method == 'POST':
+        # The report form posts here; previously this route was GET-only and
+        # "حفظ التقرير" silently did nothing.
+        target_id = request.form.get('request_id', type=int)
+        target = None
+        if target_id:
+            target = (
+                db.session.execute(
+                    select(RadiologyRequest).filter(
+                        RadiologyRequest.id == target_id,
+                        RadiologyRequest.tenant_id == g.tenant_id,
+                    )
+                )
+                .scalars()
+                .first()
+            )
+        if not target:
+            flash('الطلب غير موجود', 'error')
+            return redirect(url_for('radiology.reports'))
+
+        result = target.results[0] if target.results else None
+        if not result:
+            result = RadiologyResult(
+                request_id=target.id,
+                patient_id=target.patient_id,
+                performed_by=current_user.id,
+                status='READY',
+            )
+            db.session.add(result)
+        result.findings = request.form.get('findings') or None
+        result.impression = request.form.get('impression') or None
+        result.notes = request.form.get('recommendations') or None
+        if result.status in (None, 'PENDING'):
+            result.status = 'READY'
+        if not safe_commit(db.session, error_message='database commit failed'):
+            flash('تعذر حفظ التقرير', 'error')
+        else:
+            flash('تم حفظ التقرير بنجاح', 'success')
+        return redirect(url_for('radiology.reports', request_id=target.id))
 
     request_id = request.args.get('request_id', type=int)
     radiology_request = None
@@ -115,7 +156,7 @@ def print_report(radiology_scan_id=None):
             'print/radiology_report.html', radiology_result=result, qr_data_uri=qr_data_uri
         )
     except Exception:
-        logging.exception('Error printing radiology report {radiology_scan_id}: %s')
+        logging.exception('Error printing radiology report {radiology_scan_id}')
         flash('حدث خطأ في طباعة تقرير الأشعة', 'error')
         return redirect(url_for('radiology.reports'))
 
@@ -161,5 +202,5 @@ def print_report_pdf(radiology_scan_id=None):
             BytesIO(pdf_bytes), mimetype='application/pdf', as_attachment=True, download_name=fname
         )
     except Exception as e:
-        logging.exception('Error generating radiology PDF {radiology_scan_id}: %s')
+        logging.exception('Error generating radiology PDF {radiology_scan_id}')
         return jsonify({'success': False, 'message': str(e)}), 500

@@ -140,7 +140,7 @@ class NursingService:
                 return None
             return record
         except Exception:
-            logging.exception('Error recording vitals: %s')
+            logging.exception('Error recording vitals')
             db.session.rollback()
             return None
 
@@ -185,7 +185,7 @@ class NursingService:
                 return None
             return note
         except Exception:
-            logging.exception('Error adding nursing note: %s')
+            logging.exception('Error adding nursing note')
             db.session.rollback()
             return None
 
@@ -229,7 +229,7 @@ class NursingService:
                 db.session, error_message='Failed to record medication administration'
             )
         except Exception:
-            logging.exception('Error recording medication administration: %s')
+            logging.exception('Error recording medication administration')
             db.session.rollback()
             return False
 
@@ -318,7 +318,7 @@ class NursingService:
                 return {'success': False, 'message': 'تعذر حفظ سجل إعطاء الدواء'}
             return {'success': True}
         except Exception:
-            logging.exception('Error recording eMAR administration: %s')
+            logging.exception('Error recording eMAR administration')
             db.session.rollback()
             return {'success': False, 'message': 'حدث خطأ في تسجيل إعطاء الدواء'}
 
@@ -380,7 +380,7 @@ class NursingService:
                 return None
             return plan
         except Exception:
-            logging.exception('Error creating care plan: %s')
+            logging.exception('Error creating care plan')
             db.session.rollback()
             return None
 
@@ -413,7 +413,7 @@ class NursingService:
             task.completed_at = datetime.now(UTC)
             return safe_commit(db.session, error_message='Failed to complete task')
         except Exception:
-            logging.exception('Error completing task: %s')
+            logging.exception('Error completing task')
             db.session.rollback()
             return False
 

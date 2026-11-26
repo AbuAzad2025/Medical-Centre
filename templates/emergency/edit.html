@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}تعديل حالة الطوارئ - النظام الصحي المتكامل{% endblock %}
+{% block title %}{{ _('تعديل حالة الطوارئ') }} - {{ _('النظام الصحي المتكامل') }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -166,9 +166,9 @@
                 <!-- Emergency Info -->
                 <div class="emergency-info">
                     <h6><i class="fas fa-info-circle"></i> {{ _(_('معلومات حالة الطوارئ')) }}</h6>
-                    <p>تاريخ الحالة: {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else _('غير محدد') }}</p>
-                    <p>الطبيب: {{ emergency.doctor.name if emergency.doctor else _('غير محدد') }}</p>
-                    <p>الأولوية: {{ emergency.priority or _('غير محدد') }}</p>
+                    <p>{{ _('تاريخ الحالة:') }} {{ emergency.emergency_date.strftime('%Y-%m-%d %H:%M') if emergency.emergency_date else _('غير محدد') }}</p>
+                    <p>{{ _('الطبيب:') }} {{ emergency.doctor.name if emergency.doctor else _('غير محدد') }}</p>
+                    <p>{{ _('الأولوية:') }} {{ emergency.priority or _('غير محدد') }}</p>
                 </div>
 
                 <!-- Change Log -->
@@ -202,7 +202,7 @@
                                         <option value="">{{ _(_('اختر الطبيب')) }}</option>
                                         {% for doctor in doctors %}
                                         <option value="{{ doctor.id }}" {% if emergency.doctor_id == doctor.id %}selected{% endif %}>
-                                            د. {{ doctor.name }}
+                                            {{ _('د.') }} {{ doctor.name }}
                                         </option>
                                         {% endfor %}
                                     </select>
@@ -256,12 +256,12 @@
                         <h5><i class="fas fa-comment-medical"></i> {{ _(_('الشكوى الرئيسية')) }}</h5>
                         <div class="form-group">
                             <label class="form-label">{{ _(_('الشكوى الرئيسية')) }} <span class="required">*</span></label>
-                            <textarea name="chief_complaint" class="form-control" rows="3" placeholder="وصف الشكوى الرئيسية للمريض" required>{{ emergency.chief_complaint or '' }}</textarea>
+                            <textarea name="chief_complaint" class="form-control" rows="3" placeholder="{{ _('وصف الشكوى الرئيسية للمريض') }}" required>{{ emergency.chief_complaint or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('الأعراض')) }}</label>
-                            <textarea name="symptoms" class="form-control" rows="4" placeholder="وصف الأعراض الحالية">{{ emergency.symptoms or '' }}</textarea>
+                            <textarea name="symptoms" class="form-control" rows="4" placeholder="{{ _('وصف الأعراض الحالية') }}">{{ emergency.symptoms or '' }}</textarea>
                         </div>
                     </div>
 
@@ -272,17 +272,17 @@
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}</div>
                                 <div class="vital-sign-label">{{ _(_('ضغط الدم (الانقباضي)')) }}</div>
-                                <input type="number" name="vital_signs_bp_systolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
+                                <input type="number" name="vital_signs_bp_systolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_systolic', '') if emergency.vital_signs else '' }}" placeholder="{{ _('مم زئبق') }}">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}</div>
                                 <div class="vital-sign-label">{{ _(_('ضغط الدم (الانبساطي)')) }}</div>
-                                <input type="number" name="vital_signs_bp_diastolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}" placeholder="مم زئبق">
+                                <input type="number" name="vital_signs_bp_diastolic" class="form-control mt-2" value="{{ emergency.vital_signs.get('bp_diastolic', '') if emergency.vital_signs else '' }}" placeholder="{{ _('مم زئبق') }}">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}</div>
                                 <div class="vital-sign-label">{{ _(_('معدل النبض')) }}</div>
-                                <input type="number" name="vital_signs_heart_rate" class="form-control mt-2" value="{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}" placeholder="نبضة/دقيقة">
+                                <input type="number" name="vital_signs_heart_rate" class="form-control mt-2" value="{{ emergency.vital_signs.get('heart_rate', '') if emergency.vital_signs else '' }}" placeholder="{{ _('نبضة/دقيقة') }}">
                             </div>
                             <div class="vital-sign-item">
                                 <div class="vital-sign-value">{{ emergency.vital_signs.get('temperature', '') if emergency.vital_signs else '' }}</div>
@@ -302,22 +302,22 @@
                         <h5><i class="fas fa-stethoscope"></i> {{ _(_('التقييم والعلاج')) }}</h5>
                         <div class="form-group">
                             <label class="form-label">{{ _(_('التقييم الأولي')) }}</label>
-                            <textarea name="initial_assessment" class="form-control" rows="4" placeholder="التقييم الأولي للحالة">{{ emergency.initial_assessment or '' }}</textarea>
+                            <textarea name="initial_assessment" class="form-control" rows="4" placeholder="{{ _('التقييم الأولي للحالة') }}">{{ emergency.initial_assessment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('العلاج المقدم')) }}</label>
-                            <textarea name="treatment_given" class="form-control" rows="4" placeholder="العلاج الذي تم تقديمه">{{ emergency.treatment_given or '' }}</textarea>
+                            <textarea name="treatment_given" class="form-control" rows="4" placeholder="{{ _('العلاج الذي تم تقديمه') }}">{{ emergency.treatment_given or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('الأدوية المعطاة')) }}</label>
-                            <textarea name="medications_given" class="form-control" rows="3" placeholder="الأدوية التي تم إعطاؤها">{{ emergency.medications_given or '' }}</textarea>
+                            <textarea name="medications_given" class="form-control" rows="3" placeholder="{{ _('الأدوية التي تم إعطاؤها') }}">{{ emergency.medications_given or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('الإجراءات المنجزة')) }}</label>
-                            <textarea name="procedures_performed" class="form-control" rows="3" placeholder="الإجراءات الطبية التي تم إنجازها">{{ emergency.procedures_performed or '' }}</textarea>
+                            <textarea name="procedures_performed" class="form-control" rows="3" placeholder="{{ _('الإجراءات الطبية التي تم إنجازها') }}">{{ emergency.procedures_performed or '' }}</textarea>
                         </div>
                     </div>
 
@@ -326,17 +326,17 @@
                         <h5><i class="fas fa-check-circle"></i> {{ _(_('الاستجابة والتقييم النهائي')) }}</h5>
                         <div class="form-group">
                             <label class="form-label">{{ _(_('الاستجابة للعلاج')) }}</label>
-                            <textarea name="response_to_treatment" class="form-control" rows="3" placeholder="استجابة المريض للعلاج">{{ emergency.response_to_treatment or '' }}</textarea>
+                            <textarea name="response_to_treatment" class="form-control" rows="3" placeholder="{{ _('استجابة المريض للعلاج') }}">{{ emergency.response_to_treatment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('التقييم النهائي')) }}</label>
-                            <textarea name="final_assessment" class="form-control" rows="4" placeholder="التقييم النهائي للحالة">{{ emergency.final_assessment or '' }}</textarea>
+                            <textarea name="final_assessment" class="form-control" rows="4" placeholder="{{ _('التقييم النهائي للحالة') }}">{{ emergency.final_assessment or '' }}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label class="form-label">{{ _(_('تعليمات الخروج')) }}</label>
-                            <textarea name="discharge_instructions" class="form-control" rows="4" placeholder="تعليمات للمريض عند الخروج">{{ emergency.discharge_instructions or '' }}</textarea>
+                            <textarea name="discharge_instructions" class="form-control" rows="4" placeholder="{{ _('تعليمات للمريض عند الخروج') }}">{{ emergency.discharge_instructions or '' }}</textarea>
                         </div>
                     </div>
 
@@ -367,7 +367,7 @@
                         <h5><i class="fas fa-sticky-note"></i> {{ _(_('ملاحظات إضافية')) }}</h5>
                         <div class="form-group">
                             <label class="form-label">{{ _(_('ملاحظات')) }}</label>
-                            <textarea name="notes" class="form-control" rows="4" placeholder="أي ملاحظات إضافية">{{ emergency.notes or '' }}</textarea>
+                            <textarea name="notes" class="form-control" rows="4" placeholder="{{ _('أي ملاحظات إضافية') }}">{{ emergency.notes or '' }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -401,7 +401,7 @@
                     <div class="row text-center">
                         <div class="col-6">
                             <div class="border-end">
-                                <h4 class="text-primary">{{ emergency.priority|title }}</h4>
+                                <h4 class="text-primary">{% if emergency.priority == 'critical' %}{{ _('حرجة') }}{% elif emergency.priority == 'high' %}{{ _('عالية') }}{% elif emergency.priority == 'medium' %}{{ _('متوسطة') }}{% elif emergency.priority == 'low' %}{{ _('منخفضة') }}{% else %}{{ emergency.priority }}{% endif %}</h4>
                                 <small class="text-muted">{{ _(_('الأولوية')) }}</small>
                             </div>
                         </div>

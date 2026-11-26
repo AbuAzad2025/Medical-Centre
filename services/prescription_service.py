@@ -295,7 +295,7 @@ class PrescriptionService:
                 return False, 'database_error'
             return True, prescription
         except Exception as e:
-            logging.exception('Error creating prescription: %s')
+            logging.exception('Error creating prescription')
             from utils.db_safety import safe_rollback
 
             # Same reason: a failed write must not leave the session aborted.
@@ -409,7 +409,7 @@ class PrescriptionService:
             med.stock_quantity = new_qty
             return safe_commit(db.session, error_message='Failed to update stock')
         except Exception:
-            logging.exception('Error updating medication stock: %s')
+            logging.exception('Error updating medication stock')
             return False
 
     # ==================== SUPPLY REQUESTS ====================
@@ -459,7 +459,7 @@ class PrescriptionService:
                 return None
             return request
         except Exception:
-            logging.exception('Error creating supply request: %s')
+            logging.exception('Error creating supply request')
             return None
 
     @staticmethod

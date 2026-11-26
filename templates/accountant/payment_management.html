@@ -6,8 +6,8 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header('إدارة المدفوعات', subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-credit-card', actions=[
-        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
+    {{ page_header(_('إدارة المدفوعات'), subtitle=_('مرحباً ') ~ current_user.full_name, icon='fas fa-credit-card', actions=[
+        {'label': _('العودة للوحة التحكم'), 'icon': ('fas fa-arrow-right' if current_locale == 'ar' else 'fas fa-arrow-left'), 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
         {'label': _('إقفال اليوم'), 'icon': 'fas fa-calendar-day', 'url': url_for('accountant.daily_audit_report'), 'style': 'outline-primary'},
         {'label': _('الديون'), 'icon': 'fas fa-hand-holding-usd', 'url': url_for('accountant.debt_tracking_report'), 'style': 'outline-danger'}
     ]) }}
@@ -53,7 +53,7 @@
                                         <a class="btn btn-sm btn-outline-primary" href="{{ url_for('accountant.financial') }}?patient_id={{ p.id }}">{{ _(_('كشف الحساب')) }}</a>
                                     </td>
                                 </tr>
-                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                                {% else %}<tr><td colspan="5" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -67,7 +67,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <h5 class="mb-1">{{ _(_('كشف حساب:')) }} <bdi>{{ selected_patient.full_name }}</bdi></h5>
-                                            <div class="text-muted">هاتف: {{ selected_patient.phone or '-' }} | هوية: {{ selected_patient.national_id or '-' }}</div>
+                                            <div class="text-muted">{{ _('الهاتف:') }} <bdi>{{ selected_patient.phone or '-' }}</bdi> | {{ _('الهوية:') }} <bdi>{{ selected_patient.national_id or '-' }}</bdi></div>
                                         </div>
                                         <a class="btn btn-outline-secondary" href="{{ url_for('accountant.financial') }}">{{ _(_('تفريغ')) }}</a>
                                     </div>
@@ -82,7 +82,7 @@
                                 <span class="info-box-icon"><i class="fas fa-file-invoice"></i></span>
                                 <div class="info-box-content">
                                     <span class="info-box-text">{{ _(_('إجمالي الفواتير')) }}</span>
-                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_billed) }}</span>
+                                    <span class="info-box-number text-nowrap">{{ "%.2f"|format(statement.totals.total_billed) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -91,7 +91,7 @@
                                 <span class="info-box-icon"><i class="fas fa-coins"></i></span>
                                 <div class="info-box-content">
                                     <span class="info-box-text">{{ _(_('إجمالي المدفوع')) }}</span>
-                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_paid) }}</span>
+                                    <span class="info-box-number text-nowrap">{{ "%.2f"|format(statement.totals.total_paid) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -100,7 +100,7 @@
                                 <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
                                 <div class="info-box-content">
                                     <span class="info-box-text">{{ _(_('المتبقي (زيارات غير مسددة)')) }}</span>
-                                    <span class="info-box-number">{{ "%.2f"|format(statement.totals.total_remaining) }}</span>
+                                    <span class="info-box-number text-nowrap">{{ "%.2f"|format(statement.totals.total_remaining) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -130,12 +130,12 @@
                                                     <td>{{ v.visit_number or v.id }}</td>
                                                     <td>{{ v.visit_date.strftime('%Y-%m-%d') if v.visit_date else (v.created_at.strftime('%Y-%m-%d') if v.created_at else '-') }}</td>
                                                     <td>{{ v.department.name_ar if v.department else '-' }}</td>
-                                                    <td class="text-end">{{ "%.2f"|format(v.total_amount or 0) }}</td>
-                                                    <td class="text-end">{{ "%.2f"|format(v.paid_amount or 0) }}</td>
-                                                    <td class="text-end">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
+                                                    <td class="text-end text-nowrap">{{ "%.2f"|format(v.total_amount or 0) }}</td>
+                                                    <td class="text-end text-nowrap">{{ "%.2f"|format(v.paid_amount or 0) }}</td>
+                                                    <td class="text-end text-nowrap">{{ "%.2f"|format(v.remaining_amount or 0) }}</td>
                                                     <td>{{ payment_status_badge(v) }}</td>
                                                 </tr>
-                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                                                {% else %}<tr><td colspan="7" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>
@@ -162,9 +162,9 @@
                                                     <td>{{ pmt.id }}</td>
                                                     <td>{{ pmt.payment_date.strftime('%Y-%m-%d') if pmt.payment_date else '-' }}</td>
                                                     <td>{{ pmt.method_display }}</td>
-                                                    <td class="text-end">{{ "%.2f"|format(pmt.amount or 0) }}</td>
+                                                    <td class="text-end text-nowrap">{{ "%.2f"|format(pmt.amount or 0) }}</td>
                                                 </tr>
-                                                {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                                                {% else %}<tr><td colspan="4" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                                             </tbody>
                                         </table>
                                     </div>

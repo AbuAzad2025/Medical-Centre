@@ -47,7 +47,7 @@ def api_worklist():
             )
         return jsonify({'success': True, 'requests': data})
     except Exception:
-        logging.exception('Error loading radiology api worklist: %s')
+        logging.exception('Error loading radiology api worklist')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -138,7 +138,7 @@ def api_fhir_radiology_observation(result_id):
 
         return jsonify(resource)
     except Exception:
-        logging.exception('Error exporting FHIR Radiology Observation: %s')
+        logging.exception('Error exporting FHIR Radiology Observation')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -241,7 +241,7 @@ def api_fhir_radiology_diagnostic_report(result_id):
 
         return jsonify(resource)
     except Exception:
-        logging.exception('Error exporting FHIR Radiology DiagnosticReport: %s')
+        logging.exception('Error exporting FHIR Radiology DiagnosticReport')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -331,7 +331,7 @@ def api_fhir_imaging_study(result_id):
 
         return jsonify(resource)
     except Exception:
-        logging.exception('Error exporting FHIR ImagingStudy: %s')
+        logging.exception('Error exporting FHIR ImagingStudy')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',

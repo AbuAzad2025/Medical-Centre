@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}موافقات الخدمات المخصصة - إدارة المنصة{% endblock %}
+{% block title %}{{ _('موافقات الخدمات المخصصة') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -61,15 +61,15 @@
                                     <td>{{ "%.2f"|format(svc.emergency_price) if svc.emergency_price else '—' }}</td>
                                     <td>{{ svc.currency }}</td>
                                     <td class="text-center">
-                                        <form method="POST" action="{{ url_for('manager.approve_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من الموافقة على هذه الخدمة؟'))">
+                                        <form method="POST" action="{{ url_for('manager.approve_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من الموافقة على هذه الخدمة؟')|e }}')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-sm btn-success" title="موافقة">
+                                            <button type="submit" class="btn btn-sm btn-success" title="{{ _('موافقة') }}">
                                                 <i class="fas fa-check"></i> {{ _(_('موافقة')) }}
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ url_for('manager.reject_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من رفض هذه الخدمة؟'))">
+                                        <form method="POST" action="{{ url_for('manager.reject_custom_service', service_id=svc.id) }}" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من رفض هذه الخدمة؟')|e }}')">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="رفض">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('رفض') }}">
                                                 <i class="fas fa-times"></i> {{ _(_('رفض')) }}
                                             </button>
                                         </form>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}لوحة تحكم الأشعة{% endblock %}
+{% block title %}{{ _('لوحة تحكم الأشعة') }}{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
   {{ page_header(_('قسم الأشعة'), subtitle=_('إدارة الطلبات والتقارير ومراقبة الجودة'), icon='fas fa-x-ray', actions=[
@@ -47,7 +47,7 @@
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
               <h6 class="text-muted text-uppercase small mb-1">{{ _(_('وقت المعالجة')) }}</h6>
-              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted">س</small></h3>
+              <h3 class="mb-0 fw-bold">{{ stats.smart_analytics.avg_processing_time or 0 }} <small class="fs-6 text-muted">{{ _('س') }}</small></h3>
             </div>
             <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-clock text-info fa-lg"></i></div>
           </div>
@@ -114,7 +114,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('دقة التقارير')) }}</div>
           <h3 class="fw-bold text-success">{{ stats.quality_assurance.report_accuracy or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="دقة التقارير"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة التقارير" data-width="{{ stats.quality_assurance.report_accuracy or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('دقة التقارير') }}"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="{{ _('دقة التقارير') }}" data-width="{{ stats.quality_assurance.report_accuracy or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -123,7 +123,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('جودة الصور')) }}</div>
           <h3 class="fw-bold text-primary">{{ stats.quality_assurance.image_quality_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="جودة الصور"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="جودة الصور" data-width="{{ stats.quality_assurance.image_quality_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('جودة الصور') }}"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('جودة الصور') }}" data-width="{{ stats.quality_assurance.image_quality_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -132,7 +132,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('الامتثال الإشعاعي')) }}</div>
           <h3 class="fw-bold text-info">{{ stats.quality_assurance.radiation_compliance or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="الامتثال الإشعاعي"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="الامتثال الإشعاعي" data-width="{{ stats.quality_assurance.radiation_compliance or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('الامتثال الإشعاعي') }}"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="{{ _('الامتثال الإشعاعي') }}" data-width="{{ stats.quality_assurance.radiation_compliance or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -175,10 +175,10 @@
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_rate or 0 }}%</h2>
           <p class="text-muted small">{{ _(_('نسبة الأتمتة')) }}</p>
-          <div class="progress mb-2 prog-thin" title="نسبة الأتمتة">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="نسبة الأتمتة" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('نسبة الأتمتة') }}">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('نسبة الأتمتة') }}" data-width="{{ stats.workflow_automation.automation_rate or 0 }}"></div>
           </div>
-          <div class="small text-muted">{{ _(_('وقت موفر:')) }} <strong>{{ stats.workflow_automation.time_saved or 0 }} س</strong></div>
+          <div class="small text-muted">{{ _(_('وقت موفر:')) }} <strong>{{ stats.workflow_automation.time_saved or 0 }} {{ _('س') }}</strong></div>
         </div>
       </div>
     </div>
@@ -190,9 +190,9 @@
       <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _(_('آخر طلبات الأشعة')) }}</h6>
       <a href="{{ url_for('radiology.requests') }}" class="small text-decoration-none">{{ _(_('الكل')) }}</a>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-0 dashboard-table-wrap">
       <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0 table-medical-responsive">
           <thead class="table-light">
             <tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الفحص')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الأولوية')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراءات')) }}</th></tr>
           </thead>
@@ -211,9 +211,9 @@
               <td class="small text-muted">{{ req.created_at.strftime('%Y-%m-%d %H:%M') if req.created_at else '-' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <a href="{{ url_for('radiology.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="تقرير"><i class="fas fa-file-alt"></i> <span class="btn-label">زر</span></a>
+                  <a href="{{ url_for('radiology.reports', request_id=req.id) }}" class="btn btn-sm btn-outline-primary" title="{{ _('تقرير') }}"><i class="fas fa-file-alt"></i> <span class="btn-label">{{ _('تقرير') }}</span></a>
                   {% if req.status != 'DONE' %}
-                  <a href="{{ url_for('radiology.tests') }}" class="btn btn-sm btn-outline-success" title="إجراء"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
+                  <a href="{{ url_for('radiology.tests') }}" class="btn btn-sm btn-outline-success" title="{{ _('إجراء') }}"><i class="fas fa-play"></i> <span class="btn-label">{{ _('تشغيل') }}</span></a>
                   {% endif %}
                 </div>
               </td>

@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container-fluid">
     {{ page_header(_('الفواتير المعلقة'), subtitle=_('المرضى الذين يحتاجون دفع'), icon='fas fa-money-bill-wave', actions=[
-        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
+        {'label': _('العودة للوحة التحكم'), 'icon': ('fas fa-arrow-right' if current_locale == 'ar' else 'fas fa-arrow-left'), 'url': url_for('accountant.dashboard'), 'style': 'secondary'},
         {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync', 'data_action': 'refresh-page', 'style': 'primary'}
     ]) }}
 
@@ -36,7 +36,7 @@
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
                                 {{ _('المبلغ الإجمالي') }}</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800 text-nowrap">
                                 {{ "%.2f"|format(visits|sum(attribute='total_amount')) }} {{ _('ريال') }}
                             </div>
                         </div>
@@ -54,7 +54,7 @@
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
                                 {{ _('المدفوع') }}</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">
+                            <div class="h5 mb-0 fw-bold text-gray-800 text-nowrap">
                                 {{ "%.2f"|format(visits|sum(attribute='paid_amount')) }} {{ _('ريال') }}
                             </div>
                         </div>
@@ -71,9 +71,9 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-danger text-uppercase mb-1">
-                                المتبقي</div>
-                            <div class="h5 mb-0 fw-bold text-gray-800">
-                                {{ "%.2f"|format((visits|sum(attribute='total_amount')) - (visits|sum(attribute='paid_amount'))) }} ريال
+                                {{ _('المتبقي') }}</div>
+                            <div class="h5 mb-0 fw-bold text-gray-800 text-nowrap">
+                                {{ "%.2f"|format((visits|sum(attribute='total_amount')) - (visits|sum(attribute='paid_amount'))) }} {{ _('ريال') }}
                             </div>
                         </div>
                         <div class="col-auto">
@@ -92,7 +92,7 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-list me-2"></i>
-                        الفواتير المعلقة
+                        {{ _('الفواتير المعلقة') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -100,15 +100,15 @@
                         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
                             <thead>
                                 <tr>
-                                    <th>رقم الزيارة</th>
-                                    <th>اسم المريض</th>
-                                    <th>نوع الزيارة</th>
-                                    <th>المبلغ الإجمالي</th>
-                                    <th>المدفوع</th>
-                                    <th>المتبقي</th>
-                                    <th>تاريخ الزيارة</th>
-                                    <th>الحالة</th>
-                                    <th>الإجراءات</th>
+                                    <th>{{ _('رقم الزيارة') }}</th>
+                                    <th>{{ _('اسم المريض') }}</th>
+                                    <th>{{ _('نوع الزيارة') }}</th>
+                                    <th class="text-end">{{ _('المبلغ الإجمالي') }}</th>
+                                    <th class="text-end">{{ _('المدفوع') }}</th>
+                                    <th class="text-end">{{ _('المتبقي') }}</th>
+                                    <th class="text-nowrap">{{ _('تاريخ الزيارة') }}</th>
+                                    <th>{{ _('الحالة') }}</th>
+                                    <th>{{ _('الإجراءات') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -117,10 +117,10 @@
                                     <td>{{ visit.visit_number or visit.id }}</td>
                                     <td>{{ visit.patient.full_name }}</td>
                                     <td>{{ visit.visit_type_display }}</td>
-                                    <td>{{ "%.2f"|format(visit.total_amount) }} ريال</td>
-                                    <td>{{ "%.2f"|format(visit.paid_amount) }} ريال</td>
-                                    <td>{{ "%.2f"|format(visit.total_amount - visit.paid_amount) }} ريال</td>
-                                    <td>{{ visit.visit_date.strftime('%Y-%m-%d') }}</td>
+                                    <td class="text-end text-nowrap">{{ "%.2f"|format(visit.total_amount) }} {{ _('ريال') }}</td>
+                                    <td class="text-end text-nowrap">{{ "%.2f"|format(visit.paid_amount) }} {{ _('ريال') }}</td>
+                                    <td class="text-end text-nowrap">{{ "%.2f"|format(visit.total_amount - visit.paid_amount) }} {{ _('ريال') }}</td>
+                                    <td class="text-nowrap">{{ visit.visit_date.strftime('%Y-%m-%d') }}</td>
                                     <td>
                                         {{ payment_status_badge(visit) }}
                                     </td>
@@ -129,13 +129,13 @@
                                             <a href="{{ url_for('payment.process_payment', visit_id=visit.id) }}" 
                                                class="btn btn-primary btn-sm">
                                                 <i class="fas fa-credit-card me-1"></i>
-                                                معالجة الدفع
+                                                {{ _('معالجة الدفع') }}
                                             </a>
                                             {% if module_active('billing') and module_active('reception') %}
                                             <a href="{{ url_for('reception.print_receipt', visit_id=visit.id) }}" 
                                                class="btn btn-info btn-sm">
                                                 <i class="fas fa-print me-1"></i>
-                                                طباعة
+                                                {{ _('طباعة') }}
                                             </a>
                                             {% endif %}
                                         </div>
@@ -146,7 +146,7 @@
                                     <td colspan="9" class="text-center">
                                         <div class="text-muted">
                                             <i class="fas fa-check-circle fa-3x mb-3"></i>
-                                            <p>لا توجد فواتير معلقة</p>
+                                            <p>{{ _('لا توجد فواتير معلقة') }}</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -157,13 +157,13 @@
                     
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div class="text-muted small">عرض {{ visits|length }} عنصر</div>
+                        <div class="text-muted small">{{ _('عرض') }} {{ visits|length }} {{ _('عنصر') }}</div>
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                               href="{{ url_for('accountant.invoices', page=page-1) }}">السابق</a>
-                            <span class="btn btn-outline-secondary">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</span>
+                               href="{{ url_for('accountant.invoices', page=page-1) }}">{{ _('السابق') }}</a>
+                            <span class="btn btn-outline-secondary">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}</span>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                               href="{{ url_for('accountant.invoices', page=page+1) }}">التالي</a>
+                               href="{{ url_for('accountant.invoices', page=page+1) }}">{{ _('التالي') }}</a>
                         </div>
                     </div>
                 </div>

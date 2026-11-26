@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'partials/_breadcrumbs.html' import breadcrumb_nav %}
 
-{% block title %}لوحة الطبيب الاحترافية{% endblock %}
+{% block title %}{{ _('لوحة الطبيب الاحترافية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -16,7 +16,7 @@
                                 <i class="fas fa-user-md me-3"></i>
                                 {{ _('لوحة الطبيب الاحترافية') }}
                             </h1>
-                            <p class="mb-0 text-white-50 fs-5">مرحباً د. {{ (viewing_doctor.full_name if viewing_doctor else current_user.full_name) }} - إدارة طبية متقدمة ومتطورة</p>
+                            <p class="mb-0 text-white-50 fs-5">{{ _('مرحباً د.') }} {{ (viewing_doctor.full_name if viewing_doctor else current_user.full_name) }} - {{ _('إدارة طبية متقدمة ومتطورة') }}</p>
                             <div class="mt-2">
                                 <small class="text-white-50">
                                     <i class="fas fa-clock me-1"></i>
@@ -25,16 +25,16 @@
                             </div>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-light btn-lg btn-modern pulse-animation">
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-light btn-modern pulse-animation">
                                     <i class="fas fa-stethoscope me-2"></i>
                                     {{ _(_('طابور المرضى')) }}
                                 </a>
-                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning btn-lg btn-modern">
+                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning btn-modern">
                                     <i class="fas fa-users me-2"></i>
                                     {{ _(_('بحث المرضى')) }}
                                 </a>
-                                <button class="btn btn-outline-light btn-lg btn-modern" data-bs-toggle="modal" data-bs-target="#dashboardSettingsModal">
+                                <button class="btn btn-outline-light btn-modern" data-bs-toggle="modal" data-bs-target="#dashboardSettingsModal">
                                     <i class="fas fa-sliders-h me-2"></i>
                                     {{ _(_('تخصيص اللوحة')) }}
                                 </button>
@@ -244,7 +244,7 @@
                         <div class="card-body text-center">
                             {% if current_user.digital_signature %}
                                 <div class="signature-preview mb-3 p-2 border rounded bg-light">
-                                    <img src="{{ current_user.digital_signature }}" alt="التوقيع" class="img-fluid" style="max-height: 80px;">
+                                    <img src="{{ current_user.digital_signature }}" alt="{{ _('التوقيع') }}" class="img-fluid" style="max-height: 80px;">
                                 </div>
                                 <div class="alert alert-success py-2 mb-2">
                                     <i class="fas fa-check-circle me-1"></i> {{ _(_('التوقيع مفعل')) }}
@@ -309,7 +309,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <div class="small text-muted">{{ _(_('متوسط مدة الزيارة')) }}</div>
-                                    <div class="fw-bold">{{ stats.medical_analytics.avg_visit_duration }} دقيقة</div>
+                                    <div class="fw-bold">{{ stats.medical_analytics.avg_visit_duration }} {{ _('دقيقة') }}</div>
                                 </div>
                             {% endif %}
                             {% if stats.workflow_optimizations %}

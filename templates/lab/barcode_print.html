@@ -42,7 +42,7 @@
 {% block body %}
 <div class="print-barcode-label">
   <h3 class="print-barcode-label__patient"><bdi>{{ lab_request.patient.full_name }}</bdi></h3>
-  <p class="print-barcode-label__id">طلب: {{ lab_request.request_number or lab_request.id }}</p>
+  <p class="print-barcode-label__id">{{ _('طلب:') }} {{ lab_request.request_number or lab_request.id }}</p>
   <div class="print-barcode-label__image">
     <img src="data:image/png;base64,{{ lab_request.barcode_image }}" alt="QR">
   </div>

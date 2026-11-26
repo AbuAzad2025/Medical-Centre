@@ -38,7 +38,7 @@
     {% if icon %}<i class="{{ icon }} me-2" aria-hidden="true"></i>{% endif %}
     {{ message }}
     {% if dismissible %}
-    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ _('إغلاق') }}"></button>
     {% endif %}
 </div>
 {% endmacro %}
@@ -90,16 +90,16 @@
 <div class="d-flex align-items-center justify-content-center" role="status" aria-live="polite">
     <div class="spinner-border spinner-border-{{ size }} text-primary" aria-hidden="true"></div>
     {% if text %}<span class="ms-2">{{ text }}</span>{% endif %}
-    <span class="visually-hidden">Loading...</span>
+    <span class="visually-hidden">{{ _('جار التحميل...') }}</span>
 </div>
 {% endmacro %}
 
 {# Pagination Component #}
 {% macro pagination(current_page, total_pages, base_url, params={}) %}
-<nav aria-label="Page navigation">
+<nav aria-label="{{ _('تنقل الصفحات') }}">
     <ul class="pagination pagination-sm justify-content-center">
         <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
-            <a class="page-link" href="{{ base_url }}?page={{ current_page - 1 }}{% for k,v in params.items() %}&{{ k }}={{ v }}{% endfor %}" aria-label="Previous">
+            <a class="page-link" href="{{ base_url }}?page={{ current_page - 1 }}{% for k,v in params.items() %}&{{ k }}={{ v }}{% endfor %}" aria-label="{{ _('السابق') }}">
                 <span aria-hidden="true">&laquo;</span>
             </a>
         </li>
@@ -109,7 +109,7 @@
         </li>
         {% endfor %}
         <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
-            <a class="page-link" href="{{ base_url }}?page={{ current_page + 1 }}{% for k,v in params.items() %}&{{ k }}={{ v }}{% endfor %}" aria-label="Next">
+            <a class="page-link" href="{{ base_url }}?page={{ current_page + 1 }}{% for k,v in params.items() %}&{{ k }}={{ v }}{% endfor %}" aria-label="{{ _('التالي') }}">
                 <span aria-hidden="true">&raquo;</span>
             </a>
         </li>

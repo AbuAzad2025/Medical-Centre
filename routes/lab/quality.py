@@ -249,7 +249,7 @@ def quality_control():
             return redirect(url_for('lab.quality_control'))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error saving lab QC: %s')
+            logging.exception('Error saving lab QC')
             flash('حدث خطأ أثناء الحفظ', 'error')
             return redirect(url_for('lab.quality_control'))
 

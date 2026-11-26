@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}مواد المختبر{% endblock %}
+{% block title %}{{ _('مواد المختبر') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   {{ page_header(_('مواد المختبر'), subtitle=_('إدارة المواد والمحاليل مع التنبيهات'), icon='fas fa-boxes', actions=[
       {'label': _('إضافة'), 'icon': 'fas fa-plus', 'url': url_for('lab.add_reagent'), 'style': 'primary'},
-      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-4">
       <label class="form-label">{{ _(_('بحث')) }}</label>
-      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم/شركة/رقم التشغيلة">
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="{{ _('اسم/شركة/رقم التشغيلة') }}">
     </div>
     <div class="col-md-3">
       <label class="form-label">{{ _('المخزون') }}</label>

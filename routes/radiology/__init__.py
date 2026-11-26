@@ -291,7 +291,7 @@ def get_radiology_smart_analytics():
             else 'needs_improvement',
         }
     except Exception:
-        logging.exception('Error getting radiology smart analytics: %s')
+        logging.exception('Error getting radiology smart analytics')
         return {}
 
 
@@ -327,7 +327,7 @@ def get_radiology_imaging_optimization():
             'efficiency_score': calculate_imaging_efficiency(avg_imaging_time, total_requests),
         }
     except Exception:
-        logging.exception('Error getting radiology imaging optimization: %s')
+        logging.exception('Error getting radiology imaging optimization')
         return {}
 
 
@@ -359,7 +359,7 @@ def get_radiology_quality_assurance():
             ).scalar(),
         }
     except Exception:
-        logging.exception('Error getting radiology quality assurance: %s')
+        logging.exception('Error getting radiology quality assurance')
         return {}
 
 
@@ -383,7 +383,7 @@ def get_radiology_equipment_status():
             'efficiency': efficiency,
         }
     except Exception:
-        logging.exception('Error getting radiology equipment status: %s')
+        logging.exception('Error getting radiology equipment status')
         return {}
 
 
@@ -424,7 +424,7 @@ def get_radiology_report_analysis():
             'trend_analysis': trend_analysis,
         }
     except Exception:
-        logging.exception('Error getting radiology report analysis: %s')
+        logging.exception('Error getting radiology report analysis')
         return {}
 
 
@@ -450,7 +450,7 @@ def get_radiology_workflow_automation():
             'efficiency_gain': efficiency_gain,
         }
     except Exception:
-        logging.exception('Error getting radiology workflow automation: %s')
+        logging.exception('Error getting radiology workflow automation')
         return {}
 
 

@@ -1,24 +1,24 @@
 {% extends "base.html" %}
-{% block title %}إنشاء نسخة احتياطية{% endblock %}
+{% block title %}{{ _('إنشاء نسخة احتياطية') }}{% endblock %}
 {% block content %}
 <div class="container">
   <h2 class="mb-4"><i class="fas fa-plus me-2"></i> {{ _(_('إنشاء نسخة احتياطية')) }}</h2>
   <form method="post" action="{{ url_for('backup.create_backup') }}" class="card shadow-sm p-3">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
-      <label class="form-label">{{ _(_('اسم النسخة')) }}</label>
-      <input name="backup_name" class="form-control" required>
+      <label for="backup_name" class="form-label">{{ _(_('اسم النسخة')) }}</label>
+      <input id="backup_name" name="backup_name" class="form-control" required>
     </div>
     <div class="mb-3">
-      <label class="form-label">{{ _(_('نوع النسخة')) }}</label>
-      <select name="backup_type" class="form-select">
+      <label for="backup_type" class="form-label">{{ _(_('نوع النسخة')) }}</label>
+      <select id="backup_type" name="backup_type" class="form-select">
         <option value="full">{{ _(_('كاملة')) }}</option>
         <option value="incremental">{{ _(_('تفاضلية')) }}</option>
       </select>
     </div>
     <div class="mb-3">
-      <label class="form-label">{{ _(_('الوصف')) }}</label>
-      <textarea name="description" class="form-control" rows="3"></textarea>
+      <label for="description" class="form-label">{{ _(_('الوصف')) }}</label>
+      <textarea id="description" name="description" class="form-control" rows="3"></textarea>
     </div>
     <div class="form-check mb-3">
       <input class="form-check-input" type="checkbox" id="enc" name="is_encrypted">

@@ -58,9 +58,9 @@
                             <td>{{ row.name_ar or '-' }}</td>
                             <td><span class="badge bg-light text-dark border">{{ row.type }}</span></td>
                             <td>{% if row.normal_balance == 'DEBIT' %}<span class="badge bg-info">{{ _(_('مدين')) }}</span>{% else %}<span class="badge bg-warning text-dark">{{ _(_('دائن')) }}</span>{% endif %}</td>
-                            <td class="text-end font-monospace">{{ "%.2f"|format(row.total_debit) }}</td>
-                            <td class="text-end font-monospace">{{ "%.2f"|format(row.total_credit) }}</td>
-                            <td class="text-end fw-bold font-monospace">
+                            <td class="text-end text-nowrap font-monospace">{{ "%.2f"|format(row.total_debit) }}</td>
+                            <td class="text-end text-nowrap font-monospace">{{ "%.2f"|format(row.total_credit) }}</td>
+                            <td class="text-end text-nowrap fw-bold font-monospace">
                                 {% if row.balance >= 0 %}
                                 {{ "%.2f"|format(row.balance) }}
                                 {% else %}
@@ -73,8 +73,8 @@
                     <tfoot class="table-dark">
                         <tr>
                             <th colspan="5" class="text-end">{{ _(_('الإجمالي')) }}</th>
-                            <th class="text-end font-monospace">{{ "%.2f"|format(total_debit) }}</th>
-                            <th class="text-end font-monospace">{{ "%.2f"|format(total_credit) }}</th>
+                            <th class="text-end text-nowrap font-monospace">{{ "%.2f"|format(total_debit) }}</th>
+                            <th class="text-end text-nowrap font-monospace">{{ "%.2f"|format(total_credit) }}</th>
                             <th class="text-end">
                                 {% if equal %}<span class="text-success">{{ _(_('✓ متوازن')) }}</span>{% else %}<span class="text-danger">{{ _(_('✗ غير متوازن')) }}</span>{% endif %}
                             </th>
@@ -84,7 +84,7 @@
             </div>
         </div>
     </div>
-    <div class="mt-2 text-muted small">الفترة: {{ start_date }} إلى {{ end_date }}</div>
+    <div class="mt-2 text-muted small">{{ _('الفترة:') }} {{ start_date }} {{ _('إلى') }} {{ end_date }}</div>
     {% else %}
     <div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>{{ _(_('لا توجد بيانات للفترة المحددة.')) }}</div>
     {% endif %}

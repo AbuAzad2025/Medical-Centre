@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% import 'macros/forms.html' as forms %}
-{% block title %}وصفة طبية{% endblock %}
+{% block title %}{{ _('وصفة طبية') }}{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3">الوصفة للزيارة #{{ visit.id }}</h2>
+  <h2 class="mb-3">{{ _('الوصفة للزيارة') }} #{{ visit.id }}</h2>
   <div class="card shadow-sm"><div class="card-body">
-    <p>المريض: {{ visit.patient.full_name if visit.patient else '' }}</p>
-    <p>القسم: {{ visit.department.name_ar if visit.department else '' }}</p>
-    <p>التشخيص: {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</p>
+    <p>{{ _('المريض:') }} {{ visit.patient.full_name if visit.patient else '' }}</p>
+    <p>{{ _('القسم:') }} {{ visit.department.name_ar if visit.department else '' }}</p>
+    <p>{{ _('التشخيص:') }} {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</p>
   </div></div>
   {% if visit_prescriptions %}
   <div class="card shadow-sm mt-3">
@@ -97,12 +97,12 @@
 
           <div class="col-md-6">
             <label class="form-label">{{ _(_('تعليمات إضافية (للوصفة كاملة)')) }}</label>
-            <textarea class="form-control" name="additional_notes" rows="3" placeholder="أي تعليمات عامة للصيدلية أو للمريض"></textarea>
+            <textarea class="form-control" name="additional_notes" rows="3" placeholder="{{ _('أي تعليمات عامة للصيدلية أو للمريض') }}"></textarea>
           </div>
 
           <div class="col-md-6">
             <label class="form-label">{{ _(_('أدوية غير موجودة (اختياري)')) }}</label>
-            <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية"></textarea>
+            <textarea class="form-control" name="non_catalog_medications" rows="3" placeholder="{{ _('اكتب أسماء الأدوية غير الموجودة لإشعار الصيدلية') }}"></textarea>
           </div>
 
           <div class="col-md-6">
@@ -113,7 +113,7 @@
           </div>
           <div class="col-md-6">
             <label class="form-label">{{ _(_('اسم القالب (عند الحفظ)')) }}</label>
-            <input type="text" class="form-control" name="template_name" placeholder="مثال: نزلة برد">
+            <input type="text" class="form-control" name="template_name" placeholder="{{ _('مثال: نزلة برد') }}">
           </div>
 
           <div class="col-12">

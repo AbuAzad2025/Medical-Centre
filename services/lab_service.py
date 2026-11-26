@@ -590,7 +590,7 @@ class LabService:
                 req.completed_at = now
             return safe_commit(db.session, error_message='Error finalizing lab results')
         except Exception:
-            logging.exception('Error finalizing lab results: %s')
+            logging.exception('Error finalizing lab results')
             return False
 
     # ==================== QUALITY CONTROL ====================
@@ -622,7 +622,7 @@ class LabService:
                 return None
             return entry
         except Exception:
-            logging.exception('Error creating quality entry: %s')
+            logging.exception('Error creating quality entry')
             return None
 
     # ==================== REAGENT MANAGEMENT ====================
@@ -666,7 +666,7 @@ class LabService:
             reagent.stock_quantity = quantity
             return safe_commit(db.session, error_message='Error updating reagent')
         except Exception:
-            logging.exception('Error updating reagent: %s')
+            logging.exception('Error updating reagent')
             return False
 
     # ==================== NOTIFICATION ====================
@@ -709,7 +709,7 @@ class LabService:
                     related_entity_id=req.id,
                 )
         except Exception:
-            logging.exception('Error sending lab notification: %s')
+            logging.exception('Error sending lab notification')
 
     # ==================== AUDIT ====================
 
@@ -732,7 +732,7 @@ class LabService:
             db.session.add(log)
             safe_commit(db.session, error_message='Error logging lab action')
         except Exception:
-            logging.exception('Error logging lab action: %s')
+            logging.exception('Error logging lab action')
 
     # ==================== STATE MACHINE ====================
     _LAB_TRANSITIONS: dict[str, set[str]] = {
@@ -830,7 +830,7 @@ class LabService:
                 return False, {'error': 'Error cancelling lab request'}
             return True, {'lab_request_id': req.id, 'status': req.status}
         except Exception:
-            logging.exception('Error cancelling lab request: %s')
+            logging.exception('Error cancelling lab request')
             return False, {'error': 'Error cancelling lab request'}
 
     @staticmethod
@@ -875,7 +875,7 @@ class LabService:
                 return False, {'error': 'Error amending lab result'}
             return True, {'result_id': result.id, 'is_critical': result.is_critical}
         except Exception:
-            logging.exception('Error amending lab result: %s')
+            logging.exception('Error amending lab result')
             return False, {'error': 'Error amending lab result'}
 
     # ==================== DASHBOARD ====================

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}صحة المجتمع{% endblock %}
+{% block title %}{{ _('صحة المجتمع') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-4">{{ _(_('لوحة صحة المجتمع')) }}</h2>
@@ -10,6 +10,7 @@
   <div class="card">
     <div class="card-header">{{ _(_('مقاييس الجودة')) }}</div>
     <div class="card-body">
+      <div class="table-responsive">
       <table class="table table-hover">
         <thead><tr><th>{{ _(_('الكود')) }}</th><th>{{ _(_('المقياس')) }}</th><th>{{ _(_('الهدف')) }}</th><th>{{ _(_('القيمة الحالية')) }}</th><th>{{ _(_('النوع')) }}</th></tr></thead>
         <tbody>
@@ -26,6 +27,7 @@
         {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>

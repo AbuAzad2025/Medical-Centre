@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}قائمة الأدوية{% endblock %}
+{% block title %}{{ _('قائمة الأدوية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -26,45 +26,45 @@
                 <div class="card-body">
                     <form method="GET" class="row g-3">
                         <input type="hidden" name="page" value="1">
-                        <div class="col-md-4">
-                            <label for="search" class="form-label">{{ _(_('البحث')) }}</label>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">{{ _('البحث') }}</label>
                             <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search }}" placeholder="اسم الدواء أو الاسم العلمي">
+                                   value="{{ search }}" placeholder="{{ _('اسم الدواء أو الاسم العلمي') }}">
                         </div>
                         <div class="col-md-3">
-                            <label for="category" class="form-label">{{ _(_('الفئة')) }}</label>
+                            <label for="category" class="form-label">{{ _('الفئة') }}</label>
                             <select class="form-select" id="category" name="category">
-                                <option value="">{{ _(_('جميع الفئات')) }}</option>
-                                <option value="antibiotic" {% if category == 'antibiotic' %}selected{% endif %}>{{ _(_('مضاد حيوي')) }}</option>
-                                <option value="painkiller" {% if category == 'painkiller' %}selected{% endif %}>{{ _(_('مسكن')) }}</option>
-                                <option value="vitamin" {% if category == 'vitamin' %}selected{% endif %}>{{ _(_('فيتامين')) }}</option>
-                                <option value="supplement" {% if category == 'supplement' %}selected{% endif %}>{{ _(_('مكمل غذائي')) }}</option>
-                                <option value="other" {% if category == 'other' %}selected{% endif %}>{{ _(_('أخرى')) }}</option>
+                                <option value="">{{ _('جميع الفئات') }}</option>
+                                <option value="antibiotic" {% if category == 'antibiotic' %}selected{% endif %}>{{ _('مضاد حيوي') }}</option>
+                                <option value="painkiller" {% if category == 'painkiller' %}selected{% endif %}>{{ _('مسكن') }}</option>
+                                <option value="vitamin" {% if category == 'vitamin' %}selected{% endif %}>{{ _('فيتامين') }}</option>
+                                <option value="supplement" {% if category == 'supplement' %}selected{% endif %}>{{ _('مكمل غذائي') }}</option>
+                                <option value="other" {% if category == 'other' %}selected{% endif %}>{{ _('أخرى') }}</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label for="stock_status" class="form-label">{{ _(_('حالة المخزون')) }}</label>
+                        <div class="col-md-2">
+                            <label for="stock_status" class="form-label">{{ _('حالة المخزون') }}</label>
                             <select class="form-select" id="stock_status" name="stock_status">
-                                <option value="">{{ _(_('جميع الحالات')) }}</option>
-                                <option value="low" {% if stock_status == 'low' %}selected{% endif %}>{{ _(_('مخزون منخفض')) }}</option>
-                                <option value="out" {% if stock_status == 'out' %}selected{% endif %}>{{ _(_('نفد المخزون')) }}</option>
-                                <option value="normal" {% if stock_status == 'normal' %}selected{% endif %}>{{ _(_('طبيعي')) }}</option>
+                                <option value="">{{ _('جميع الحالات') }}</option>
+                                <option value="low" {% if stock_status == 'low' %}selected{% endif %}>{{ _('مخزون منخفض') }}</option>
+                                <option value="out" {% if stock_status == 'out' %}selected{% endif %}>{{ _('نفد المخزون') }}</option>
+                                <option value="normal" {% if stock_status == 'normal' %}selected{% endif %}>{{ _('طبيعي') }}</option>
                             </select>
                         </div>
-                        <div class="col-md-1">
-                            <label for="per_page" class="form-label">{{ _(_('لكل صفحة')) }}</label>
+                        <div class="col-md-2">
+                            <label for="per_page" class="form-label">{{ _('لكل صفحة') }}</label>
                             <select class="form-select" id="per_page" name="per_page" onchange="this.form.submit()">
                                 {% for n in [10, 25, 50, 100, 200] %}
                                 <option value="{{ n }}" {% if per_page == n %}selected{% endif %}>{{ n }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-1">
+                        <div class="col-md-2">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-search me-1"></i>
-                                    {{ _(_('بحث')) }}
+                                    {{ _('بحث') }}
                                 </button>
                             </div>
                         </div>
@@ -82,9 +82,9 @@
                     <div class="d-flex justify-content-between align-items-center">
                       <h5 class="card-title mb-0">
                         <i class="fas fa-pills me-2"></i>
-                        الأدوية ({{ total }})
+                        {{ _('الأدوية') }} ({{ total }})
                       </h5>
-                      <div class="text-muted small">عرض {{ medications|length }} من {{ total }}</div>
+                      <div class="text-muted small">{{ _('عرض') }} {{ medications|length }} {{ _('من') }} {{ total }}</div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -94,14 +94,14 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>{{ _(_('اسم الدواء')) }}</th>
-                                        <th>{{ _(_('الاسم العلمي')) }}</th>
-                                        <th>{{ _(_('الفئة')) }}</th>
-                                        <th>{{ _(_('التركيز')) }}</th>
-                                        <th>{{ _(_('المخزون')) }}</th>
-                                        <th>{{ _(_('السعر')) }}</th>
-                                        <th>{{ _(_('الحالة')) }}</th>
-                                        <th>{{ _(_('الإجراءات')) }}</th>
+                                        <th>{{ _('اسم الدواء') }}</th>
+                                        <th>{{ _('الاسم العلمي') }}</th>
+                                        <th>{{ _('الفئة') }}</th>
+                                        <th>{{ _('التركيز') }}</th>
+                                        <th>{{ _('المخزون') }}</th>
+                                        <th>{{ _('السعر') }}</th>
+                                        <th>{{ _('الحالة') }}</th>
+                                        <th>{{ _('الإجراءات') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -141,20 +141,20 @@
                                         </td>
                                         <td>
                                             {% if medication.is_active %}
-                                                <span class="badge bg-success">{{ _(_('نشط')) }}</span>
+                                                <span class="badge bg-success">{{ _('نشط') }}</span>
                                             {% else %}
-                                                <span class="badge bg-secondary">{{ _(_('غير نشط')) }}</span>
+                                                <span class="badge bg-secondary">{{ _('غير نشط') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a href="{{ url_for('medication.edit_medication', medication_id=medication.id) }}" 
-                                                   class="btn btn-outline-primary" title="تعديل">
+                                                   class="btn btn-outline-primary" title="{{ _('تعديل') }}">
                                                     <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                                 </a>
                                                 <a href="{{ url_for('medication.stock_alerts') }}" 
-                                                   class="btn btn-outline-info" title="تفاصيل المخزون">
-                                                    <i class="fas fa-warehouse"></i> <span class="btn-label">زر</span>
+                                                   class="btn btn-outline-info" title="{{ _('تفاصيل المخزون') }}">
+                                                    <i class="fas fa-warehouse"></i> <span class="btn-label">{{ _('تفاصيل المخزون') }}</span>
                                                 </a>
                                             </div>
                                         </td>
@@ -165,7 +165,7 @@
                                             <div class="empty-state-smart">
                                                 <div class="empty-icon-wrap"><i class="fas fa-pills"></i></div>
                                                 <h5>{{ _('لا توجد أدوية') }}</h5>
-                                                <p>{{ _(_('لم يتم العثور على أي أدوية مطابقة.')) }}</p>
+                                                <p>{{ _('لم يتم العثور على أي أدوية مطابقة.') }}</p>
                                             </div>
                                         </td>
                                     </tr>
@@ -176,16 +176,16 @@
                         {% set pages = (total // per_page) + (1 if (total % per_page) else 0) %}
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div class="text-muted small">
-                                صفحة {{ page }} من {{ pages if pages > 0 else 1 }}
+                                {{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}
                             </div>
                             <div class="btn-group">
                                 <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
                                    href="{{ url_for('medication.list_medications', search=search, category=category, stock_status=stock_status, per_page=per_page, page=page-1) }}">
-                                    {{ _(_('السابق')) }}
+                                    {{ _('السابق') }}
                                 </a>
                                 <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
                                    href="{{ url_for('medication.list_medications', search=search, category=category, stock_status=stock_status, per_page=per_page, page=page+1) }}">
-                                    {{ _(_('التالي')) }}
+                                    {{ _('التالي') }}
                                 </a>
                             </div>
                         </div>
@@ -193,17 +193,17 @@
                         <div class="text-center py-5">
                             <i class="fas fa-pills fa-3x text-muted mb-3"></i>
                             {% if search or category or stock_status %}
-                              <h5 class="text-muted">{{ _(_('لا توجد نتائج مطابقة')) }}</h5>
-                              <p class="text-muted">{{ _(_('جرّب تغيير الفلاتر أو مسح البحث')) }}</p>
-                              <a class="btn btn-outline-secondary" href="{{ url_for('medication.list_medications') }}">{{ _(_('مسح الفلاتر')) }}</a>
+                              <h5 class="text-muted">{{ _('لا توجد نتائج مطابقة') }}</h5>
+                              <p class="text-muted">{{ _('جرّب تغيير الفلاتر أو مسح البحث') }}</p>
+                              <a class="btn btn-outline-secondary" href="{{ url_for('medication.list_medications') }}">{{ _('مسح الفلاتر') }}</a>
                             {% else %}
-                              <h5 class="text-muted">{{ _(_('لا توجد أدوية')) }}</h5>
-                              <p class="text-muted">{{ _(_('ابدأ بإضافة دواء جديد')) }}</p>
+                              <h5 class="text-muted">{{ _('لا توجد أدوية') }}</h5>
+                              <p class="text-muted">{{ _('ابدأ بإضافة دواء جديد') }}</p>
                             {% endif %}
                             {% if has_permission('pharmacy.manage') %}
                             <a href="{{ url_for('medication.add_medication') }}" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>
-                                {{ _(_('إضافة دواء جديد')) }}
+                                {{ _('إضافة دواء جديد') }}
                             </a>
                             {% endif %}
                         </div>

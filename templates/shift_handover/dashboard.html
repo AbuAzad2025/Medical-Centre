@@ -1,8 +1,9 @@
 {% extends "base.html" %}
-{% block title %}تسليم الشيفتات{% endblock %}
+{% block title %}{{ _('تسليم الشيفتات') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
+  {% set role_labels = {'reception': _('استقبال'), 'nurse': _('تمريض'), 'pharmacist': _('صيدلية')} %}
   <h4 class="mb-3"><i class="fas fa-right-left me-2 text-primary"></i>{{ _(_('تسليم واستلام الشيفتات')) }}</h4>
 
   <div class="card shadow-sm mb-3">
@@ -18,7 +19,7 @@
       </div>
       <div class="col-md-3">
         <label class="form-label small mb-1" for="ho-to">{{ _(_('المستلم المعيّن (اختياري)')) }}</label>
-        <input type="number" id="ho-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+        <input type="number" id="ho-to" class="form-control form-control-sm" placeholder="{{ _('رقم المستخدم') }}">
       </div>
       <div class="col-md-4">
         <label class="form-label small mb-1" for="ho-notes">{{ _(_('ملاحظات الافتتاح')) }}</label>
@@ -43,7 +44,7 @@
           {% for s in shifts %}
           <tr data-id="{{ s.id }}">
             <td>{{ s.id }}</td>
-            <td>{{ s.role }}</td>
+            <td>{{ role_labels.get(s.role, s.role) }}</td>
             <td>
               {% if s.status == 'OPEN' %}<span class="badge bg-warning text-dark">{{ _(_('مفتوح')) }}</span>
               {% elif s.status == 'CLOSED' %}<span class="badge bg-info text-dark">{{ _(_('مغلق — بانتظار التأكيد')) }}</span>
@@ -72,10 +73,10 @@
           <tr class="collapse" id="snap-{{ s.id }}"><td colspan="7" class="bg-light small">
             <strong>{{ _(_('لقطات مجمدة وقت الإغلاق:')) }}</strong>
             <ul class="mb-0 mt-1">
-              <li>طابور منتظر: {{ s.pending_items.get('queue_waiting', {}).get('count', 0) }}</li>
-              <li>مختبر معلق: {{ s.pending_items.get('pending_labs', {}).get('count', 0) }}</li>
-              <li>أشعة معلقة: {{ s.pending_items.get('pending_radiology', {}).get('count', 0) }}</li>
-              <li>وصفات لم تُصرَّف: {{ s.pending_items.get('pending_prescriptions', {}).get('count', 0) }}</li>
+              <li>{{ _('طابور منتظر:') }} {{ s.pending_items.get('queue_waiting', {}).get('count', 0) }}</li>
+              <li>{{ _('مختبر معلق:') }} {{ s.pending_items.get('pending_labs', {}).get('count', 0) }}</li>
+              <li>{{ _('أشعة معلقة:') }} {{ s.pending_items.get('pending_radiology', {}).get('count', 0) }}</li>
+              <li>{{ _('وصفات لم تُصرَّف:') }} {{ s.pending_items.get('pending_prescriptions', {}).get('count', 0) }}</li>
             </ul>
           </td></tr>
           {% endif %}
@@ -100,7 +101,7 @@
           </div>
           <div class="mb-1">
             <label class="form-label small" for="cm-to">{{ _(_('تحويل إلى مستخدم (اختياري، نفس الدور)')) }}</label>
-            <input type="number" id="cm-to" class="form-control form-control-sm" placeholder="رقم المستخدم">
+            <input type="number" id="cm-to" class="form-control form-control-sm" placeholder="{{ _('رقم المستخدم') }}">
           </div>
         </div>
         <div class="modal-footer">
@@ -145,7 +146,7 @@
     }).then(function (j) {
       if (j.success) window.location.reload();
       else { alert(j.message); btn.disabled = false; }
-    }).catch(function () { alert('حدث خطأ أثناء فتح الشيفت'); btn.disabled = false; });
+    }).catch(function () { alert({{ _('حدث خطأ أثناء فتح الشيفت')|tojson }}); btn.disabled = false; });
   });
 
   var pendingCloseId = null;
@@ -161,7 +162,7 @@
       a.disabled = true;
       post('/handover/' + a.getAttribute('data-id') + '/acknowledge', {})
         .then(function (j) { j.success ? window.location.reload() : (alert(j.message), a.disabled = false); })
-        .catch(function () { alert('حدث خطأ أثناء التأكيد'); a.disabled = false; });
+        .catch(function () { alert({{ _('حدث خطأ أثناء التأكيد')|tojson }}); a.disabled = false; });
     }
   });
 
@@ -173,7 +174,7 @@
     }).then(function (j) {
       if (j.success) window.location.reload();
       else alert(j.message);
-    }).catch(function () { alert('حدث خطأ أثناء الإغلاق'); });
+    }).catch(function () { alert({{ _('حدث خطأ أثناء الإغلاق')|tojson }}); });
   });
 })();
 </script>

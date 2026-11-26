@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-clipboard-pulse me-2"></i>تفاصيل التقييم — {{ assessment.assessment_type }}</h4>
+  {% set type_labels = {'braden': 'Braden', 'glasgow': 'Glasgow', 'norton': 'Norton', 'fall_risk': _('خطر السقوط'), 'pain_scale': _('مقياس الألم')} %}
+  <h4><i class="bi bi-clipboard-pulse me-2"></i>{{ _('تفاصيل التقييم') }} — {{ type_labels.get(assessment.assessment_type, assessment.assessment_type) }}</h4>
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="row g-3">

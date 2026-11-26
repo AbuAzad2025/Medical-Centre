@@ -14,7 +14,7 @@
     {{ workflow_next_actions(visit) }}
 
     {{ page_header(_('شاشة الزيارة'), subtitle=(visit.patient.full_name ~ ' - ' ~ _('رقم الزيارة:') ~ ' ' ~ (visit.visit_number or visit.id)), icon='fas fa-user-injured', actions=[
-        {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
+        {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
         {'label': _('الخط الزمني'), 'icon': 'fas fa-stream', 'url': url_for('doctor.patient_timeline', patient_id=visit.patient_id), 'style': 'outline-primary'},
         {'label': _('التشخيص'), 'icon': 'fas fa-stethoscope', 'url': url_for('doctor.diagnosis', visit_id=visit.id), 'style': 'primary'},
         {'label': _('خريطة الأسنان'), 'icon': 'fas fa-tooth', 'url': url_for('doctor.dental_chart', patient_id=visit.patient_id), 'style': 'info'}
@@ -56,9 +56,9 @@
             <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0">
                 <div>
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    توجد نتائج أشعة حرجة مرتبطة بهذه الزيارة ({{ critical_radiology_results_count }})
+                    {{ _('توجد نتائج أشعة حرجة مرتبطة بهذه الزيارة') }} ({{ critical_radiology_results_count }})
                 </div>
-                <a class="btn btn-sm btn-outline-dark" href="#radiology">عرض طلبات الأشعة</a>
+                <a class="btn btn-sm btn-outline-dark" href="#radiology">{{ _('عرض طلبات الأشعة') }}</a>
             </div>
         </div>
     </div>
@@ -69,75 +69,75 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-user me-2"></i>بيانات المريض والزيارة
+                        <i class="fas fa-user me-2"></i>{{ _('بيانات المريض والزيارة') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <strong>الاسم الكامل:</strong><br>
+                                <strong>{{ _('الاسم الكامل:') }}</strong><br>
                                 {{ visit.patient.full_name }}
                             </div>
                             <div class="mb-3">
-                                <strong>العمر:</strong><br>
-                                {{ visit.patient.age or 'غير محدد' }} سنة
+                                <strong>{{ _('العمر:') }}</strong><br>
+                                {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}
                             </div>
                             <div class="mb-3">
-                                <strong>الجنس:</strong><br>
-                                {{ visit.patient.gender or 'غير محدد' }}
+                                <strong>{{ _('الجنس:') }}</strong><br>
+                                {{ visit.patient.gender or _('غير محدد') }}
                             </div>
                             <div class="mb-3">
-                                <strong>رقم الهوية:</strong><br>
-                                {{ visit.patient.national_id or 'غير محدد' }}
+                                <strong>{{ _('رقم الهوية:') }}</strong><br>
+                                {{ visit.patient.national_id or _('غير محدد') }}
                             </div>
                             <div class="mb-3">
-                                <strong>الهاتف:</strong><br>
-                                {{ visit.patient.phone or 'غير محدد' }}
+                                <strong>{{ _('الهاتف:') }}</strong><br>
+                                {{ visit.patient.phone or _('غير محدد') }}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <strong>رقم الزيارة:</strong><br>
+                                <strong>{{ _('رقم الزيارة:') }}</strong><br>
                                 {{ visit.visit_number or visit.id }}
                             </div>
                             <div class="mb-3">
-                                <strong>تاريخ الزيارة:</strong><br>
-                                {{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else 'غير محدد' }}
+                                <strong>{{ _('تاريخ الزيارة:') }}</strong><br>
+                                {{ visit.visit_date.strftime('%Y-%m-%d') if visit.visit_date else _('غير محدد') }}
                             </div>
                             <div class="mb-3">
-                                <strong>وقت الزيارة:</strong><br>
-                                {{ visit.visit_time.strftime('%H:%M') if visit.visit_time else 'غير محدد' }}
+                                <strong>{{ _('وقت الزيارة:') }}</strong><br>
+                                {{ visit.visit_time.strftime('%H:%M') if visit.visit_time else _('غير محدد') }}
                             </div>
                             <div class="mb-3">
-                                <strong>نوع الزيارة:</strong><br>
+                                <strong>{{ _('نوع الزيارة:') }}</strong><br>
                                 {% if visit.visit_type == 'first' %}
-                                    <span class="badge text-bg-primary">أولى</span>
+                                    <span class="badge text-bg-primary">{{ _('أولى') }}</span>
                                 {% elif visit.visit_type == 'follow_up' %}
-                                    <span class="badge text-bg-info">متابعة</span>
+                                    <span class="badge text-bg-info">{{ _('متابعة') }}</span>
                                 {% elif visit.visit_type == 'emergency' %}
-                                    <span class="badge text-bg-danger">طوارئ</span>
+                                    <span class="badge text-bg-danger">{{ _('طوارئ') }}</span>
                                 {% else %}
                                     <span class="badge text-bg-secondary">{{ visit.visit_type }}</span>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
-                                <strong>حالة الزيارة:</strong><br>
+                                <strong>{{ _('حالة الزيارة:') }}</strong><br>
                                 {% if visit.status == 'OPEN' %}
-                                    <span class="badge text-bg-success">في الانتظار</span>
+                                    <span class="badge text-bg-success">{{ _('في الانتظار') }}</span>
                                 {% elif visit.status == 'IN_PROGRESS' %}
-                                    <span class="badge text-bg-warning">قيد التنفيذ</span>
+                                    <span class="badge text-bg-warning">{{ _('قيد التنفيذ') }}</span>
                                 {% elif visit.status == 'COMPLETED' %}
-                                    <span class="badge text-bg-info">مكتمل</span>
+                                    <span class="badge text-bg-info">{{ _('مكتمل') }}</span>
                                 {% elif visit.status == 'ARCHIVED' %}
-                                    <span class="badge text-bg-secondary">مؤرشف</span>
+                                    <span class="badge text-bg-secondary">{{ _('مؤرشف') }}</span>
                                 {% else %}
                                     <span class="badge text-bg-secondary">{{ visit.status | enum_label('VisitState') }}</span>
                                 {% endif %}
                             </div>
                             <div class="mb-3">
-                                <strong>القسم:</strong><br>
-                                {{ visit.department.name if visit.department else 'غير محدد' }}
+                                <strong>{{ _('القسم:') }}</strong><br>
+                                {{ visit.department.name if visit.department else _('غير محدد') }}
                             </div>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-tools me-2"></i>الإجراءات السريعة
+                        <i class="fas fa-tools me-2"></i>{{ _('إجراءات سريعة') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -158,34 +158,34 @@
                             <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=visit.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success w-100">
-                                    <i class="fas fa-play me-2"></i>بدء العلاج
+                                    <i class="fas fa-play me-2"></i>{{ _('بدء العلاج') }}
                                 </button>
                             </form>
                         {% endif %}
                         
                         <a href="{{ url_for('doctor.diagnosis', visit_id=visit.id) }}" class="btn btn-primary">
-                            <i class="fas fa-stethoscope me-2"></i>التشخيص
+                            <i class="fas fa-stethoscope me-2"></i>{{ _('التشخيص') }}
                         </a>
                         
                         <a href="{{ url_for('doctor.prescription', visit_id=visit.id) }}" class="btn btn-info">
-                            <i class="fas fa-prescription me-2"></i>الوصفة الطبية
+                            <i class="fas fa-prescription me-2"></i>{{ _('الوصفة الطبية') }}
                         </a>
                         <a href="{{ url_for('doctor.visit_summary', visit_id=visit.id) }}" class="btn btn-outline-success">
-                            <i class="fas fa-file-medical me-2"></i>ملخص الزيارة
+                            <i class="fas fa-file-medical me-2"></i>{{ _('ملخص الزيارة') }}
                         </a>
                         <a href="{{ url_for('doctor.notes', visit_id=visit.id, type='general') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-sticky-note me-2"></i>مذكرة عامة
+                            <i class="fas fa-sticky-note me-2"></i>{{ _('مذكرة عامة') }}
                             {% if general_notes_count %}<span class="badge bg-light text-dark ms-1">{{ general_notes_count }}</span>{% endif %}
                         </a>
                         {% if module_active('lab') %}
                         <a href="{{ url_for('doctor.notes', visit_id=visit.id, type='lab') }}" class="btn btn-warning">
-                            <i class="fas fa-flask me-2"></i>مذكرة تحاليل
+                            <i class="fas fa-flask me-2"></i>{{ _('مذكرة تحاليل') }}
                             {% if lab_notes_count %}<span class="badge bg-light text-dark ms-1">{{ lab_notes_count }}</span>{% endif %}
                         </a>
                         {% endif %}
                         {% if module_active('radiology') %}
                         <a href="{{ url_for('doctor.notes', visit_id=visit.id, type='radiology') }}" class="btn btn-secondary">
-                            <i class="fas fa-x-ray me-2"></i>مذكرة تصوير
+                            <i class="fas fa-x-ray me-2"></i>{{ _('مذكرة تصوير') }}
                             {% if radiology_notes_count %}<span class="badge bg-light text-dark ms-1">{{ radiology_notes_count }}</span>{% endif %}
                         </a>
                         {% endif %}
@@ -194,8 +194,8 @@
                         {% if visit.status == 'IN_PROGRESS' %}
                             <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=visit.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirmSubmit(event, 'هل أنت متأكد من إنهاء العلاج؟')">
-                                    <i class="fas fa-stop me-2"></i>إنهاء العلاج
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirmSubmit(event, '{{ _('هل أنت متأكد من إنهاء العلاج؟') }}')">
+                                    <i class="fas fa-stop me-2"></i>{{ _('إنهاء العلاج') }}
                                 </button>
                             </form>
                         {% endif %}
@@ -205,13 +205,13 @@
             <div class="card shadow mt-4">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-brain me-2"></i>الدعم السريري
+                        <i class="fas fa-brain me-2"></i>{{ _('الدعم السريري') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     {% if clinical_warnings %}
                         <div class="mb-3">
-                            <strong>تنبيهات:</strong>
+                            <strong>{{ _('تنبيهات:') }}</strong>
                             <ul class="mb-0">
                                 {% for w in clinical_warnings %}
                                     <li>{{ w.message }}</li>
@@ -221,7 +221,7 @@
                     {% endif %}
                     {% if standardized_pathways %}
                         <div class="mb-3">
-                            <strong>مسارات علاج قياسية:</strong>
+                            <strong>{{ _('مسارات علاج قياسية:') }}</strong>
                             <ul class="mb-0">
                                 {% for p in standardized_pathways %}
                                     <li>
@@ -234,7 +234,7 @@
                     {% endif %}
                     {% if data_recommendations %}
                         <div>
-                            <strong>توصيات مبنية على البيانات:</strong>
+                            <strong>{{ _('توصيات مبنية على البيانات:') }}</strong>
                             <ul class="mb-0">
                                 {% for r in data_recommendations %}
                                     <li>{{ r.medication }} ({{ r.count }})</li>
@@ -243,7 +243,7 @@
                         </div>
                     {% endif %}
                     {% if not clinical_warnings and not standardized_pathways and not data_recommendations %}
-                        <div class="text-muted">لا توجد توصيات حالياً</div>
+                        <div class="text-muted">{{ _('لا توجد توصيات حالياً') }}</div>
                     {% endif %}
                 </div>
             </div>
@@ -258,31 +258,31 @@
                     <ul class="nav nav-tabs card-header-tabs" id="medicalTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="diagnosis-tab" data-bs-toggle="tab" data-bs-target="#diagnosis" type="button" role="tab">
-                                <i class="fas fa-stethoscope me-2"></i>التشخيص
+                                <i class="fas fa-stethoscope me-2"></i>{{ _('التشخيص') }}
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="prescriptions-tab" data-bs-toggle="tab" data-bs-target="#prescriptions" type="button" role="tab">
-                                <i class="fas fa-prescription me-2"></i>الوصفات
+                                <i class="fas fa-prescription me-2"></i>{{ _('الوصفات') }}
                             </button>
                         </li>
                         {% if module_active('lab') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="lab-tab" data-bs-toggle="tab" data-bs-target="#lab" type="button" role="tab">
-                                <i class="fas fa-flask me-2"></i>المختبر
+                                <i class="fas fa-flask me-2"></i>{{ _('المختبر') }}
                             </button>
                         </li>
                         {% endif %}
                         {% if module_active('radiology') %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="radiology-tab" data-bs-toggle="tab" data-bs-target="#radiology" type="button" role="tab">
-                                <i class="fas fa-x-ray me-2"></i>الأشعة
+                                <i class="fas fa-x-ray me-2"></i>{{ _('الأشعة') }}
                             </button>
                         </li>
                         {% endif %}
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab">
-                                <i class="fas fa-history me-2"></i>السجل الطبي
+                                <i class="fas fa-history me-2"></i>{{ _('السجل الطبي') }}
                             </button>
                         </li>
                     </ul>
@@ -290,37 +290,37 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <h6 class="mb-2 text-primary">
-                            <i class="fas fa-history me-2"></i>تاريخ مختصر
+                            <i class="fas fa-history me-2"></i>{{ _('تاريخ مختصر') }}
                         </h6>
                         <div class="row small text-muted">
                             <div class="col-md-4">
-                                <strong>آخر وصفة:</strong>
+                                <strong>{{ _('آخر وصفة:') }}</strong>
                                 {% if previous_prescriptions and previous_prescriptions[0].created_at %}
                                     {{ previous_prescriptions[0].created_at.strftime('%Y-%m-%d') }}
                                 {% else %}
-                                    لا يوجد
+                                    {{ _('لا يوجد') }}
                                 {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <strong>آخر فحص مختبر:</strong>
+                                <strong>{{ _('آخر فحص مختبر:') }}</strong>
                                 {% if lab_requests and lab_requests[0].created_at %}
                                     {{ lab_requests[0].created_at.strftime('%Y-%m-%d') }}
                                 {% else %}
-                                    لا يوجد
+                                    {{ _('لا يوجد') }}
                                 {% endif %}
                             </div>
                             <div class="col-md-4">
-                                <strong>آخر فحص أشعة:</strong>
+                                <strong>{{ _('آخر فحص أشعة:') }}</strong>
                                 {% if radiology_requests and radiology_requests[0].created_at %}
                                     {{ radiology_requests[0].created_at.strftime('%Y-%m-%d') }}
                                 {% else %}
-                                    لا يوجد
+                                    {{ _('لا يوجد') }}
                                 {% endif %}
                             </div>
                         </div>
                         {% if recent_visits %}
                             <div class="mt-2 small text-muted">
-                                <strong>أحدث زيارات المريض:</strong>
+                                <strong>{{ _('أحدث زيارات المريض:') }}</strong>
                                 <ul class="mb-0 ps-3">
                                     {% for v in recent_visits %}
                                         <li>
@@ -332,7 +332,7 @@
                                                 -
                                             {% endif %}
                                             - {{ v.visit_type_display }}
-                                            - {{ v.department.name if v.department else 'بدون قسم' }}
+                                            - {{ v.department.name if v.department else _('بدون قسم') }}
                                             {% if v.doctor %}- د. {{ v.doctor.full_name }}{% endif %}
                                         </li>
                                     {% endfor %}

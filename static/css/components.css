@@ -239,8 +239,10 @@
 }
 
 /* Button variants */
+
 /* Dense table action cells: keep the buttons on one line instead of piling
    them into two or three rows and pushing the table height up. */
+
 .table-actions {
   display: flex;
   flex-wrap: nowrap;
@@ -276,6 +278,7 @@
    btn-primary"> rendered blue text on a blue background - invisible labels
    on many pages. Buttons must keep their own colours regardless of element
    type and of the global link styling. */
+
 body.clinical-theme a.btn-primary,
 body.clinical-theme a.btn-secondary,
 body.clinical-theme a.btn-success,

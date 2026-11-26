@@ -1,10 +1,10 @@
 {% extends "portal/base.html" %}
-{% block title %}الفواتير{% endblock %}
+{% block title %}{{ _('الفواتير') }}{% endblock %}
 {% block content %}
 <h4 class="mb-3">{{ _(_('الفواتير والمدفوعات')) }}</h4>
 <div class="row g-3">
   <div class="col-md-6">
-    <div class="portal-card p-3">
+    <div class="portal-card p-3 table-responsive">
       <h5>{{ _(_('الفواتير')) }}</h5>
       <table class="table table-sm">
         <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('المبلغ')) }}</th><th>{{ _(_('الحالة')) }}</th></tr></thead>
@@ -31,7 +31,7 @@
     </div>
   </div>
   <div class="col-md-6">
-    <div class="portal-card p-3">
+    <div class="portal-card p-3 table-responsive">
       <h5>{{ _(_('المدفوعات')) }}</h5>
       <table class="table table-sm">
         <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('المبلغ')) }}</th><th>{{ _(_('الطريقة')) }}</th></tr></thead>

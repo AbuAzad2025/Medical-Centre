@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}طباعة تقرير طبي{% endblock %}
+{% block title %}{{ _('طباعة تقرير طبي') }}{% endblock %}
 {% block content %}
 <div class="container">
   <div class="card">
     <div class="card-body">
-      <h3 class="mb-3">تقرير طبي للزيارة #{{ visit.id }}</h3>
-      <div>المريض: {{ visit.patient.full_name if visit.patient else '' }}</div>
-      <div>التاريخ: {{ visit.visit_date }}</div>
-      <div>القسم: {{ visit.department.name_ar if visit.department else '' }}</div>
-      <div>الطبيب: {{ current_user.full_name }}</div>
+      <h3 class="mb-3">{{ _('تقرير طبي للزيارة') }} #{{ visit.id }}</h3>
+      <div>{{ _('المريض:') }} {{ visit.patient.full_name if visit.patient else '' }}</div>
+      <div>{{ _('التاريخ:') }} {{ visit.visit_date }}</div>
+      <div>{{ _('القسم:') }} {{ visit.department.name_ar if visit.department else '' }}</div>
+      <div>{{ _('الطبيب:') }} {{ current_user.full_name }}</div>
       <hr>
-      <div>التشخيص: {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</div>
-      <div>الملاحظات: {{ visit.medical_record.notes if visit.medical_record else '' }}</div>
+      <div>{{ _('التشخيص:') }} {{ visit.medical_record.diagnosis if visit.medical_record else '' }}</div>
+      <div>{{ _('الملاحظات:') }} {{ visit.medical_record.notes if visit.medical_record else '' }}</div>
       <hr>
       <div class="mt-4">
         <strong>{{ _(_('التوقيع الرقمي للطبيب:')) }}</strong>

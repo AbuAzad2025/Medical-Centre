@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة النسخ الاحتياطي - إدارة النظام{% endblock %}
+{% block title %}{{ _('إدارة النسخ الاحتياطي') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -187,22 +187,22 @@
                                             {{ b.backup_status }}
                                         </span>
                                     </td>
-                                    <td class="text-muted small">{{ b.backup_path }}</td>
-                                    <td>{{ b.created_at }}</td>
+                                    <td dir="ltr" class="text-muted small">{{ b.backup_path }}</td>
+                                    <td dir="ltr">{{ b.created_at }}</td>
                                     <td>
                                         <div class="d-flex gap-2">
-                                            <form method="post" action="{{ url_for('backup.restore_backup', backup_id=b.id) }}" onsubmit="return confirm(_('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!'));">
+                                            <form method="post" action="{{ url_for('backup.restore_backup', backup_id=b.id) }}" onsubmit='return confirm({{ _('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!')|tojson }});'>
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button class="btn btn-sm btn-outline-success" title="استعادة">
-                                                    <i class="fas fa-undo"></i> <span class="btn-label">{{ _(_('تراجع')) }}</span>
+                                                <button class="btn btn-sm btn-outline-success" title="{{ _('استعادة') }}">
+                                                    <i class="fas fa-undo"></i> <span class="btn-label">{{ _('استعادة') }}</span>
                                                 </button>
                                             </form>
-                                            <a href="{{ url_for('backup.download_backup', backup_id=b.id) }}" class="btn btn-sm btn-outline-primary" title="تحميل">
+                                            <a href="{{ url_for('backup.download_backup', backup_id=b.id) }}" class="btn btn-sm btn-outline-primary" title="{{ _('تحميل') }}">
                                                 <i class="fas fa-download"></i> <span class="btn-label">{{ _('تصدير') }}</span>
                                             </a>
-                                            <form method="post" action="{{ url_for('backup.delete_backup', backup_id=b.id) }}" onsubmit="return confirm(_('هل أنت متأكد من حذف هذه النسخة؟'));">
+                                            <form method="post" action="{{ url_for('backup.delete_backup', backup_id=b.id) }}" onsubmit='return confirm({{ _('هل أنت متأكد من حذف هذه النسخة؟')|tojson }});'>
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button class="btn btn-sm btn-outline-danger" title="حذف">
+                                                <button class="btn btn-sm btn-outline-danger" title="{{ _('حذف') }}">
                                                     <i class="fas fa-trash"></i> <span class="btn-label">{{ _(_('حذف')) }}</span>
                                                 </button>
                                             </form>

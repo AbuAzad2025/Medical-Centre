@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}لوحة تحكم الأطباء{% endblock %}
+{% block title %}{{ _('لوحة تحكم الأطباء') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <!-- Header & Quick Actions -->
@@ -14,15 +14,15 @@
                                 {{ _(_('لوحة تحكم الطبيب')) }}
                             </h1>
                             <p class="mb-0 text-white-50 fs-5">
-                                مرحباً د. {{ current_user.full_name }} — {{ current_user.department.name if current_user.department else '' }}
+                                {{ _('مرحباً د.') }} {{ current_user.full_name }} — {{ current_user.department.name if current_user.department else '' }}
                             </p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-light btn-lg btn-modern">
+                            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-light btn-modern">
                                     <i class="fas fa-stethoscope me-2"></i> {{ _(_('طابور المرضى')) }}
                                 </a>
-                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning btn-lg btn-modern">
+                                <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning btn-modern">
                                     <i class="fas fa-users me-2"></i> {{ _(_('بحث المرضى')) }}
                                 </a>
                             </div>
@@ -62,7 +62,7 @@
                 <div class="icon-bg"><i class="fas fa-calendar"></i></div>
                 <h6>{{ _(_('مواعيدي اليوم')) }}</h6>
                 <h3 data-stat="appointments">{{ appointments_count or 0 }}</h3>
-                <small class="text-white-50">هذا الأسبوع: {{ week_visits or 0 }}</small>
+                <small class="text-white-50">{{ _('هذا الأسبوع:') }} {{ week_visits or 0 }}</small>
             </div>
         </div>
     </div>

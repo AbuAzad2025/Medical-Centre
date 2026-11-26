@@ -35,11 +35,22 @@ body.print-doc {
   margin-inline: auto;
 }
 
-.print-action-btn {
+/* Group the screen-only actions in a flex row so translated labels of
+   different widths never overlap (the old fixed 9.5rem offset did). */
+
+.print-actions {
   position: fixed;
   inset-inline-end: 1rem;
   top: 1rem;
   z-index: 100;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  max-width: calc(100% - 2rem);
+}
+
+.print-action-btn {
   padding: 0.55rem 1.1rem;
   font-size: 0.9rem;
   font-weight: 600;
@@ -55,7 +66,6 @@ body.print-doc {
 /* A second action (e.g. real PDF download) sits beside the print button. */
 
 .print-pdf-btn {
-  inset-inline-end: 9.5rem;
   text-decoration: none;
   background: #0f766e;
 }

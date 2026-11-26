@@ -1,9 +1,9 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'receipt' %}
 
-{% block doc_title %}سند قبض — {{ visit.patient.full_name }}{% endblock %}
-{% block print_button_label %}طباعة السند{% endblock %}
-{% block doc_heading %}سند قبض{% endblock %}
+{% block doc_title %}{{ _('سند قبض') }} — {{ visit.patient.full_name }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة السند') }}{% endblock %}
+{% block doc_heading %}{{ _('سند قبض') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم السند:') }}</strong> {{ visit.receipt_number or visit.id }}</span>
@@ -25,8 +25,8 @@
     <h3 class="print-section__title">{{ _(_('تفاصيل الزيارة')) }}</h3>
     <div class="print-subject-strip__grid">
         <div class="print-subject-strip__item"><span>{{ _(_('نوع الزيارة')) }}</span><span>
-            {% if visit.visit_type == 'FIRST' %}زيارة أولى
-            {% elif visit.visit_type == 'FOLLOW_UP' %}مراجعة
+            {% if visit.visit_type == 'FIRST' %}{{ _('زيارة أولى') }}
+            {% elif visit.visit_type == 'FOLLOW_UP' %}{{ _('مراجعة') }}
             {% else %}{{ visit.visit_type or '—' }}{% endif %}
         </span></div>
         <div class="print-subject-strip__item"><span>{{ _(_('طوارئ')) }}</span><span>{{ _('نعم') if visit.is_emergency else _('لا') }}</span></div>
@@ -53,7 +53,7 @@
     <div class="print-total-row"><span>{{ _(_('خصم المراجعة')) }}</span><span>-{{ "%.2f"|format(follow_up_discount if follow_up_discount is not none else ((visit.total_amount * 3) / 10)) }} {{ visit.currency }}</span></div>
     {% endif %}
     {% if visit.tax_amount and visit.tax_amount > 0 %}
-    <div class="print-total-row"><span>ضريبة ({{ visit.tax_percent|int }}%)</span><span>{{ "%.2f"|format(visit.tax_amount) }} {{ visit.currency }}</span></div>
+    <div class="print-total-row"><span>{{ _('ضريبة') }} ({{ visit.tax_percent|int }}%)</span><span>{{ "%.2f"|format(visit.tax_amount) }} {{ visit.currency }}</span></div>
     {% endif %}
 </div>
 {% endblock %}
@@ -71,8 +71,8 @@
 {% endblock %}
 
 {% block legal_footer %}
-<p>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else _('المركز')) }}</p>
-<p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
+<p>{{ _('شكراً لثقتكم في') }} {{ branding.organization_name if branding else (ui.organization_name if ui else _('المركز')) }}</p>
+<p>{{ _('تاريخ الطباعة:') }} {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
 {% endblock %}
 
 {% block extra_print_js %}

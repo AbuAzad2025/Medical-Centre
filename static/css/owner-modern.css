@@ -123,7 +123,7 @@
 
 .owner-nav-link::before {
   position: absolute; top: 0;
-  right: 0; bottom: 0;
+  inset-inline-start: 0; bottom: 0;
   width: 0;
   content: '';
   background: var(--owner-gradient-1);
@@ -139,6 +139,13 @@
 .owner-nav-link.active {
   color: var(--owner-primary);
   background: var(--owner-primary-light);
+
+  /* Nudge away from the pinned sidebar edge, into the content area. */
+  transform: translateX(4px);
+}
+
+[dir="ltr"] .owner-nav-link:hover,
+[dir="ltr"] .owner-nav-link.active {
   transform: translateX(-4px);
 }
 
@@ -184,24 +191,27 @@
   flex: 1;
   flex-direction: column;
   min-height: 100vh;
-  margin-inline-start: var(--owner-sidebar-width);
-  transition: margin-inline-start var(--owner-transition);
+
+  /* The platform shell already reserves the pinned sidebar gutter on
+     .main-container (see medical-polish.css). Adding it again here squeezed
+     the content into a narrow column and left an empty strip on the other
+     side. */
+  margin-inline: 0;
 }
 
 /* Collapsed sidebar */
 
+/* The sidebar is pinned with inset-inline-end (left in RTL, right in LTR), so
+   it must slide out towards its own inline-end side. */
+
 .owner-shell.sidebar-collapsed .owner-sidebar {
-  transform: translateX(100%);
+  transform: translateX(-100%);
   width: 0;
   overflow: hidden;
 }
 
 [dir="ltr"] .owner-shell.sidebar-collapsed .owner-sidebar {
-  transform: translateX(-100%);
-}
-
-.owner-shell.sidebar-collapsed .owner-main {
-  margin-inline-start: 0;
+  transform: translateX(100%);
 }
 
 .owner-shell.sidebar-collapsed #ownerSidebarCollapseIcon {
@@ -669,12 +679,17 @@
 /* ─── Responsive ─── */
 
 @media (width <= 1199px) {
+  /* Off-canvas: the sidebar is outside the viewport, so no gutter is needed.
+     This only overrides the shared platform rule on these owner pages; the
+     desktop offset in medical-polish.css is left intact. */
+  body.platform-theme .main-container { margin-inline: 0 !important; }
+
   .owner-sidebar {
     box-shadow: none;
-    transform: translateX(100%);
+    transform: translateX(-100%);
   }
+  [dir="ltr"] .owner-sidebar { transform: translateX(100%); }
   .owner-sidebar.open { box-shadow: var(--owner-shadow-lg); transform: translateX(0); }
-  .owner-main { margin-inline-start: 0; }
 
   .owner-sidebar-overlay {
     position: fixed;
@@ -722,7 +737,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--owner-text-muted);
-  text-align: right; /* Default for RTL */
+  text-align: start;
   text-transform: uppercase;
   background: var(--owner-bg);
   border-bottom: 2px solid var(--owner-border);

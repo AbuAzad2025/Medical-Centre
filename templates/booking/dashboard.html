@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}حساب الحجز{% endblock %}
+{% block title %}{{ _('حساب الحجز') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
@@ -26,7 +26,7 @@
               <th>{{ _(_('التاريخ')) }}</th>
               <th>{{ _(_('الوقت')) }}</th>
               <th>{{ _(_('الحالة')) }}</th>
-              <th></th>
+              <th><span class="visually-hidden">{{ _('إجراءات') }}</span></th>
             </tr>
           </thead>
           <tbody>
@@ -42,7 +42,7 @@
                   {% if b.can_be_cancelled() %}
                     <form method="POST" action="{{ url_for('booking.cancel_booking', booking_id=b.id) }}" class="d-inline">
                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button type="submit" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="هل تريد إلغاء هذا الحجز؟">{{ _('إلغاء') }}</button>
+                      <button type="submit" class="btn btn-sm btn-outline-danger" data-action="confirm-submit" data-message="{{ _('هل تريد إلغاء هذا الحجز؟') }}" aria-label="{{ _('إلغاء الحجز') }}">{{ _('إلغاء') }}</button>
                     </form>
                   {% endif %}
                 </td>

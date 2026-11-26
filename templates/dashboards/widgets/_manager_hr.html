@@ -19,6 +19,6 @@
       {% set total = widget_data.metrics.staff_count or 1 %}
       <div class="progress-bar bg-info" role="progressbar" style="width: {{ (active / total * 100) if total else 0 }}%"></div>
     </div>
-    <div class="text-center small text-muted mt-1">{{ active }} / {{ total }} نشط</div>
+    <div class="text-center small text-muted mt-1">{{ active }} / {{ total }} {{ _('نشط') }}</div>
   </div>
 </div>

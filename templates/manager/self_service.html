@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}تحليلات ذاتية الخدمة{% endblock %}
+{% block title %}{{ _('تحليلات ذاتية الخدمة') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   {{ page_header(_('تحليلات ذاتية الخدمة'), subtitle=_('اختر نوع التقرير والفترة'), icon='fas fa-filter', actions=[
@@ -18,7 +18,7 @@
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">من</label>
+      <label class="form-label">{{ _('من') }}</label>
       <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
     </div>
     <div class="col-md-3">
@@ -32,7 +32,7 @@
 
   <div class="card shadow-sm">
     <div class="card-body">
-      <pre class="mb-0">{{ data | tojson }}</pre>
+      <pre class="mb-0 p-3 bg-light rounded small text-break" style="white-space: pre-wrap; max-height: 32rem; overflow: auto;">{{ data | tojson }}</pre>
     </div>
   </div>
 </div>

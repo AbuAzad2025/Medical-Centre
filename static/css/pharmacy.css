@@ -1,0 +1,34 @@
+/* Pharmacy-specific refinements. Loaded only from pharmacy/pos.html. */
+
+/* Medication lookup: keep prices/stock readable instead of squeezing long names. */
+#medTable th:first-child { width: 48%; }
+
+#medTable th:nth-child(2),
+#medTable th:nth-child(3) { width: 19%; white-space: nowrap; }
+#medTable th:last-child { width: 14%; }
+
+/* Quick-add tiles: consistent height and safe wrapping for long trade names. */
+
+#quickMedications .quick-add {
+  min-height: 4rem;
+  overflow-wrap: anywhere;
+}
+
+/* Cart rows are rendered by js/pages/pharmacy/pos.js (fixed layout avoids
+   cramped columns and lets long medication names wrap). */
+#cartItems .table { table-layout: fixed; }
+
+#cartItems th:first-child,
+#cartItems td:first-child { overflow-wrap: anywhere; }
+
+#cartItems th:nth-child(2),
+#cartItems td:nth-child(2),
+#cartItems th:nth-child(4),
+#cartItems td:nth-child(4) { width: 22%; white-space: nowrap; }
+
+#cartItems th:nth-child(3),
+#cartItems td:nth-child(3) { width: 26%; }
+
+#cartItems th:last-child,
+#cartItems td:last-child { width: 44px; text-align: center; }
+#cartItems .qty-input { width: 100% !important; min-width: 56px; }

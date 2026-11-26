@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}مراقبة النظام - المدير{% endblock %}
+{% block title %}{{ _('مراقبة النظام') }} - {{ _('المدير') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -225,24 +225,24 @@
                             <span>{{ unit.name }}</span>
                             <span>
                                 {% if unit.status != 'active' %}
-                                <span class="badge bg-secondary">معطّلة</span>
+                                <span class="badge bg-secondary">{{ _('معطّلة') }}</span>
                                 {% elif unit_key == 'reception' %}
-                                <span class="badge bg-{{ 'warning' if unit.pending_visits > 0 else 'success' }}">{{ unit.pending_visits }} منتظرة</span>
+                                <span class="badge bg-{{ 'warning' if unit.pending_visits > 0 else 'success' }}">{{ unit.pending_visits }} {{ _('منتظرة') }}</span>
                                 {% elif unit_key == 'doctor' %}
-                                <span class="badge bg-{{ 'warning' if unit.in_progress_visits > 0 else 'success' }}">{{ unit.in_progress_visits }} قيد التنفيذ</span>
+                                <span class="badge bg-{{ 'warning' if unit.in_progress_visits > 0 else 'success' }}">{{ unit.in_progress_visits }} {{ _('قيد التنفيذ') }}</span>
                                 {% elif unit_key == 'emergency' %}
-                                <span class="badge bg-{{ 'danger' if unit.emergency_visits > 8 else ('warning' if unit.emergency_visits > 0 else 'success') }}">{{ unit.emergency_visits }} طارئة</span>
+                                <span class="badge bg-{{ 'danger' if unit.emergency_visits > 8 else ('warning' if unit.emergency_visits > 0 else 'success') }}">{{ unit.emergency_visits }} {{ _('طارئة') }}</span>
                                 {% elif unit_key == 'lab' %}
-                                <span class="badge bg-secondary">{{ unit.lab_requests }} طلب</span>
+                                <span class="badge bg-secondary">{{ unit.lab_requests }} {{ _('طلب') }}</span>
                                 {% elif unit_key == 'radiology' %}
-                                <span class="badge bg-secondary">{{ unit.radiology_requests }} طلب</span>
+                                <span class="badge bg-secondary">{{ unit.radiology_requests }} {{ _('طلب') }}</span>
                                 {% elif unit_key == 'accountant' %}
-                                <span class="badge bg-{{ 'warning' if unit.open_invoices > 0 else 'success' }}">{{ unit.open_invoices }} فاتورة مفتوحة</span>
+                                <span class="badge bg-{{ 'warning' if unit.open_invoices > 0 else 'success' }}">{{ unit.open_invoices }} {{ _('فاتورة مفتوحة') }}</span>
                                 {% endif %}
                             </span>
                         </li>
                         {% else %}
-                        <li class="list-group-item text-muted">لا توجد بيانات</li>
+                        <li class="list-group-item text-muted">{{ _('لا توجد بيانات') }}</li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -281,7 +281,7 @@
                                     <td>{{ row.user }}</td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="4" class="text-center text-muted py-3">لا توجد أحداث تدقيق مسجلة حتى الآن</td></tr>
+                                <tr><td colspan="4" class="text-center text-muted py-3">{{ _('لا توجد أحداث تدقيق مسجلة حتى الآن') }}</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -404,7 +404,7 @@
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
-        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M7__={{ perf|tojson if perf else '{}' }};; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__='{{ url_for("manager.analytics") }}';
+        __M0__={{ units_status|tojson }}; __M1__='{{ units_status.reception.pending_visits }}'; __M2__='{{ units_status.doctor.in_progress_visits }}'; __M3__='{{ units_status.emergency.emergency_visits }}'; __M4__='{{ units_status.lab.lab_requests }}'; __M5__='{{ units_status.radiology.radiology_requests }}'; __M6__='{{ units_status.accountant.open_invoices }}'; __M7__={{ perf|tojson if perf else '{}' }};
         </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/manager/monitoring.js') }}"></script>
 {% endblock %}

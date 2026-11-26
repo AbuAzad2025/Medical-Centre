@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}مركز التقارير{% endblock %}
+{% block title %}{{ _('مركز التقارير') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -27,7 +27,7 @@
         </div>
 
         <div class="col-md-2">
-          <label class="form-label">من</label>
+          <label class="form-label">{{ _('من') }}</label>
           <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
         </div>
         <div class="col-md-2">
@@ -186,7 +186,7 @@
           </div>
         {% elif report == 'emergency_times' and result.emergency_times %}
           <h5 class="mb-3">{{ _(_('زمن الحالات بين المراحل')) }}</h5>
-          <div class="mb-2 text-muted">عدد الحالات: {{ result.emergency_times.cases }}</div>
+          <div class="mb-2 text-muted">{{ _('عدد الحالات:') }} {{ result.emergency_times.cases }}</div>
           <div class="table-responsive">
             <table class="table table-striped mb-0">
               <thead><tr><th>{{ _(_('المرحلة')) }}</th><th>{{ _(_('متوسط دقائق')) }}</th></tr></thead>

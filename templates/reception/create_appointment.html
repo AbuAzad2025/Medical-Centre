@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}{% if mode == 'edit' %}تعديل موعد - الاستقبال{% else %}إنشاء موعد جديد - الاستقبال{% endif %}{% endblock %}
+{% block title %}{% if mode == 'edit' %}{{ _('تعديل موعد') }}{% else %}{{ _('إنشاء موعد جديد') }}{% endif %} - {{ _('الاستقبال') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header(('تعديل موعد' if mode == 'edit' else _('إنشاء موعد جديد')), subtitle=_('حجز موعد جديد للمريض'), icon='fas fa-calendar-plus', actions=[
+    {{ page_header((_('تعديل موعد') if mode == 'edit' else _('إنشاء موعد جديد')), subtitle=_('حجز موعد جديد للمريض'), icon='fas fa-calendar-plus', actions=[
         {'type': 'button', 'label': _('رجوع'), 'icon': 'fas fa-arrow-right', 'data_action': 'go-back', 'style': 'secondary'},
         {'type': 'button', 'label': _('حفظ الموعد'), 'icon': 'fas fa-save', 'data_action': 'saveAppointment', 'style': 'primary'}
     ]) }}
@@ -36,7 +36,7 @@
                                 <div class="mb-3">
                                     <label for="patient_search" class="form-label">{{ _(_('البحث عن المريض')) }}</label>
                                     <input type="text" class="form-control" id="patient_search" 
-                                           placeholder="ابحث بالاسم أو رقم الهوية أو الهاتف">
+                                           placeholder="{{ _('ابحث بالاسم أو رقم الهوية أو الهاتف') }}">
                                     <div id="patient_suggestions" class="list-group mt-2"></div>
                                 </div>
                             </div>
@@ -148,14 +148,14 @@
                                 <div class="mb-3">
                                     <label for="symptoms" class="form-label">{{ _(_('الأعراض')) }}</label>
                                     <textarea class="form-control" id="symptoms" name="symptoms" 
-                                              rows="3" placeholder="أدخل الأعراض التي يشكو منها المريض">{{ preset_symptoms or '' }}</textarea>
+                                              rows="3" placeholder="{{ _('أدخل الأعراض التي يشكو منها المريض') }}">{{ preset_symptoms or '' }}</textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="notes" class="form-label">{{ _(_('ملاحظات إضافية')) }}</label>
                                     <textarea class="form-control" id="notes" name="notes" 
-                                              rows="3" placeholder="أدخل أي ملاحظات إضافية">{{ preset_notes or '' }}</textarea>
+                                              rows="3" placeholder="{{ _('أدخل أي ملاحظات إضافية') }}">{{ preset_notes or '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -172,14 +172,14 @@
                                 <div class="mb-3">
                                     <label for="contact_phone" class="form-label">{{ _(_('رقم الهاتف للتواصل')) }}</label>
                                     <input type="tel" class="form-control" id="contact_phone" name="contact_phone" 
-                                           placeholder="أدخل رقم الهاتف">
+                                           placeholder="{{ _('أدخل رقم الهاتف') }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="contact_email" class="form-label">{{ _(_('البريد الإلكتروني')) }}</label>
                                     <input type="email" class="form-control" id="contact_email" name="contact_email" 
-                                           placeholder="أدخل البريد الإلكتروني">
+                                           placeholder="{{ _('أدخل البريد الإلكتروني') }}">
                                 </div>
                             </div>
                         </div>

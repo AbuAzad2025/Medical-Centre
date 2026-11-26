@@ -11,8 +11,8 @@
           <div class="col-md-3">
             <div class="border rounded p-3">
               <h6>{{ r.name }}</h6>
-              <div class="text-muted">الكود: {{ r.code }} — النوع: {{ r.room_type }}</div>
-              <div class="mt-2"><span class="badge bg-primary">{{ r.beds|length }} سرير</span></div>
+              <div class="text-muted">{{ _('الكود:') }} {{ r.code }} — {{ _('النوع:') }} {{ r.room_type }}</div>
+              <div class="mt-2"><span class="badge bg-primary">{{ r.beds|length }} {{ _('سرير') }}</span></div>
               <a href="{{ url_for('bed.room_detail', room_id=r.id) }}" class="btn btn-sm btn-outline-primary mt-2">{{ _(_('عرض الأسرة')) }}</a>
             </div>
           </div>

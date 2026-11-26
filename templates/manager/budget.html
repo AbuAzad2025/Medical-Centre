@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}إدارة الميزانية{% endblock %}
+{% block title %}{{ _('إدارة الميزانية') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
-        <div class="col"><h4><i class="fas fa-wallet me-2 text-success"></i>إدارة الميزانية — {{ year }}/{{ "%02d"|format(month) }}</h4></div>
+        <div class="col"><h4><i class="fas fa-wallet me-2 text-success"></i>{{ _('إدارة الميزانية') }} — {{ year }}/{{ "%02d"|format(month) }}</h4></div>
         <div class="col-auto">
             <form class="d-flex gap-2" method="get">
                 <select name="month" class="form-select form-select-sm">
@@ -24,7 +24,7 @@
                     <h4>{{ "%.0f"|format(actual_revenue) }} <small class="text-muted">/ {{ "%.0f"|format(dept_budgets.get(None, {}).revenue_target|default(0)|float) }} ₪</small></h4>
                     {% set target = (dept_budgets.get(None, {}).revenue_target|default(0)|float) or 1 %}
                     {% set pct = (actual_revenue / target * 100)|round %}
-                    <div class="progress"><div class="progress-bar bg-{{ 'success' if pct>=100 else 'warning' if pct>=70 else 'danger' }}" style="width:{{ pct }}%">{{ pct }}%</div></div>
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if pct>=100 else 'warning' if pct>=70 else 'danger' }}" style="width:{{ pct }}%; min-width: 3rem;">{{ pct }}%</div></div>
                 </div>
             </div>
         </div>
@@ -35,7 +35,7 @@
                     <h4>{{ actual_visits }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).visits_target|default(0) }}</small></h4>
                     {% set vt = (dept_budgets.get(None, {}).visits_target|default(0)) or 1 %}
                     {% set vp = (actual_visits / vt * 100)|round %}
-                    <div class="progress"><div class="progress-bar bg-{{ 'success' if vp>=100 else 'warning' if vp>=70 else 'danger' }}" style="width:{{ vp }}%">{{ vp }}%</div></div>
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if vp>=100 else 'warning' if vp>=70 else 'danger' }}" style="width:{{ vp }}%; min-width: 3rem;">{{ vp }}%</div></div>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                     <h4>{{ actual_new_patients }} <small class="text-muted">/ {{ dept_budgets.get(None, {}).new_patients_target|default(0) }}</small></h4>
                     {% set nt = (dept_budgets.get(None, {}).new_patients_target|default(0)) or 1 %}
                     {% set np = (actual_new_patients / nt * 100)|round %}
-                    <div class="progress"><div class="progress-bar bg-{{ 'success' if np>=100 else 'warning' if np>=70 else 'danger' }}" style="width:{{ np }}%">{{ np }}%</div></div>
+                    <div class="progress"><div class="progress-bar bg-{{ 'success' if np>=100 else 'warning' if np>=70 else 'danger' }}" style="width:{{ np }}%; min-width: 3rem;">{{ np }}%</div></div>
                 </div>
             </div>
         </div>

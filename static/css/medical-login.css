@@ -36,7 +36,9 @@
 html, body {
   height: 100%;
   font-family: var(--md-font);
-  direction: rtl;
+
+  /* Direction comes from the <html dir> attribute so the English locale is
+     not forced back into RTL by an author-level CSS rule. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -327,7 +329,11 @@ html, body {
 .login-form input[type="password"],
 .login-form select {
   width: 100%;
-  padding: 0.8rem 2.6rem 0.8rem 1rem;
+
+  /* Logical padding keeps room for the inline-end field icon in both RTL
+     and LTR. Physical padding used to reserve the space on the wrong side. */
+  padding-block: 0.8rem;
+  padding-inline: 1rem 2.4rem;
   font-family: var(--md-font);
   font-size: 0.95rem;
   color: var(--md-text);
@@ -346,13 +352,20 @@ html, body {
   box-shadow: 0 0 0 3px rgb(12 74 110 / 0.08);
 }
 
+/* The password field also hosts the reveal button on the inline-start side. */
+.login-form input[type="password"] { padding-inline-start: 2.4rem; }
+
 .login-form select {
   padding-inline-end: 2.2rem;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: left 0.9rem center;
+
+  /* Default LTR: the arrow sits at inline-end (right). RTL flips it below. */
+  background-position: right 0.9rem center;
 }
+
+html[dir="rtl"] .login-form select { background-position: left 0.9rem center; }
 
 .login-form select:focus {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230c4a6e' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");

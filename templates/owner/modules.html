@@ -1,5 +1,5 @@
 {% extends "owner/base.html" %}
-{% block title %}إدارة الوحدات{% endblock %}
+{% block title %}{{ _('إدارة الوحدات') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
@@ -23,9 +23,9 @@
                 <div class="card-body">
                     <p class="text-muted small">{{ m.description or _('لا وصف') }}</p>
                     <div class="mb-2">
-                        <span class="badge bg-info me-1">{{ m.tenant_count }} تينانت نشط</span>
+                        <span class="badge bg-info me-1">{{ m.tenant_count }} {{ _('عميل نشط') }}</span>
                         {% if m.required_modules %}
-                        <span class="badge bg-warning text-dark">يعتمد على: {{ m.required_modules|join(', ') }}</span>
+                        <span class="badge bg-warning text-dark">{{ _('يعتمد على') }}: {{ m.required_modules|join(', ') }}</span>
                         {% endif %}
                     </div>
                     {% if m.capabilities %}

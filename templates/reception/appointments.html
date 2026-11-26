@@ -84,11 +84,11 @@
                             <div class="d-flex gap-2">
                                 <button class="btn btn-primary" data-action="apply-filters">
                                     <i class="fas fa-search me-1"></i>
-                                    بحث
+                                    {{ _('بحث') }}
                                 </button>
                                 <button class="btn btn-secondary" data-action="clear-filters">
                                     <i class="fas fa-times me-1"></i>
-                                    مسح
+                                    {{ _('مسح') }}
                                 </button>
                             </div>
                         </div>
@@ -105,7 +105,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-primary text-uppercase mb-1">
-                                إجمالي المواعيد
+                                {{ _('إجمالي المواعيد') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ total_count }}</div>
                         </div>
@@ -123,7 +123,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-success text-uppercase mb-1">
-                                مواعيد اليوم
+                                {{ _('مواعيد اليوم') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ today_count }}</div>
                         </div>
@@ -141,7 +141,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-info text-uppercase mb-1">
-                                مؤكدة
+                                {{ _('مؤكدة') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ confirmed_count }}</div>
                         </div>
@@ -159,7 +159,7 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col ms-2">
                             <div class="text-xs fw-bold text-warning text-uppercase mb-1">
-                                معلقة
+                                {{ _('معلقة') }}
                             </div>
                             <div class="h5 mb-0 fw-bold text-gray-800">{{ pending_count }}</div>
                         </div>
@@ -177,33 +177,33 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 fw-bold text-primary">قائمة المواعيد</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-primary" data-action="filter-appointments" data-value="all">الكل</button>
-                        <button class="btn btn-sm btn-outline-success" data-action="filter-appointments" data-value="today">اليوم</button>
-                        <button class="btn btn-sm btn-outline-warning" data-action="filter-appointments" data-value="pending">معلقة</button>
-                        <button class="btn btn-sm btn-outline-info" data-action="filter-appointments" data-value="confirmed">مؤكدة</button>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('قائمة المواعيد') }}</h6>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-sm btn-outline-primary" data-action="filter-appointments" data-value="all">{{ _('الكل') }}</button>
+                        <button class="btn btn-sm btn-outline-success" data-action="filter-appointments" data-value="today">{{ _('اليوم') }}</button>
+                        <button class="btn btn-sm btn-outline-warning" data-action="filter-appointments" data-value="pending">{{ _('معلقة') }}</button>
+                        <button class="btn btn-sm btn-outline-info" data-action="filter-appointments" data-value="confirmed">{{ _('مؤكدة') }}</button>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="text-muted small">عرض {{ appointments|length }} من {{ filtered_total }}</div>
+                        <div class="text-muted small">{{ _('عرض') }} {{ appointments|length }} {{ _('من') }} {{ filtered_total }}</div>
                         {% set pages = (filtered_total // per_page) + (1 if (filtered_total % per_page) else 0) %}
-                        <div class="text-muted small">صفحة {{ page }} من {{ pages if pages > 0 else 1 }}</div>
+                        <div class="text-muted small">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}</div>
                     </div>
                     {% if appointments %}
                     <div class="table-responsive">
                         <table class="table table-bordered" id="appointmentsTable">
                             <thead>
                                 <tr>
-                                    <th>رقم الموعد</th>
-                                    <th>المريض</th>
-                                    <th>الطبيب</th>
-                                    <th>التاريخ</th>
-                                    <th>الوقت</th>
-                                    <th>الحالة</th>
-                                    <th>نوع الموعد</th>
-                                    <th>الإجراءات</th>
+                                    <th>{{ _('رقم الموعد') }}</th>
+                                    <th>{{ _('المريض') }}</th>
+                                    <th>{{ _('الطبيب') }}</th>
+                                    <th>{{ _('التاريخ') }}</th>
+                                    <th>{{ _('الوقت') }}</th>
+                                    <th>{{ _('الحالة') }}</th>
+                                    <th>{{ _('نوع الموعد') }}</th>
+                                    <th>{{ _('الإجراءات') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -216,7 +216,7 @@
                                             </div>
                                             <div>
                                                 <div class="fw-bold">#{{ appointment.id }}</div>
-                                                <small class="text-muted">{{ appointment.created_at.strftime('%H:%M') if appointment.created_at else 'غير محدد' }}</small>
+                                                <small class="text-muted">{{ appointment.created_at.strftime('%H:%M') if appointment.created_at else _('غير محدد') }}</small>
                                             </div>
                                         </div>
                                     </td>
@@ -226,25 +226,25 @@
                                                 {{ (appointment.patient.full_name[0] if appointment.patient and appointment.patient.full_name) if appointment.patient else 'P' }}
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ appointment.patient.full_name if appointment.patient else 'غير محدد' }}</div>
-                                                <small class="text-muted">{{ appointment.patient.phone if appointment.patient and appointment.patient.phone else 'لا يوجد رقم' }}</small>
+                                                <div class="fw-bold">{{ appointment.patient.full_name if appointment.patient else _('غير محدد') }}</div>
+                                                <small class="text-muted">{{ appointment.patient.phone if appointment.patient and appointment.patient.phone else _('لا يوجد رقم') }}</small>
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{{ appointment.doctor.full_name if appointment.doctor else 'غير محدد' }}</td>
-                                    <td>{{ appointment.starts_at.strftime('%Y-%m-%d') if appointment.starts_at else 'غير محدد' }}</td>
-                                    <td>{{ appointment.starts_at.strftime('%H:%M') if appointment.starts_at else 'غير محدد' }}</td>
+                                    <td>{{ appointment.doctor.full_name if appointment.doctor else _('غير محدد') }}</td>
+                                    <td>{{ appointment.starts_at.strftime('%Y-%m-%d') if appointment.starts_at else _('غير محدد') }}</td>
+                                    <td>{{ appointment.starts_at.strftime('%H:%M') if appointment.starts_at else _('غير محدد') }}</td>
                                     <td>
                                         {% if appointment.status == 'SCHEDULED' %}
-                                            <span class="badge bg-warning">مجدول</span>
+                                            <span class="badge bg-warning">{{ _('مجدول') }}</span>
                                         {% elif appointment.status == 'CONFIRMED' %}
-                                            <span class="badge bg-success">مؤكد</span>
+                                            <span class="badge bg-success">{{ _('مؤكد') }}</span>
                                         {% elif appointment.status == 'CANCELLED' %}
-                                            <span class="badge bg-danger">ملغي</span>
+                                            <span class="badge bg-danger">{{ _('ملغي') }}</span>
                                         {% elif appointment.status == 'DONE' %}
-                                            <span class="badge bg-info">مكتمل</span>
+                                            <span class="badge bg-info">{{ _('مكتمل') }}</span>
                                         {% elif appointment.status == 'NO_SHOW' %}
-                                            <span class="badge bg-secondary">لم يحضر</span>
+                                            <span class="badge bg-secondary">{{ _('لم يحضر') }}</span>
                                         {% else %}
                                             <span class="badge bg-light text-dark">{{ appointment.status | enum_label('AppointmentState') }}</span>
                                         {% endif %}
@@ -254,31 +254,20 @@
                                         {% if meta and meta.appointment_type_label %}
                                             <span class="badge bg-primary">{{ meta.appointment_type_label }}</span>
                                         {% else %}
-                                            <span class="badge bg-secondary">عام</span>
+                                            <span class="badge bg-secondary">{{ _('عام') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="viewAppointment" data-appointment-id="{{ appointment.id }}" title="عرض">
-                                                <i class="fas fa-eye"></i> <span class="btn-label">عرض</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" data-action="confirmAppointment" data-appointment-id="{{ appointment.id }}" title="تأكيد">
-                                                <i class="fas fa-check"></i> <span class="btn-label">تأكيد</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-warning" data-action="editAppointment" data-appointment-id="{{ appointment.id }}" title="تعديل">
-                                                <i class="fas fa-edit"></i> <span class="btn-label">تعديل</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="cancelAppointment" data-appointment-id="{{ appointment.id }}" title="إلغاء">
-                                                <i class="fas fa-times"></i> <span class="btn-label">إزالة</span>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-secondary" data-action="noShowAppointment" data-appointment-id="{{ appointment.id }}" title="لم يحضر">
-                                                <i class="fas fa-user-times"></i> <span class="btn-label">حذف</span>
-                                            </button>
+                                        {# Icon-only actions keep six controls from cramming one table cell; labels move to tooltips. #}
+                                        <div class="table-actions appointment-actions">
+                                            <button class="btn btn-sm btn-outline-primary" data-action="viewAppointment" data-appointment-id="{{ appointment.id }}" title="{{ _('عرض') }}" aria-label="{{ _('عرض') }}"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                                            <button class="btn btn-sm btn-outline-success" data-action="confirmAppointment" data-appointment-id="{{ appointment.id }}" title="{{ _('تأكيد') }}" aria-label="{{ _('تأكيد') }}"><i class="fas fa-check" aria-hidden="true"></i></button>
+                                            <button class="btn btn-sm btn-outline-warning" data-action="editAppointment" data-appointment-id="{{ appointment.id }}" title="{{ _('تعديل') }}" aria-label="{{ _('تعديل') }}"><i class="fas fa-edit" aria-hidden="true"></i></button>
+                                            <button class="btn btn-sm btn-outline-danger" data-action="cancelAppointment" data-appointment-id="{{ appointment.id }}" title="{{ _('إلغاء') }}" aria-label="{{ _('إلغاء') }}"><i class="fas fa-times" aria-hidden="true"></i></button>
+                                            <button class="btn btn-sm btn-outline-secondary" data-action="noShowAppointment" data-appointment-id="{{ appointment.id }}" title="{{ _('لم يحضر') }}" aria-label="{{ _('لم يحضر') }}"><i class="fas fa-user-times" aria-hidden="true"></i></button>
                                             <form method="POST" action="{{ url_for('reception.checkin_appointment', appointment_id=appointment.id) }}" class="d-inline">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-info" title="تحويل إلى زيارة">
-                                                    <i class="fas fa-sign-in-alt"></i> <span class="btn-label">دخول</span>
-                                                </button>
+                                                <button type="submit" class="btn btn-sm btn-outline-info" title="{{ _('تحويل إلى زيارة') }}" aria-label="{{ _('تحويل إلى زيارة') }}"><i class="fas fa-sign-in-alt" aria-hidden="true"></i></button>
                                             </form>
                                         </div>
                                     </td>
@@ -292,11 +281,11 @@
                         <div class="btn-group">
                             <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
                                href="{{ url_for('reception.appointments', search=search, department_id=selected_department, doctor_id=selected_doctor, status=selected_status, date=selected_date, per_page=per_page, page=page-1) }}">
-                                السابق
+                                {{ _('السابق') }}
                             </a>
                             <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
                                href="{{ url_for('reception.appointments', search=search, department_id=selected_department, doctor_id=selected_doctor, status=selected_status, date=selected_date, per_page=per_page, page=page+1) }}">
-                                التالي
+                                {{ _('التالي') }}
                             </a>
                         </div>
                     </div>
@@ -304,16 +293,16 @@
                     <div class="text-center py-5">
                         <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
                         {% if search or selected_department or selected_doctor or selected_status or selected_date %}
-                          <h5 class="text-muted">لا توجد نتائج مطابقة</h5>
-                          <p class="text-muted">جرّب تغيير الفلاتر أو مسح البحث</p>
-                          <a class="btn btn-outline-secondary" href="{{ url_for('reception.appointments', per_page=per_page) }}">مسح الفلاتر</a>
+                          <h5 class="text-muted">{{ _('لا توجد نتائج مطابقة') }}</h5>
+                          <p class="text-muted">{{ _('جرّب تغيير الفلاتر أو مسح البحث') }}</p>
+                          <a class="btn btn-outline-secondary" href="{{ url_for('reception.appointments', per_page=per_page) }}">{{ _('مسح الفلاتر') }}</a>
                         {% else %}
-                          <h5 class="text-muted">لا توجد مواعيد</h5>
-                          <p class="text-muted">ابدأ بإنشاء موعد جديد</p>
+                          <h5 class="text-muted">{{ _('لا توجد مواعيد') }}</h5>
+                          <p class="text-muted">{{ _('ابدأ بإنشاء موعد جديد') }}</p>
                           {% if current_user.is_authenticated and has_permission('patient_create') %}
                           <a class="btn btn-primary" href="{{ url_for('reception.create_appointment') }}">
                               <i class="fas fa-plus me-1"></i>
-                              موعد جديد
+                              {{ _('موعد جديد') }}
                           </a>
                           {% endif %}
                         {% endif %}
@@ -329,28 +318,28 @@
         <div class="col-12">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">إجراءات سريعة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('إجراءات سريعة') }}</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row g-3">
                         {% if current_user.is_authenticated and has_permission('patient_create') %}
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-4">
                             <a class="btn btn-primary w-100" href="{{ url_for('reception.create_appointment') }}">
                                 <i class="fas fa-plus me-2"></i>
-                                موعد جديد
+                                {{ _('موعد جديد') }}
                             </a>
                         </div>
                         {% endif %}
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-4">
                             <button class="btn btn-success w-100" data-action="create-new-visit">
                                 <i class="fas fa-hospital me-2"></i>
-                                زيارة جديدة
+                                {{ _('زيارة جديدة') }}
                             </button>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-4">
                             <button class="btn btn-info w-100" data-action="export-appointments">
                                 <i class="fas fa-chart-bar me-2"></i>
-                                تقرير المواعيد
+                                {{ _('تقرير المواعيد') }}
                             </button>
                         </div>
                     </div>
@@ -376,8 +365,10 @@
 #appointmentsTable {
     font-size: 0.9rem;
 }
-.btn-group .btn {
-    margin: 0 1px;
+/* Comfortable tap targets for the compact icon-only action buttons. */
+.appointment-actions .btn {
+    min-width: 2rem;
+    min-height: 2rem;
 }
 </style>
 

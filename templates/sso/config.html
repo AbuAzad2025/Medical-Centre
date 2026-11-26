@@ -56,8 +56,9 @@
     </div>
     <div class="col-md-7">
       <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">{{ _(_('الإعدادات الحالية')) }}</div>
+        <div class="card-header bg-info text-dark">{{ _(_('الإعدادات الحالية')) }}</div>
         <div class="card-body p-0">
+          <div class="table-responsive">
           <table class="table table-sm mb-0">
             <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('النوع')) }}</th><th>{{ _(_('الحالة')) }}</th><th></th></tr></thead>
             <tbody>
@@ -73,9 +74,12 @@
                   </form>
                 </td>
               </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-center text-muted py-3">{{ _('لا توجد إعدادات') }}</td></tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

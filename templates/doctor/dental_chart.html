@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}خريطة الأسنان - <bdi>{{ patient.full_name }}</bdi>{% endblock %}
+{% block title %}{{ _('خريطة الأسنان') }} - <bdi>{{ patient.full_name }}</bdi>{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-3 align-items-center">
@@ -9,7 +9,7 @@
         </div>
         <div class="col-auto">
             <a href="{{ url_for('doctor.patient_details', visit_id=visit_id) if visit_id else url_for('doctor.patients') }}" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-left me-1"></i> {{ _(_('العودة')) }}
+                <i class="fas fa-arrow-right me-1"></i> {{ _(_('العودة')) }}
             </a>
             <button class="btn btn-sm btn-primary" onclick="saveChart()">
                 <i class="fas fa-save me-1"></i> {{ _(_('حفظ')) }}
@@ -46,8 +46,8 @@
     <div class="row">
         <div class="col-lg-8">
             <div class="card">
-                <div class="card-body position-relative" id="chartContainer" style="min-height:500px;">
-                    <svg id="dentalSvg" viewBox="0 0 600 500" class="w-100 h-100">
+                <div class="card-body position-relative" id="chartContainer" style="min-height:500px; overflow-x:auto;">
+                    <svg id="dentalSvg" viewBox="0 0 600 500" class="w-100 h-100" style="min-width:600px;">
                         <!-- Upper Right (1x) and Upper Left (2x) -->
                         <g id="upper" transform="translate(50,30)">
                             {% for tooth in upper_teeth %}

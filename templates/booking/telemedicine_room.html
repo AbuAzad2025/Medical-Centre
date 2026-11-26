@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}جلسة التطبيب عن بُعد{% endblock %}
+{% block title %}{{ _('جلسة التطبيب عن بُعد') }}{% endblock %}
 {% block content %}
 <div class="container">
   {{ page_header(_('جلسة التطبيب عن بُعد'), subtitle=_('الحجز رقم ') ~ booking.id, icon='fas fa-video') }}

@@ -20,7 +20,7 @@ def dashboard() -> ResponseReturnValue:
 
         return render_command_center(current_user, role='manager')
     except Exception as e:
-        logging.exception('Error in manager dashboard: %s')
+        logging.exception('Error in manager dashboard')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         # stats=None: this is the error path and the template reads
         # stats.smart_analytics. Passing it explicitly stops the error page from

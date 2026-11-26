@@ -208,7 +208,7 @@ def diagnosis(visit_id):
             'doctor/diagnosis.html', visit=visit, structured_vital_signs=structured_vital_signs
         )
     except Exception:
-        logging.exception('Error in diagnosis: %s')
+        logging.exception('Error in diagnosis')
         flash('حدث خطأ في حفظ التشخيص', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -586,7 +586,7 @@ def get_treatment_recommendations():
 
         return recommendations
     except Exception:
-        logging.exception('Error getting treatment recommendations: %s')
+        logging.exception('Error getting treatment recommendations')
         return []
 
 
@@ -673,7 +673,7 @@ def get_drug_interaction_checker():
             else 0,
         }
     except Exception:
-        logging.exception('Error getting drug interaction checker: %s')
+        logging.exception('Error getting drug interaction checker')
         return {}
 
 
@@ -760,7 +760,7 @@ def get_clinical_decision_support():
 
         return support_recommendations
     except Exception:
-        logging.exception('Error getting clinical decision support: %s')
+        logging.exception('Error getting clinical decision support')
         return []
 
 
@@ -834,7 +834,7 @@ def get_medical_analytics():
             ),
         }
     except Exception:
-        logging.exception('Error getting medical analytics: %s')
+        logging.exception('Error getting medical analytics')
         return {}
 
 
@@ -896,7 +896,7 @@ def get_workflow_optimization():
 
         return optimizations
     except Exception:
-        logging.exception('Error getting workflow optimization: %s')
+        logging.exception('Error getting workflow optimization')
         return []
 
 
@@ -976,7 +976,7 @@ def get_smart_reminders():
 
         return reminders
     except Exception:
-        logging.exception('Error getting smart reminders: %s')
+        logging.exception('Error getting smart reminders')
         return []
 
 

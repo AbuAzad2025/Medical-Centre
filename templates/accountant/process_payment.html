@@ -13,7 +13,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div>
               <h5 class="mb-0">{{ _(_('معالجة الدفع')) }}</h5>
-              <div class="text-muted">زيارة رقم {{ visit.id }} — {{ visit.patient.full_name if visit and visit.patient else '' }}</div>
+              <div class="text-muted">{{ _('زيارة رقم') }} {{ visit.id }} — {{ visit.patient.full_name if visit and visit.patient else '' }}</div>
             </div>
             {% if module_active('reception') %}<a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary">{{ _(_('العودة')) }}</a>{% endif %}
           </div>
@@ -33,8 +33,8 @@
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label">{{ _(_('العملة')) }}</label>
-                <select class="form-select" name="payment_currency" id="paymentCurrencySelect" required title="العملة">
-                  {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == base_currency else '' }}>{{ info.flag }} {{ code }} — {{ info.name }}</option>{% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                <select class="form-select" name="payment_currency" id="paymentCurrencySelect" required title="{{ _('العملة') }}">
+                  {% for code, info in currencies.items() %}<option value="{{ code }}" {{ 'selected' if code == base_currency else '' }}>{{ info.flag }} {{ code }} — {{ info.name }}</option>{% else %}<option value="" disabled>{{ _('لا توجد بيانات') }}</option>{% endfor %}
                 </select>
                 <div id="exchangeRateInfo" class="small text-muted mt-1 d-none"></div>
               </div>
@@ -42,30 +42,30 @@
             <div class="row d-none" id="cardFieldsRow">
               <div class="col-md-4 mb-3">
                 <label class="form-label" for="cardLastDigits">{{ _(_('آخر 4 أرقام')) }}</label>
-                <input type="text" class="form-control" name="card_last_digits" id="cardLastDigits" maxlength="4" title="آخر 4 أرقام البطاقة">
+                <input type="text" class="form-control" name="card_last_digits" id="cardLastDigits" maxlength="4" title="{{ _('آخر 4 أرقام البطاقة') }}">
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label" for="cardHolderName">{{ _(_('اسم حامل البطاقة')) }}</label>
-                <input type="text" class="form-control" name="card_holder_name" id="cardHolderName" title="اسم حامل البطاقة">
+                <input type="text" class="form-control" name="card_holder_name" id="cardHolderName" title="{{ _('اسم حامل البطاقة') }}">
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label" for="paymentReference">{{ _(_('مرجع العملية')) }}</label>
-                <input type="text" class="form-control" name="payment_reference" id="paymentReference" title="مرجع العملية">
+                <input type="text" class="form-control" name="payment_reference" id="paymentReference" title="{{ _('مرجع العملية') }}">
               </div>
             </div>
             <div class="row d-none" id="insuranceFieldsRow">
               <div class="col-md-6 mb-3">
                 <label class="form-label" for="insuranceCompanyId">{{ _(_('شركة التأمين')) }}</label>
-                <select class="form-select" name="insurance_company_id" id="insuranceCompanyId" title="شركة التأمين">
+                <select class="form-select" name="insurance_company_id" id="insuranceCompanyId" title="{{ _('شركة التأمين') }}">
                   <option value="">{{ _(_('بدون')) }}</option>
                   {% for ic in insurance_companies or [] %}
                   <option value="{{ ic.id }}">{{ ic.name_ar or ic.name }}</option>
-                  {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                  {% else %}<option value="" disabled>{{ _('لا توجد بيانات') }}</option>{% endfor %}
                 </select>
               </div>
               <div class="col-md-6 mb-3">
                 <label class="form-label" for="insurancePolicyNumber">{{ _(_('رقم البوليصة')) }}</label>
-                <input type="text" class="form-control" name="insurance_policy_number" id="insurancePolicyNumber" title="رقم البوليصة">
+                <input type="text" class="form-control" name="insurance_policy_number" id="insurancePolicyNumber" title="{{ _('رقم البوليصة') }}">
               </div>
             </div>
             <div class="form-check mb-3">
@@ -74,7 +74,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">{{ _(_('سبب الفرض')) }}</label>
-              <input type="text" class="form-control" name="force_reason" placeholder="اختياري">
+              <input type="text" class="form-control" name="force_reason" placeholder="{{ _('اختياري') }}">
             </div>
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" id="is_debt" name="is_debt">
@@ -82,11 +82,11 @@
             </div>
             <div class="mb-3">
               <label class="form-label">{{ _(_('سبب الدين')) }}</label>
-              <input type="text" class="form-control" name="debt_reason" placeholder="اكتب سبب الدين">
+              <input type="text" class="form-control" name="debt_reason" placeholder="{{ _('اكتب سبب الدين') }}">
             </div>
             <div class="mb-3">
               <label class="form-label" for="paymentNotes">{{ _(_('ملاحظات الدفع')) }}</label>
-              <textarea class="form-control" name="payment_notes" id="paymentNotes" rows="2" title="ملاحظات الدفع"></textarea>
+              <textarea class="form-control" name="payment_notes" id="paymentNotes" rows="2" title="{{ _('ملاحظات الدفع') }}"></textarea>
             </div>
             <div class="form-check mb-3">
               <input class="form-check-input" type="checkbox" id="accept_responsibility" name="accept_responsibility">
@@ -98,11 +98,11 @@
             </div>
             <div class="mb-3">
               <label class="form-label" for="totalAmount">{{ _(_('المبلغ الإجمالي')) }}</label>
-              <input type="text" class="form-control" id="totalAmount" value="{{ visit.total_amount }}" disabled title="المبلغ الإجمالي">
+              <input type="text" class="form-control" id="totalAmount" value="{{ '%.2f'|format(visit.total_amount or 0) }}" disabled title="{{ _('المبلغ الإجمالي') }}">
             </div>
             <div class="mb-3">
               <label class="form-label">{{ _(_('المبلغ المدفوع')) }}</label>
-              <input type="number" class="form-control" name="paid_amount" id="paidAmountInput" min="0" step="0.01" max="{{ visit.remaining_amount or 0 }}" value="{{ visit.remaining_amount if visit and visit.remaining_amount > 0 else 0 }}" placeholder="أدخل المبلغ">
+              <input type="number" class="form-control" name="paid_amount" id="paidAmountInput" min="0" step="0.01" max="{{ visit.remaining_amount or 0 }}" value="{{ visit.remaining_amount if visit and visit.remaining_amount > 0 else 0 }}" placeholder="{{ _('أدخل المبلغ') }}">
               <small class="text-muted">{{ _(_('المتبقي:')) }} <span id="remainingDisplay">{{ "%.2f"|format(visit.remaining_amount or 0) }}</span> <span id="baseCurrencyLabel">{{ base_currency }}</span></small>
             </div>
             <div class="d-flex gap-2">

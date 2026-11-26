@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}إعدادات المركز{% endblock %}
+{% block title %}{{ _('إعدادات المركز') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -121,7 +121,7 @@
                                 <label for="twilio_auth_token" class="form-label">Twilio Auth Token</label>
                                 <input type="password" class="form-control" id="twilio_auth_token"
                                        value="{{ settings.get('sms', {}).get('twilio_auth_token', '') }}"
-                                       placeholder="أدخل رمز التوثيق">
+                                       placeholder="{{ _('أدخل رمز التوثيق') }}">
                             </div>
                         </div>
                         <div class="row">
@@ -262,13 +262,17 @@ function saveSettings() {
             currency: document.getElementById('currency').value,
             date_format: document.getElementById('date_format').value,
         },
-        sms: {
-            enabled: document.getElementById('sms_enabled').checked,
-            provider: document.getElementById('sms_provider').value,
-            twilio_account_sid: document.getElementById('twilio_account_sid').value,
-            twilio_auth_token: document.getElementById('twilio_auth_token').value,
-            twilio_phone_number: document.getElementById('twilio_phone_number').value,
-        },
+        // The SMS tab is only rendered when the SMS capability is enabled.
+        // Don't read missing elements (or overwrite saved SMS settings) when it isn't.
+        ...(document.getElementById('sms_enabled') ? {
+            sms: {
+                enabled: document.getElementById('sms_enabled').checked,
+                provider: document.getElementById('sms_provider').value,
+                twilio_account_sid: document.getElementById('twilio_account_sid').value,
+                twilio_auth_token: document.getElementById('twilio_auth_token').value,
+                twilio_phone_number: document.getElementById('twilio_phone_number').value,
+            }
+        } : {}),
         lab: {
             auto_generate_request_number: document.getElementById('lab_auto_generate').checked,
             request_number_prefix: document.getElementById('lab_number_prefix').value,
@@ -294,16 +298,16 @@ function saveSettings() {
     })
     .then(r => r.json())
     .then(d => {
-        Swal.fire({ title: d.success ? 'تم' : 'خطأ', text: d.message, icon: d.success ? 'success' : 'error' });
+        Swal.fire({ title: d.success ? {{ _('تم')|tojson }} : {{ _('خطأ')|tojson }}, text: d.message, icon: d.success ? 'success' : 'error' });
     })
     .catch(err => {
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في حفظ الإعدادات', icon: 'error' });
+        Swal.fire({ title: {{ _('خطأ')|tojson }}, text: {{ _('حدث خطأ في حفظ الإعدادات')|tojson }}, icon: 'error' });
         console.error(err);
     });
 }
 
 function testSmsSettings() {
-    const testPhone = prompt('أدخل رقم الهاتف المرسل إليه (مثال: +970599123456):');
+    const testPhone = prompt({{ _('أدخل رقم الهاتف المرسل إليه (مثال: +970599123456):')|tojson }});
     if (!testPhone) return;
 
     fetch('{{ url_for("manager.manager_test_sms") }}', {
@@ -313,10 +317,10 @@ function testSmsSettings() {
     })
     .then(r => r.json())
     .then(d => {
-        Swal.fire({ title: d.success ? 'تم' : 'فشل', text: d.message, icon: d.success ? 'success' : 'error' });
+        Swal.fire({ title: d.success ? {{ _('تم')|tojson }} : {{ _('فشل')|tojson }}, text: d.message, icon: d.success ? 'success' : 'error' });
     })
     .catch(err => {
-        Swal.fire({ title: 'خطأ', text: 'حدث خطأ في إرسال الرسالة', icon: 'error' });
+        Swal.fire({ title: {{ _('خطأ')|tojson }}, text: {{ _('حدث خطأ في إرسال الرسالة')|tojson }}, icon: 'error' });
         console.error(err);
     });
 }

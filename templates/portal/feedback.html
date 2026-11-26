@@ -1,5 +1,5 @@
 {% extends "portal/base.html" %}
-{% block title %}التقييم{% endblock %}
+{% block title %}{{ _('التقييم') }}{% endblock %}
 {% block content %}
 <div class="portal-card p-4 mx-auto portal-card-centered">
   <h4 class="mb-3">{{ _(_('تقييم الخدمة')) }}</h4>
@@ -7,7 +7,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="mb-3">
       <label class="form-label" for="rating">{{ _(_('التقييم (1-5)')) }}</label>
-      <select class="form-select" name="rating" id="rating" required title="اختر التقييم">
+      <select class="form-select" name="rating" id="rating" required title="{{ _('اختر التقييم') }}">
         <option value="">{{ _(_('اختر')) }}</option>
         <option value="5">{{ _(_('5 — ممتاز')) }}</option>
         <option value="4">{{ _(_('4 — جيد جداً')) }}</option>
@@ -18,7 +18,7 @@
     </div>
     <div class="mb-3">
       <label class="form-label" for="comments">{{ _(_('ملاحظات')) }}</label>
-      <textarea class="form-control" name="comments" id="comments" rows="3" placeholder="ملاحظاتك"></textarea>
+      <textarea class="form-control" name="comments" id="comments" rows="3" placeholder="{{ _('ملاحظاتك') }}"></textarea>
     </div>
     <button type="submit" class="btn btn-primary">{{ _(_('إرسال التقييم')) }}</button>
   </form>

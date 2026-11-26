@@ -14,7 +14,7 @@
                     </h3>
                     <div class="card-tools">
                         <a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
+                            <i class="fas fa-arrow-right"></i>
                             {{ _('العودة للطابور') }}
                         </a>
                     </div>
@@ -48,16 +48,16 @@
                                                 <option value="">{{ _('اختر الزيارة') }}</option>
                                                 {% for visit in visits %}
                                                 <option value="{{ visit.id }}">
-                                                    زيارة #{{ visit.visit_number or visit.id }} - {{ visit.patient.first_name }} {{ visit.patient.last_name }}
+                                                    {{ _('زيارة') }} #{{ visit.visit_number or visit.id }} - {{ visit.patient.first_name }} {{ visit.patient.last_name }}
                                                 </option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="appointment_id">الموعد (اختياري)</label>
+                                            <label for="appointment_id">{{ _('الموعد (اختياري)') }}</label>
                                             <select class="form-control" name="appointment_id" id="appointment_id">
-                                                <option value="">اختر الموعد</option>
+                                                <option value="">{{ _('اختر الموعد') }}</option>
                                                 {% for appointment in appointments %}
                                                 <option value="{{ appointment.id }}">
                                                     {{ appointment.patient.first_name }} {{ appointment.patient.last_name }} - {{ appointment.starts_at.strftime('%Y-%m-%d') if appointment.starts_at else '' }} {{ appointment.starts_at.strftime('%H:%M') if appointment.starts_at else '' }}
@@ -73,32 +73,32 @@
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5>معلومات الطابور</h5>
+                                        <h5>{{ _('معلومات الطابور') }}</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group">
-                                            <label for="department_id">القسم *</label>
+                                            <label for="department_id">{{ _('القسم *') }}</label>
                                             <select class="form-control" name="department_id" id="department_id" required>
-                                                <option value="">اختر القسم</option>
+                                                <option value="">{{ _('اختر القسم') }}</option>
                                                 {% for department in departments %}
                                                 <option value="{{ department.id }}">{{ department.name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <label for="doctor_id">الطبيب (اختياري)</label>
+                                            <label for="doctor_id">{{ _('الطبيب (اختياري)') }}</label>
                                             <select class="form-control" name="doctor_id" id="doctor_id">
-                                                <option value="">اختر الطبيب</option>
+                                                <option value="">{{ _('اختر الطبيب') }}</option>
                                                 {% for doctor in doctors %}
                                                 <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <label for="queue_type">نوع الطابور</label>
+                                            <label for="queue_type">{{ _('نوع الطابور') }}</label>
                                             <select class="form-control" name="queue_type" id="queue_type">
-                                                <option value="normal">عادي</option>
-                                                <option value="priority">أولوية</option>
+                                                <option value="normal">{{ _('عادي') }}</option>
+                                                <option value="priority">{{ _('أولوية') }}</option>
                                                 <option value="vip">VIP</option>
                                             </select>
                                         </div>
@@ -113,7 +113,7 @@
                             <div class="col-12">
                                 <div class="card">
                                     <div class="card-header">
-                                        <h5>خيارات خاصة</h5>
+                                        <h5>{{ _('خيارات خاصة') }}</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
@@ -124,14 +124,14 @@
                                                         <input type="checkbox" class="custom-control-input" name="is_emergency" id="is_emergency">
                                                         <label class="custom-control-label" for="is_emergency">
                                                             <i class="fas fa-exclamation-triangle text-danger"></i>
-                                                            حالة طوارئ
+                                                            {{ _('حالة طوارئ') }}
                                                         </label>
                                                     </div>
                                                 </div>
                                                 
                                                 <div class="form-group d-none">
-                                                    <label for="emergency_reason">سبب الطوارئ</label>
-                                                    <textarea class="form-control" name="emergency_reason" id="emergency_reason" rows="3" placeholder="أدخل سبب الطوارئ..."></textarea>
+                                                    <label for="emergency_reason">{{ _('سبب الطوارئ') }}</label>
+                                                    <textarea class="form-control" name="emergency_reason" id="emergency_reason" rows="3" placeholder="{{ _('أدخل سبب الطوارئ...') }}"></textarea>
                                                 </div>
                                             </div>
                                             
@@ -142,14 +142,14 @@
                                                         <input type="checkbox" class="custom-control-input" name="force_entry" id="force_entry">
                                                         <label class="custom-control-label" for="force_entry">
                                                             <i class="fas fa-key text-warning"></i>
-                                                            دخول قوي
+                                                            {{ _('دخول قوي') }}
                                                         </label>
                                                     </div>
                                                 </div>
                                                 
                                                 <div class="form-group d-none">
-                                                    <label for="force_entry_reason">سبب الدخول القوي</label>
-                                                    <textarea class="form-control" name="force_entry_reason" id="force_entry_reason" rows="3" placeholder="أدخل سبب الدخول القوي..."></textarea>
+                                                    <label for="force_entry_reason">{{ _('سبب الدخول القوي') }}</label>
+                                                    <textarea class="form-control" name="force_entry_reason" id="force_entry_reason" rows="3" placeholder="{{ _('أدخل سبب الدخول القوي...') }}"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -158,20 +158,20 @@
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="payment_status">حالة الدفع</label>
+                                                    <label for="payment_status">{{ _('حالة الدفع') }}</label>
                                                     <select class="form-control" name="payment_status" id="payment_status">
-                                                        <option value="PENDING">في الانتظار</option>
-                                                        <option value="PAID">مدفوع</option>
-                                                        <option value="PARTIAL">جزئي</option>
-                                                        <option value="DEBT">دين</option>
+                                                        <option value="PENDING">{{ _('في الانتظار') }}</option>
+                                                        <option value="PAID">{{ _('مدفوع') }}</option>
+                                                        <option value="PARTIAL">{{ _('جزئي') }}</option>
+                                                        <option value="DEBT">{{ _('دين') }}</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="notes">ملاحظات إضافية</label>
-                                                    <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="أدخل أي ملاحظات إضافية..."></textarea>
+                                                    <label for="notes">{{ _('ملاحظات إضافية') }}</label>
+                                                    <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="{{ _('أدخل أي ملاحظات إضافية...') }}"></textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -187,11 +187,11 @@
                                     <div class="card-body text-center">
                                         <button type="submit" class="btn btn-primary btn-lg">
                                             <i class="fas fa-plus"></i>
-                                            إضافة للطابور
+                                            {{ _('إضافة للطابور') }}
                                         </button>
                                         <a href="{{ url_for('reception.queue_management') }}" class="btn btn-secondary btn-lg">
                                             <i class="fas fa-times"></i>
-                                            إلغاء
+                                            {{ _('إلغاء') }}
                                         </a>
                                     </div>
                                 </div>
@@ -209,8 +209,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">تأكيد الإضافة للطابور</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title">{{ _('تأكيد الإضافة للطابور') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <div class="modal-body">
                 <div id="confirmInfo">
@@ -218,10 +218,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
                 <button type="button" class="btn btn-primary" data-action="submitForm">
                     <i class="fas fa-check"></i>
-                    تأكيد الإضافة
+                    {{ _('تأكيد الإضافة') }}
                 </button>
             </div>
         </div>

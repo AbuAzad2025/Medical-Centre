@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}عرض حالة الطوارئ - النظام الصحي المتكامل{% endblock %}
+{% block title %}{{ _('عرض حالة الطوارئ') }} - {{ _('النظام الصحي المتكامل') }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -200,7 +200,7 @@
                 <h5><i class="fas fa-user"></i> {{ _(_('معلومات المريض')) }}</h5>
                 <div class="info-item">
                     <strong>{{ _(_('اسم المريض:')) }}</strong>
-                    <span>{% if module_active('reception') %}<a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}">{{ emergency.patient.name }}</a>{% endif %}</span>
+                    <span>{% if module_active('reception') %}<a href="{{ url_for('reception.view_patient', patient_id=emergency.patient.id) }}">{{ emergency.patient.name }}</a>{% else %}<bdi>{{ emergency.patient.name }}</bdi>{% endif %}</span>
                 </div>
                 <div class="info-item">
                     <strong>{{ _(_('رقم الهاتف:')) }}</strong>
@@ -245,13 +245,13 @@
                     <strong>{{ _(_('الأولوية:')) }}</strong>
                     <span class="priority-badge priority-{{ emergency.priority }}">
                         {% if emergency.priority == 'critical' %}
-                            حرجة
+                            {{ _('حرجة') }}
                         {% elif emergency.priority == 'high' %}
-                            عالية
+                            {{ _('عالية') }}
                         {% elif emergency.priority == 'medium' %}
-                            متوسطة
+                            {{ _('متوسطة') }}
                         {% elif emergency.priority == 'low' %}
-                            منخفضة
+                            {{ _('منخفضة') }}
                         {% else %}
                             {{ emergency.priority }}
                         {% endif %}
@@ -268,11 +268,11 @@
                     {% endif %}
                     <span class="status-badge {{ status_class }}">
                         {% if st == 'COMPLETED' %}
-                            محلول
+                            {{ _('محلول') }}
                         {% elif st == 'TRANSFERRED' %}
-                            منقول
+                            {{ _('منقول') }}
                         {% else %}
-                            نشط
+                            {{ _('نشط') }}
                         {% endif %}
                     </span>
                 </div>
@@ -384,10 +384,10 @@
                     <div class="timeline-item">
                         <div class="timeline-content">
                             <div class="timeline-time">{{ row.item.created_at.strftime('%Y-%m-%d %H:%M') if row.item.created_at else _('غير محدد') }}</div>
-                            <div class="timeline-title">{{ row.item.to_status }}</div>
+                            <div class="timeline-title">{{ row.item.to_status | enum_label('EmergencyStatus') }}</div>
                             <div class="timeline-description">
-                                {% if row.item.from_status %}من {{ row.item.from_status }}{% else %}بداية الحالة{% endif %}
-                                {% if row.duration_minutes is not none %} • {{ row.duration_minutes }} دقيقة{% endif %}
+                                {% if row.item.from_status %}{{ _('من') }} {{ row.item.from_status | enum_label('EmergencyStatus') }}{% else %}{{ _('بداية الحالة') }}{% endif %}
+                                {% if row.duration_minutes is not none %} • {{ row.duration_minutes }} {{ _('دقيقة') }}{% endif %}
                             </div>
                         </div>
                     </div>
@@ -415,7 +415,7 @@
                     {% if emergency.status in ['WAITING', 'TRIAGE', 'RESUSCITATION', 'TREATMENT', 'OBSERVATION'] %}
                     <form method="POST" action="{{ url_for('emergency.resolve_emergency_case', id=emergency.id) }}" class="d-inline">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-outline-info w-100" onclick="return confirmSubmit(event, _('هل أنت متأكد من حل هذه الحالة؟'))">
+                        <button type="submit" class="btn btn-outline-info w-100" data-action="confirm-submit" data-message="{{ _('هل أنت متأكد من حل هذه الحالة؟') }}">
                             <i class="fas fa-check"></i> {{ _(_('حل الحالة')) }}
                         </button>
                     </form>

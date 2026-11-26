@@ -192,18 +192,30 @@ body.clinical-theme {
   min-width: 0 !important;
 }
 
-/* The platform shell pins .owner-sidebar with inset-inline-end, so the main
-   area must be offset on the same logical side (not the opposite one). */
+/* ONE shell geometry for every page: the sidebar is always on the inline-start
+   side (right in Arabic), starts below the measured navbar, and the main area
+   reserves exactly that width. --shell-navbar-h is set by base.js. */
 
-body.platform-theme .main-container {
-  margin-inline: 0 var(--owner-sidebar-width, 280px) !important;
+:root {
+  --shell-navbar-h: 64px;
+  --shell-sidebar-w: 260px;
 }
 
-/* owner/base.html pages use platform_shell with a .clinical-sidebar pinned on
-   the inline-start side; the usual owner-modern offset would be mirrored. */
+body:has(aside.owner-sidebar) {
+  --shell-sidebar-w: 280px;
+}
 
-body.platform-theme:has(aside.clinical-sidebar) .main-container {
-  margin-inline: var(--sidebar-width, 260px) 0 !important;
+.clinical-sidebar,
+.owner-sidebar,
+.portal-sidebar {
+  inset-inline: 0 auto !important;
+  top: var(--shell-navbar-h) !important;
+  z-index: 1040 !important;
+  height: calc(100vh - var(--shell-navbar-h)) !important;
+}
+
+.main-container {
+  margin-inline: var(--shell-sidebar-w) 0 !important;
 }
 
 .main-container > [class*='container'],
@@ -212,6 +224,10 @@ body.platform-theme:has(aside.clinical-sidebar) .main-container {
 }
 
 @media (width <= 991.98px) {
+  .main-container {
+    margin-inline-start: 0 !important;
+  }
+
   body.clinical-theme .clinical-sidebar:not(.show) {
     display: none;
   }

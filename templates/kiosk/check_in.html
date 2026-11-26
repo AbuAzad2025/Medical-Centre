@@ -1,6 +1,6 @@
 {% extends "layouts/kiosk_shell.html" %}
 
-{% block title %}تسجيل الوصول{% endblock %}
+{% block title %}{{ _('تسجيل الوصول') }}{% endblock %}
 
 {% block content %}
 <div class="kiosk-checkin text-center">
@@ -10,16 +10,16 @@
   <div class="kiosk-checkin__panel mx-auto">
     <label for="nationalId" class="form-label visually-hidden">{{ _(_('رقم الهوية')) }}</label>
     <input type="text" id="nationalId" class="form-control form-control-lg text-center mb-3 kiosk-key"
-           inputmode="numeric" autocomplete="off" placeholder="رقم الهوية" maxlength="32">
+           inputmode="numeric" autocomplete="off" placeholder="{{ _('رقم الهوية') }}" maxlength="32">
 
-    <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="لوحة أرقام"></div>
+    <div class="kiosk-keypad mb-3" id="kioskKeypad" aria-label="{{ _('لوحة أرقام') }}"></div>
 
     <button type="button" class="btn btn-primary btn-lg w-100 kiosk-key" id="kioskSubmit"
             data-api-url="{{ url_for('kiosk.api_check_in') }}">
       <i class="fas fa-check me-2"></i>{{ _(_('تسجيل الوصول')) }}
     </button>
 
-    <div id="kioskResult" class="mt-4" hidden></div>
+    <div id="kioskResult" class="mt-4" role="status" aria-live="polite" hidden></div>
   </div>
 </div>
 {% endblock %}

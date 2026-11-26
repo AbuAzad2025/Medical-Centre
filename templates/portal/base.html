@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ current_locale }}" dir="{{ 'rtl' if current_locale == 'ar' else 'ltr' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="{{ url_for('pwa.manifest') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/icon-192x192.png') }}">
-  <title>{% block title %}بوابة المريض{% endblock %} — {{ ui.organization_name if ui else 'Azad Medical' }}</title>
+  <title>{% block title %}{{ _('بوابة المريض') }}{% endblock %} — {{ ui.organization_name if ui else 'Azad Medical' }}</title>
 
     {{ stylesheets('portal') }}
 
@@ -26,8 +26,8 @@
 </head>
 <body class="clinical-theme portal-theme" data-bs-theme="light">
     <a href="#portalMainContent" class="skip-link" tabindex="0">{{ _(_('الانتقال للمحتوى الرئيسي')) }}</a>
-<nav class="portal-navbar d-flex justify-content-between align-items-center" role="navigation" aria-label="شريط التنقل الرئيسي">
-  <a href="{{ url_for('portal.dashboard') }}" class="d-flex align-items-center gap-2" aria-label="الرئيسية">
+<nav class="portal-navbar d-flex justify-content-between align-items-center" role="navigation" aria-label="{{ _('شريط التنقل الرئيسي') }}">
+  <a href="{{ url_for('portal.dashboard') }}" class="d-flex align-items-center gap-2" aria-label="{{ _('الرئيسية') }}">
     {% if ui and ui.logo_url %}
     <img src="{{ ui.logo_url }}" alt="" class="portal-logo" loading="lazy">
     {% endif %}
@@ -36,7 +36,7 @@
   </a>
   <div class="d-flex gap-3 align-items-center">
     <span class="small d-none d-md-inline">{{ current_user.full_name }}</span>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light" aria-label="تسجيل الخروج">
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-light" aria-label="{{ _('تسجيل الخروج') }}">
       <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
     </a>
   </div>
@@ -45,7 +45,7 @@
 <div class="container-fluid portal-layout">
   <div class="row g-0">
     <div class="col-lg-2 portal-sidebar py-3 d-none d-lg-block">
-      <nav class="nav flex-column" aria-label="تنقل المريض">
+      <nav class="nav flex-column" aria-label="{{ _('تنقل المريض') }}">
         <a class="nav-link {% if request.endpoint == 'portal.dashboard' %}active{% endif %}" href="{{ url_for('portal.dashboard') }}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home me-2" aria-hidden="true"></i>{{ _(_('الرئيسية')) }}</a>
         <a class="nav-link {% if request.endpoint == 'portal.appointments' %}active{% endif %}" href="{{ url_for('portal.appointments') }}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar me-2" aria-hidden="true"></i>{{ _(_('المواعيد')) }}</a>
         <a class="nav-link {% if request.endpoint == 'portal.medical_records' %}active{% endif %}" href="{{ url_for('portal.medical_records') }}" {% if request.endpoint == 'portal.medical_records' %}aria-current="page"{% endif %}><i class="fas fa-file-medical me-2" aria-hidden="true"></i>{{ _(_('السجل الطبي')) }}</a>
@@ -70,7 +70,7 @@
   </div>
 </div>
 
-<nav class="portal-bottom-nav" aria-label="تنقل سريع" role="navigation">
+<nav class="portal-bottom-nav" aria-label="{{ _('تنقل سريع') }}" role="navigation">
   <a href="{{ url_for('portal.dashboard') }}" class="{% if request.endpoint == 'portal.dashboard' %}active{% endif %}" {% if request.endpoint == 'portal.dashboard' %}aria-current="page"{% endif %}><i class="fas fa-home" aria-hidden="true"></i>{{ _(_('الرئيسية')) }}</a>
   <a href="{{ url_for('portal.appointments') }}" class="{% if request.endpoint == 'portal.appointments' %}active{% endif %}" {% if request.endpoint == 'portal.appointments' %}aria-current="page"{% endif %}><i class="fas fa-calendar" aria-hidden="true"></i>{{ _(_('مواعيد')) }}</a>
   <a href="{{ url_for('portal.lab_results') }}" class="{% if request.endpoint == 'portal.lab_results' %}active{% endif %}" {% if request.endpoint == 'portal.lab_results' %}aria-current="page"{% endif %}><i class="fas fa-flask" aria-hidden="true"></i>{{ _(_('مختبر')) }}</a>

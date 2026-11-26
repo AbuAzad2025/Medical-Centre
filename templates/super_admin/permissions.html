@@ -21,7 +21,7 @@
         </div>
     </div>
     <div class="card-body">
-        <div class="table-container">
+        <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
@@ -42,10 +42,10 @@
                             <td>{{ permission.created_at.strftime('%Y-%m-%d') if permission.created_at else '-' }}</td>
                             <td>
                                 <div class="btn-group btn-group-sm shadow-sm" role="group">
-                                    <button class="btn btn-primary" data-action="editPermission" data-permission-id="{{ permission.id }}" title="تعديل الصلاحية">
+                                    <button class="btn btn-primary" data-action="editPermission" data-permission-id="{{ permission.id }}" title="{{ _('تعديل الصلاحية') }}">
                                         <i class="fas fa-edit"></i> <span class="btn-label">{{ _('تعديل') }}</span>
                                     </button>
-                                    <button class="btn btn-danger" data-action="deletePermission" data-permission-id="{{ permission.id }}" title="حذف الصلاحية">
+                                    <button class="btn btn-danger" data-action="deletePermission" data-permission-id="{{ permission.id }}" title="{{ _('حذف الصلاحية') }}">
                                         <i class="fas fa-trash-alt"></i> <span class="btn-label">{{ _('حذف') }}</span>
                                     </button>
                                 </div>
@@ -71,7 +71,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3 id="modalTitle">{{ _(_('إضافة صلاحية جديدة')) }}</h3>
-            <button type="button" class="btn-close" data-action="close-modal" aria-label="إغلاق"></button>
+            <button type="button" class="btn-close" data-action="close-modal" aria-label="{{ _('إغلاق') }}"></button>
         </div>
         <div class="modal-body">
             <form id="permissionForm" method="POST" action="{{ url_for('super_admin.create_permission') }}">

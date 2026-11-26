@@ -187,7 +187,7 @@ def settlements():
             selected_month=month,
         )
     except Exception:
-        logging.exception('Error in settlements: %s')
+        logging.exception('Error in settlements')
         flash('حدث خطأ في تحميل التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -302,7 +302,7 @@ def settlements_export():
             headers={'Content-Disposition': f'attachment; filename={filename}'},
         )
     except Exception:
-        logging.exception('Error exporting settlements: %s')
+        logging.exception('Error exporting settlements')
         flash('حدث خطأ في تصدير التسويات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -342,7 +342,7 @@ def budget_dashboard():
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error saving budget: %s')
+            logging.exception('Error saving budget')
             flash('حدث خطأ أثناء حفظ الميزانية', 'error')
             return redirect(url_for('manager.budget_dashboard', year=year, month=month))
 
@@ -499,7 +499,7 @@ def exchange_rates():
             )
             flash(f'تم تحديث سعر الصرف {from_currency} → {to_currency}', 'success')
         except Exception:
-            logging.exception('Error saving exchange rate: %s')
+            logging.exception('Error saving exchange rate')
             flash('حدث خطأ أثناء حفظ سعر الصرف', 'error')
         return redirect(url_for('manager.exchange_rates'))
 
@@ -565,6 +565,6 @@ def deactivate_exchange_rate(rate_id):
         flash(f'تم تعطيل سعر {rate.from_currency} → {rate.to_currency}', 'success')
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error deactivating exchange rate: %s')
+        logging.exception('Error deactivating exchange rate')
         flash('حدث خطأ أثناء تعطيل سعر الصرف', 'error')
     return redirect(url_for('manager.exchange_rates'))

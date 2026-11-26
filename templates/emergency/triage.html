@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}فرز المريض - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}{{ _('فرز المريض') }} - <bdi>{{ visit.patient.full_name }}</bdi>{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -30,7 +30,7 @@
                                     <div class="card-body">
                                         <h6 class="text-info">{{ _(_('بيانات المريض')) }}</h6>
                                         <p><strong>{{ _(_('الاسم:')) }}</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} سنة</p>
+                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}</p>
                                         <p><strong>{{ _(_('الجنس:')) }}</strong> {{ visit.patient.get_gender_display() }}</p>
                                         <p><strong>{{ _(_('رقم الزيارة:')) }}</strong> {{ visit.visit_id_number or visit.id }}</p>
                                     </div>
@@ -78,7 +78,7 @@
                                 <div class="form-group">
                                     <label for="chief_complaint">{{ _(_('الشكوى الرئيسية')) }}</label>
                                     <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
-                                              placeholder="أدخل الشكوى الرئيسية للمريض" required></textarea>
+                                              placeholder="{{ _('أدخل الشكوى الرئيسية للمريض') }}" required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                                 <div class="form-group">
                                     <label for="triage_notes">{{ _(_('ملاحظات الفرز')) }}</label>
                                     <textarea class="form-control" id="triage_notes" name="triage_notes" rows="4" 
-                                              placeholder="أدخل ملاحظات الفرز والتقييم الأولي"></textarea>
+                                              placeholder="{{ _('أدخل ملاحظات الفرز والتقييم الأولي') }}"></textarea>
                                 </div>
                             </div>
                         </div>

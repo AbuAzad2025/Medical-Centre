@@ -71,7 +71,7 @@ def medical_history(patient_id):
             previous_visits=previous_visits,
         )
     except Exception:
-        logging.exception('Error loading medical history: %s')
+        logging.exception('Error loading medical history')
         flash('حدث خطأ في تحميل السجل الطبي', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -111,7 +111,7 @@ def prescriptions_history(patient_id):
             'doctor/prescriptions_history.html', patient=patient, prescriptions=prescriptions
         )
     except Exception:
-        logging.exception('Error loading prescriptions history: %s')
+        logging.exception('Error loading prescriptions history')
         flash('حدث خطأ في تحميل تاريخ الوصفات', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -148,7 +148,7 @@ def print_medical_report(visit_id):
             'print/doctor_medical_report.html', visit=visit, qr_data_uri=qr_data_uri
         )
     except Exception:
-        logging.exception('Error printing medical report: %s')
+        logging.exception('Error printing medical report')
         flash('حدث خطأ في طباعة التقرير الطبي', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -209,7 +209,7 @@ def patients():
 
         return render_template('doctor/patients.html', q=q, results=results)
     except Exception:
-        logging.exception('Error loading doctor patients search: %s')
+        logging.exception('Error loading doctor patients search')
         flash('حدث خطأ في تحميل البحث عن المرضى', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -248,7 +248,7 @@ def patient_timeline(patient_id: int):
             event_summary=summary,
         )
     except Exception:
-        logging.exception('Error in patient timeline: %s')
+        logging.exception('Error in patient timeline')
         flash('حدث خطأ في تحميل الخط الزمني', 'error')
         return redirect(url_for('doctor.patients'))
 
@@ -411,5 +411,5 @@ def save_dental_chart():
         return jsonify({'success': True, 'chart_id': chart.id})
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error saving dental chart: %s')
+        logging.exception('Error saving dental chart')
         return jsonify({'success': False, 'message': 'تعذّر حفظ خريطة الأسنان'}), 500

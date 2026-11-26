@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}المتابعات - الاستقبال{% endblock %}
+{% block title %}{{ _('المتابعات') }} - {{ _('الاستقبال') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,7 +10,7 @@
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-5">
       <label class="form-label">{{ _(_('البحث')) }}</label>
-      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="اسم، هاتف، هوية">
+      <input class="form-control" name="search" value="{{ search or '' }}" placeholder="{{ _('اسم، هاتف، هوية') }}">
     </div>
     <div class="col-md-3">
       <label class="form-label">{{ _('الحالة') }}</label>
@@ -27,13 +27,13 @@
       <input type="date" class="form-control" name="date" value="{{ selected_date or '' }}">
     </div>
     <div class="col-md-1 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit" title="تصفية" aria-label="تصفية المتابعات"><i class="fas fa-filter"></i> <span class="btn-label">{{ _('تصفية') }}</span></button>
+      <button class="btn btn-primary w-100" type="submit" title="{{ _('تصفية') }}" aria-label="{{ _('تصفية المتابعات') }}"><i class="fas fa-filter" aria-hidden="true"></i></button>
     </div>
   </form>
 
   <div class="card shadow">
     <div class="card-header py-3">
-      <h6 class="m-0 fw-bold text-primary">قائمة المتابعات ({{ followups|length }})</h6>
+      <h6 class="m-0 fw-bold text-primary">{{ _('قائمة المتابعات') }} ({{ followups|length }})</h6>
     </div>
     <div class="card-body">
       <div class="table-responsive">

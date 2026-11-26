@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}رضا المرضى{% endblock %}
+{% block title %}{{ _('رضا المرضى') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
     <h4 class="mb-3"><i class="fas fa-smile me-2 text-warning"></i>{{ _(_('لوحة رضا المرضى')) }}</h4>
@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-info text-white">
+            <div class="card bg-info text-dark">
                 <div class="card-body text-center">
                     <h2>{{ avg_score }}</h2>
                     <small>{{ _(_('متوسط الرضا (1-10)')) }}</small>
@@ -29,7 +29,7 @@
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card bg-{{ 'success' if nps >= 50 else 'warning' if nps >= 0 else 'danger' }} text-white">
+            <div class="card bg-{{ 'success' if nps >= 50 else 'warning' if nps >= 0 else 'danger' }} {{ 'text-dark' if 0 <= nps < 50 else 'text-white' }}">
                 <div class="card-body text-center">
                     <h2>{{ nps }}</h2>
                     <small>{{ _(_('مؤشر NPS')) }}</small>
@@ -40,6 +40,7 @@
     <div class="card">
         <div class="card-header">{{ _(_('آخر الاستبيانات')) }}</div>
         <div class="card-body p-0">
+            <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('الزيارة')) }}</th><th>{{ _(_('الرضا')) }}</th><th>{{ _(_('التوصية')) }}</th><th>{{ _(_('ملاحظات')) }}</th></tr></thead>
                 <tbody>
@@ -56,6 +57,7 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>

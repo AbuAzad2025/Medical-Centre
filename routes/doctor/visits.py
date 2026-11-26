@@ -137,7 +137,7 @@ def start_treatment(visit_id):
         flash('تم تسجيل بدء العلاج وإخطار الاستقبال', 'success')
         return redirect(url_for('doctor.patient_details', visit_id=visit_id))
     except Exception:
-        logging.exception('Error starting treatment: %s')
+        logging.exception('Error starting treatment')
         flash('حدث خطأ في بدء العلاج', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -522,7 +522,7 @@ def patient_details(visit_id):
             data_recommendations=data_recommendations,
         )
     except Exception:
-        logging.exception('Error loading patient details: %s')
+        logging.exception('Error loading patient details')
         flash('حدث خطأ في تحميل تفاصيل المريض', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -558,7 +558,7 @@ def visit_summary(visit_id):
 
         return render_template('doctor/visit_summary.html', visit=visit)
     except Exception:
-        logging.exception('Error in visit summary: %s')
+        logging.exception('Error in visit summary')
         flash('حدث خطأ في عرض ملخص الزيارة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -663,7 +663,7 @@ def save_visit_summary(visit_id):
             logging.warning(f'Error in {__name__}: {e}')
         return jsonify({'success': True})
     except Exception:
-        logging.exception('Error saving visit summary: %s')
+        logging.exception('Error saving visit summary')
         return jsonify({'success': False, 'message': 'فشل حفظ ملخص الزيارة'}), 500
 
 

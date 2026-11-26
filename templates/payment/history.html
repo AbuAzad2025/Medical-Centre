@@ -22,12 +22,12 @@
             {% for pmt in payments %}
             <tr>
               <td>{{ pmt.id }}</td>
-              <td>{{ pmt.payment_date.strftime('%Y-%m-%d %H:%M') if pmt.payment_date else (pmt.created_at.strftime('%Y-%m-%d %H:%M') if pmt.created_at else '-') }}</td>
+              <td class="text-nowrap">{{ pmt.payment_date.strftime('%Y-%m-%d %H:%M') if pmt.payment_date else (pmt.created_at.strftime('%Y-%m-%d %H:%M') if pmt.created_at else '-') }}</td>
               <td>{{ pmt.patient.full_name if pmt.patient else '-' }}</td>
               <td>{{ pmt.visit_id or '-' }}</td>
               <td>{{ pmt.method_display if pmt.method_display is defined else (pmt.method or '-') }}</td>
               <td>{{ pmt.status_display if pmt.status_display is defined else (pmt.status or '-') }}</td>
-              <td class="text-end">{{ "%.2f"|format(pmt.amount or 0) }}</td>
+              <td class="text-end text-nowrap">{{ "%.2f"|format(pmt.amount or 0) }}</td>
             </tr>
             {% else %}
             <tr><td colspan="7" class="text-center text-muted py-3">{{ _('لا توجد مدفوعات') }}</td></tr>

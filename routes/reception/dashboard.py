@@ -182,5 +182,5 @@ def survey(token):
             return render_template('reception/survey.html', survey=survey, submitted=True)
         return render_template('reception/survey.html', survey=survey)
     except Exception:
-        logging.exception('Error handling survey: %s')
+        logging.exception('Error handling survey')
         return render_template('reception/survey.html', invalid=True)

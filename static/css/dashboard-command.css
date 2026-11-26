@@ -49,6 +49,10 @@
 .cc-now-card__label { margin-top: 0.25rem; font-size: 0.85rem; color: #64748b; }
 .cc-now-card__action { margin-top: 0.5rem; font-size: 0.75rem; color: var(--color-accent, #00a6a6); }
 
+/* Direction-aware action arrow: points toward the action in both locales. */
+.cc-action-arrow::before { content: '\2192'; }
+[dir='rtl'] .cc-action-arrow::before { content: '\2190'; }
+
 .cc-quick-actions {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));

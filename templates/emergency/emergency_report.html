@@ -6,7 +6,7 @@
   <div class="card shadow-sm"><div class="card-body">
     <div>{{ _('المريض:') }} {{ emergency.patient.full_name if emergency.patient else '' }}</div>
     <div>{{ _('الحالة:') }} {{ emergency.status | enum_label('EmergencyStatus') }}</div>
-    <div>{{ _('الأولوية:') }} {{ emergency.priority }}</div>
+    <div>{{ _('الأولوية:') }} {% if emergency.priority == 'critical' %}{{ _('حرج') }}{% elif emergency.priority == 'high' %}{{ _('عالي') }}{% elif emergency.priority == 'medium' %}{{ _('متوسط') }}{% elif emergency.priority == 'low' %}{{ _('منخفض') }}{% else %}{{ emergency.priority }}{% endif %}</div>
     <div>{{ _('التشخيص:') }} {{ emergency.diagnosis }}</div>
     <div>{{ _('العلاج:') }} {{ emergency.treatment_given }}</div>
   </div></div>

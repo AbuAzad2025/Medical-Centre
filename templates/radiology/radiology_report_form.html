@@ -57,6 +57,9 @@
                         <div class="col-md-6"><strong>{{ _('الطبيب الطالب:') }}</strong> {{ radiology_request.requester.full_name if radiology_request.requester else _('غير محدد') }}</div>
                     </div>
                     <hr>
+                    <form method="POST" action="{{ url_for('radiology.reports') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="request_id" value="{{ radiology_request.id }}">
                     <div class="mb-3">
                         <label class="form-label">{{ _('النتائج:') }}</label>
                         <textarea class="form-control" rows="6" name="findings">{{ radiology_result.findings if radiology_result else '' }}</textarea>
@@ -77,6 +80,7 @@
                             <i class="fas fa-print me-1"></i>{{ _('طباعة') }}
                         </button>
                     </div>
+                    </form>
                     {% else %}
                     <div class="text-center text-muted py-5">
                         <i class="fas fa-search fa-2x mb-2"></i>

@@ -52,7 +52,7 @@ def tasks():
         )
 
     except Exception:
-        logging.exception('Error loading nurse tasks: %s')
+        logging.exception('Error loading nurse tasks')
         tasks = []
         active_visits = []
         total = 0
@@ -134,7 +134,7 @@ def create_task():
         return redirect(url_for('nurse.tasks'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error creating nurse task: %s')
+        logging.exception('Error creating nurse task')
         flash('حدث خطأ أثناء إنشاء المهمة', 'error')
         return redirect(url_for('nurse.tasks'))
 
@@ -177,6 +177,6 @@ def update_task_status(task_id: int):
         return redirect(url_for('nurse.tasks'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error updating task status: %s')
+        logging.exception('Error updating task status')
         flash('حدث خطأ أثناء التحديث', 'error')
         return redirect(url_for('nurse.tasks'))

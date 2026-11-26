@@ -6,9 +6,9 @@
 
 {% block title %}
 {% if lab_request %}
-إدخال نتائج المختبر - {{ lab_request.patient.full_name }}
+{{ _('إدخال نتائج المختبر') }} - {{ lab_request.patient.full_name }}
 {% else %}
-قائمة عمل المختبر
+{{ _('قائمة عمل المختبر') }}
 {% endif %}
 {% endblock %}
 
@@ -18,11 +18,11 @@
     {{ patient_context_panel(lab_request.patient) }}
     {% if lab_request.visit %}{{ workflow_next_actions(lab_request.visit) }}{% endif %}
     {{ page_header(
-        title='إدخال نتائج المختبر',
+        title=_('إدخال نتائج المختبر'),
         subtitle=lab_request.patient.full_name ~ _(' — طلب رقم: ') ~ (lab_request.request_number or lab_request.id),
         icon='fas fa-flask',
         actions=[
-            {'url': url_for('lab.worklist'), 'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'},
+            {'url': url_for('lab.worklist'), 'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'style': 'secondary'},
             {'url': url_for('lab.print_request', id=lab_request.id), 'label': _('طباعة'), 'icon': 'fas fa-print', 'style': 'primary'}
         ]
     ) }}
@@ -33,7 +33,7 @@
                     <div class="row">
                         <div class="col-md-3"><strong>{{ _(_('الحالة:')) }}</strong> 
                             {% set st = (lab_request.status or '').upper() %}
-                            {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'COLLECTED' %}تم جمع العينة{% elif st == 'RECEIVED' %}تم الاستلام{% elif st == 'ANALYZING' %}قيد التحليل{% elif st == 'REVIEWED' %}قيد المراجعة{% elif st == 'APPROVED' %}قيد الاعتماد{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                            {% if st == 'REQUESTED' %}{{ _('قيد الطلب') }}{% elif st == 'COLLECTED' %}{{ _('تم جمع العينة') }}{% elif st == 'RECEIVED' %}{{ _('تم الاستلام') }}{% elif st == 'ANALYZING' %}{{ _('قيد التحليل') }}{% elif st == 'REVIEWED' %}{{ _('قيد المراجعة') }}{% elif st == 'APPROVED' %}{{ _('قيد الاعتماد') }}{% elif st == 'IN_PROGRESS' %}{{ _('قيد التنفيذ') }}{% elif st == 'DONE' %}{{ _('مكتمل') }}{% else %}{{ st }}{% endif %}
                         </div>
                         <div class="col-md-3"><strong>{{ _('تاريخ الطلب:') }}</strong> {{ lab_request.created_at.strftime('%Y-%m-%d %H:%M') if lab_request.created_at else '-' }}</div>
                         <div class="col-md-3"><strong>{{ _(_('الزيارة:')) }}</strong> {{ lab_request.visit_id }}</div>
@@ -113,7 +113,7 @@
                                             </td>
                                             <td>
                                                 <select class="form-control" name="is_critical[]">
-                                                    <option value="0" {% if not r.is_critical %}selected{% endif %}>لا</option>
+                                                    <option value="0" {% if not r.is_critical %}selected{% endif %}>{{ _('لا') }}</option>
                                                     <option value="1" {% if r.is_critical %}selected{% endif %}>{{ _('نعم') }}</option>
                                                 </select>
                                             </td>
@@ -141,7 +141,7 @@
                                             <td><input type="text" class="form-control" name="reference_range[]" value=""></td>
                                             <td>
                                                 <select class="form-control" name="is_critical[]">
-                                                    <option value="0" selected>لا</option>
+                                                    <option value="0" selected>{{ _('لا') }}</option>
                                                     <option value="1">{{ _('نعم') }}</option>
                                                 </select>
                                             </td>
@@ -214,7 +214,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="text" class="form-control mb-3" id="catalogSearch" placeholder="بحث ..." oninput="filterCatalog()">
+                    <input type="text" class="form-control mb-3" id="catalogSearch" placeholder="{{ _('بحث ...') }}" oninput="filterCatalog()">
                     <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                         <table class="table table-sm table-hover" id="catalogTable">
                             <thead>
@@ -239,6 +239,14 @@
 
     <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     let catalogData = [];
+    const L = {
+        add: {{ _('إضافة')|tojson }},
+        no: {{ _('لا')|tojson }},
+        yes: {{ _('نعم')|tojson }},
+        pending: {{ _('معلق')|tojson }},
+        ready: {{ _('جاهز')|tojson }},
+        validated: {{ _('معتمد')|tojson }}
+    };
 
     document.addEventListener('DOMContentLoaded', function() {
         fetch('{{ url_for("lab.api_test_catalog") }}')
@@ -275,7 +283,7 @@
                 <td>${window.escHtml(t.name_ar)}${t.name_en ? ' (' + window.escHtml(t.name_en) + ')' : ''}</td>
                 <td>${window.escHtml(t.unit || '-')}</td>
                 <td>${window.escHtml(t.default_reference_range || '-')}</td>
-                <td><button class="btn btn-sm btn-success" onclick="addFromCatalog(${t.id})">إضافة</button></td>
+                <td><button class="btn btn-sm btn-success" onclick="addFromCatalog(${t.id})">${L.add}</button></td>
             `;
             tbody.appendChild(tr);
         });
@@ -304,15 +312,15 @@
             <td><input type="text" class="form-control" name="reference_range[]" value="${window.escHtml(test.default_reference_range || '')}"></td>
             <td>
                 <select class="form-control" name="is_critical[]">
-                    <option value="0" selected>لا</option>
-                    <option value="1">نعم</option>
+                    <option value="0" selected>${L.no}</option>
+                    <option value="1">${L.yes}</option>
                 </select>
             </td>
             <td>
                 <select class="form-control" name="status[]">
-                    <option value="PENDING">معلق</option>
-                    <option value="READY">جاهز</option>
-                    <option value="VALIDATED">معتمد</option>
+                    <option value="PENDING">${L.pending}</option>
+                    <option value="READY">${L.ready}</option>
+                    <option value="VALIDATED">${L.validated}</option>
                 </select>
             </td>
             <td><input type="text" class="form-control" name="notes[]" value=""></td>
@@ -370,7 +378,7 @@
                                         <td>
                                             {% set st = (r.status or '').upper() %}
                                             <span class="badge {% if st == 'REQUESTED' %}bg-info{% elif st == 'COLLECTED' %}bg-info{% elif st in ['RECEIVED','ANALYZING','REVIEWED','APPROVED','IN_PROGRESS'] %}bg-warning{% elif st == 'DONE' %}bg-success{% else %}bg-secondary{% endif %}">
-                                                {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'COLLECTED' %}تم جمع العينة{% elif st == 'RECEIVED' %}تم الاستلام{% elif st == 'ANALYZING' %}قيد التحليل{% elif st == 'REVIEWED' %}قيد المراجعة{% elif st == 'APPROVED' %}قيد الاعتماد{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                                                {% if st == 'REQUESTED' %}{{ _('قيد الطلب') }}{% elif st == 'COLLECTED' %}{{ _('تم جمع العينة') }}{% elif st == 'RECEIVED' %}{{ _('تم الاستلام') }}{% elif st == 'ANALYZING' %}{{ _('قيد التحليل') }}{% elif st == 'REVIEWED' %}{{ _('قيد المراجعة') }}{% elif st == 'APPROVED' %}{{ _('قيد الاعتماد') }}{% elif st == 'IN_PROGRESS' %}{{ _('قيد التنفيذ') }}{% elif st == 'DONE' %}{{ _('مكتمل') }}{% else %}{{ st }}{% endif %}
                                             </span>
                                         </td>
                                         <td class="text-end">

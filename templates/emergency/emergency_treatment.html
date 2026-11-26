@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}علاج إسعافي - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}{{ _('علاج إسعافي') }} - <bdi>{{ visit.patient.full_name }}</bdi>{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -29,7 +29,7 @@
                                     <div class="card-body">
                                         <h6 class="text-info">{{ _(_('بيانات المريض')) }}</h6>
                                         <p><strong>{{ _(_('الاسم:')) }}</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} سنة</p>
+                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}</p>
                                         <p><strong>{{ _(_('الجنس:')) }}</strong> {{ visit.patient.get_gender_display() }}</p>
                                         <p><strong>{{ _(_('رقم الزيارة:')) }}</strong> {{ visit.visit_id_number or visit.id }}</p>
                                     </div>
@@ -68,7 +68,7 @@
                                 <div class="form-group">
                                     <label for="emergency_diagnosis">{{ _(_('التشخيص الأولي')) }}</label>
                                     <textarea class="form-control" id="emergency_diagnosis" name="emergency_diagnosis" rows="3" 
-                                              placeholder="أدخل التشخيص الإسعافي الأولي" required></textarea>
+                                              placeholder="{{ _('أدخل التشخيص الإسعافي الأولي') }}" required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -85,7 +85,7 @@
                                 <div class="form-group">
                                     <label for="emergency_treatment">{{ _(_('الإجراءات المطبقة')) }}</label>
                                     <textarea class="form-control" id="emergency_treatment" name="emergency_treatment" rows="4" 
-                                              placeholder="أدخل الإجراءات الإسعافية المطبقة" required></textarea>
+                                              placeholder="{{ _('أدخل الإجراءات الإسعافية المطبقة') }}" required></textarea>
                                 </div>
                             </div>
                         </div>
@@ -102,7 +102,7 @@
                                 <div class="form-group">
                                     <label for="emergency_medications">{{ _(_('الأدوية المعطاة')) }}</label>
                                     <textarea class="form-control" id="emergency_medications" name="emergency_medications" rows="3" 
-                                              placeholder="أدخل الأدوية الإسعافية المعطاة"></textarea>
+                                              placeholder="{{ _('أدخل الأدوية الإسعافية المعطاة') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +171,7 @@
                                 <div class="form-group">
                                     <label for="emergency_notes">{{ _(_('ملاحظات إسعافية')) }}</label>
                                     <textarea class="form-control" id="emergency_notes" name="emergency_notes" rows="4" 
-                                              placeholder="أدخل الملاحظات الإسعافية الإضافية"></textarea>
+                                              placeholder="{{ _('أدخل الملاحظات الإسعافية الإضافية') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +188,7 @@
                                 <div class="form-group">
                                     <label for="follow_up_recommendations">{{ _(_('توصيات المتابعة')) }}</label>
                                     <textarea class="form-control" id="follow_up_recommendations" name="follow_up_recommendations" rows="3" 
-                                              placeholder="أدخل توصيات المتابعة"></textarea>
+                                              placeholder="{{ _('أدخل توصيات المتابعة') }}"></textarea>
                                 </div>
                             </div>
                         </div>

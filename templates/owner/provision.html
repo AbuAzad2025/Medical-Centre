@@ -1,15 +1,15 @@
 {% extends "owner/base_modern.html" %}
-{% block title %} provisioning - SaaS{% endblock %}
+{% block title %}{{ _('توفير عميل جديد') }} — SaaS{% endblock %}
 
-{% block header_title %} provisioning {% endblock %}
+{% block header_title %}{{ _('توفير عميل جديد') }}{% endblock %}
 
 {% block header_actions %}
 <div class="d-flex gap-2">
     <a href="{{ url_for('owner.owner_subscriptions') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-list"></i> Subscriptions
+        <i class="fas fa-list"></i> {{ _('الاشتراكات') }}
     </a>
     <a href="{{ url_for('owner.owner_packages') }}" class="owner-btn owner-btn-outline">
-        <i class="fas fa-box"></i> Packages
+        <i class="fas fa-box"></i> {{ _('الباقات') }}
     </a>
 </div>
 {% endblock %}
@@ -17,30 +17,30 @@
 {% block content_modern %}
 <div class="owner-card">
     <div class="owner-card-header">
-        <h6 class="owner-card-title"><i class="fas fa-plus-circle text-success"></i> SaaS Provisioning — إنشاء عميل جديد</h6>
+        <h6 class="owner-card-title"><i class="fas fa-plus-circle text-success"></i> SaaS — {{ _('توفير عميل جديد') }}</h6>
     </div>
     <div class="owner-card-body">
         <form method="post" action="{{ url_for('owner.owner_provision') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <h6 class="text-primary mb-3"><i class="fas fa-building me-2"></i>Tenant Information</h6>
+            <h6 class="text-primary mb-3"><i class="fas fa-building me-2"></i>{{ _('معلومات العميل') }}</h6>
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Tenant Name *</label>
-                    <input type="text" name="name" class="form-control" required placeholder="e.g. Al-Noor Clinic">
+                    <label class="form-label fw-bold">{{ _('اسم العميل') }} *</label>
+                    <input type="text" name="name" class="form-control" required placeholder="{{ _('مثال: عيادة النور') }}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Slug * <small class="text-muted">(URL identifier)</small></label>
+                    <label class="form-label fw-bold">{{ _('المعرّف') }} * <small class="text-muted">({{ _('معرّف URL') }})</small></label>
                     <input type="text" name="slug" class="form-control" required placeholder="al-noor-clinic" pattern="[a-z0-9][a-z0-9-]{2,79}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Contact Email *</label>
+                    <label class="form-label fw-bold">{{ _('البريد الإلكتروني للتواصل') }} *</label>
                     <input type="email" name="contact_email" class="form-control" required placeholder="admin@clinic.com">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Product Profile</label>
+                    <label class="form-label fw-bold">{{ _('ملف المنتج') }}</label>
                     <select name="product_profile_code" class="form-select">
-                        <option value="">-- None --</option>
+                        <option value="">{{ _('— لا شيء —') }}</option>
                         {% for p in profiles %}
                         <option value="{{ p.value }}">{{ p.value.replace('_', ' ').title() }}</option>
                         {% endfor %}
@@ -48,49 +48,49 @@
                 </div>
             </div>
 
-            <h6 class="text-primary mb-3"><i class="fas fa-box me-2"></i>Package & Billing</h6>
+            <h6 class="text-primary mb-3"><i class="fas fa-box me-2"></i>{{ _('الباقة والفوترة') }}</h6>
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Package Version *</label>
+                    <label class="form-label fw-bold">{{ _('إصدار الباقة') }} *</label>
                     <select name="package_version_id" class="form-select" required>
-                        <option value="">-- Select Package --</option>
+                        <option value="">{{ _('— اختر الباقة —') }}</option>
                         {% for v in package_versions %}
                         {% set mods = v.entitlements|map(attribute='module_name')|list %}
                         <option value="{{ v.id }}">
-                            {{ v.package.name }} v{{ v.version }} ({{ v.package.category }}) — modules: {{ mods|unique|join(', ') }}
+                            {{ v.package.name }} v{{ v.version }} ({{ v.package.category }}) — {{ _('الوحدات') }}: {{ mods|unique|join(', ') }}
                         </option>
                         {% endfor %}
                     </select>
-                    <small class="text-muted">Modules included in the package will be auto-activated.</small>
+                    <small class="text-muted">{{ _('سيتم تفعيل الوحدات المضمنة في الباقة تلقائياً.') }}</small>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label fw-bold">Billing Type *</label>
+                    <label class="form-label fw-bold">{{ _('نوع الفوترة') }} *</label>
                     <select name="billing_type" class="form-select">
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
+                        <option value="monthly">{{ _('شهري') }}</option>
+                        <option value="yearly">{{ _('سنوي') }}</option>
                     </select>
                 </div>
             </div>
 
-            <h6 class="text-primary mb-3"><i class="fas fa-user-shield me-2"></i>Admin Account</h6>
+            <h6 class="text-primary mb-3"><i class="fas fa-user-shield me-2"></i>{{ _('حساب المدير') }}</h6>
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Username *</label>
+                    <label class="form-label fw-bold">{{ _('اسم المستخدم') }} *</label>
                     <input type="text" name="admin_username" class="form-control" required placeholder="admin">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Password *</label>
-                    <input type="text" name="admin_password" class="form-control" required placeholder="Strong password">
+                    <label class="form-label fw-bold">{{ _('كلمة المرور') }} *</label>
+                    <input type="text" name="admin_password" class="form-control" required placeholder="{{ _('كلمة مرور قوية') }}">
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label fw-bold">Full Name</label>
-                    <input type="text" name="admin_full_name" class="form-control" placeholder="Admin User">
+                    <label class="form-label fw-bold">{{ _('الاسم الكامل') }}</label>
+                    <input type="text" name="admin_full_name" class="form-control" placeholder="{{ _('اسم المدير') }}">
                 </div>
             </div>
 
             <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Provision Tenant</button>
-                <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> {{ _('توفير العميل') }}</button>
+                <a href="{{ url_for('owner.owner_subscriptions') }}" class="btn btn-outline-secondary">{{ _('إلغاء') }}</a>
             </div>
         </form>
     </div>

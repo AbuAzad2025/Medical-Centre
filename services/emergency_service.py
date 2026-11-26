@@ -258,7 +258,7 @@ class EmergencyService:
             db.session.rollback()
             return None
         except Exception:
-            logging.exception('Error creating emergency case: %s')
+            logging.exception('Error creating emergency case')
             db.session.rollback()
             return None
 

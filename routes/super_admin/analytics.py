@@ -99,7 +99,7 @@ def performance():
     try:
         return render_template('super_admin/performance.html')
     except Exception:
-        logging.exception('Performance monitoring error: %s')
+        logging.exception('Performance monitoring error')
         flash('حدث خطأ في تحميل مراقبة الأداء', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -202,7 +202,7 @@ def reports():
             result=result,
         )
     except Exception:
-        logging.exception('Reports error: %s')
+        logging.exception('Reports error')
         return render_template(
             'super_admin/reports.html',
             report='',
@@ -330,7 +330,7 @@ def analytics():
             recent_audit=recent_items,
         )
     except Exception:
-        logging.exception('Analytics error: %s')
+        logging.exception('Analytics error')
         return render_template(
             'super_admin/analytics.html',
             stats={
@@ -356,7 +356,7 @@ def get_total_users():
 
         return db.session.execute(select(func.count()).select_from(User)).scalar()
     except Exception:
-        logging.exception('get_total_users failed: %s')
+        logging.exception('get_total_users failed')
         return 0
 
 
@@ -365,7 +365,7 @@ def get_active_sessions():
     try:
         return get_active_users()
     except Exception:
-        logging.exception('get_active_sessions failed: %s')
+        logging.exception('get_active_sessions failed')
         return 0
 
 
@@ -380,7 +380,7 @@ def get_security_events():
             .filter(AuditTrail.action.in_(['login', 'logout', 'security']))
         ).scalar()
     except Exception:
-        logging.exception('get_security_events failed: %s')
+        logging.exception('get_security_events failed')
         return 0
 
 
@@ -398,7 +398,7 @@ def get_active_users():
             select(func.count()).select_from(User).filter_by(is_active=True)
         ).scalar()
     except Exception:
-        logging.exception('get_active_users failed: %s')
+        logging.exception('get_active_users failed')
         return 0
 
 
@@ -411,7 +411,7 @@ def get_inactive_users():
             select(func.count()).select_from(User).filter_by(is_active=False)
         ).scalar()
     except Exception:
-        logging.exception('get_inactive_users failed: %s')
+        logging.exception('get_inactive_users failed')
         return 0
 
 
@@ -424,7 +424,7 @@ def get_admin_users():
             select(func.count()).select_from(User).filter_by(is_admin=True)
         ).scalar()
     except Exception:
-        logging.exception('get_admin_users failed: %s')
+        logging.exception('get_admin_users failed')
         return 0
 
 
@@ -473,7 +473,7 @@ def get_ai_insights():
         }
 
     except Exception:
-        logging.exception('Error getting AI insights: %s')
+        logging.exception('Error getting AI insights')
         return {}
 
 
@@ -540,7 +540,7 @@ def get_smart_recommendations():
 
         return recommendations
     except Exception:
-        logging.exception('Error getting smart recommendations: %s')
+        logging.exception('Error getting smart recommendations')
         return []
 
 
@@ -607,7 +607,7 @@ def get_predictive_analytics():
             else 'declining',
         }
     except Exception:
-        logging.exception('Error getting predictive analytics: %s')
+        logging.exception('Error getting predictive analytics')
         return {}
 
 
@@ -662,7 +662,7 @@ def get_system_health_score():
             'color': 'success' if score >= 90 else 'warning' if score >= 70 else 'danger',
         }
     except Exception:
-        logging.exception('Error getting system health score: %s')
+        logging.exception('Error getting system health score')
         return {'score': 0, 'status': 'غير محدد', 'color': 'secondary'}
 
 
@@ -726,7 +726,7 @@ def get_security_threats():
 
         return threats
     except Exception:
-        logging.exception('Error getting security threats: %s')
+        logging.exception('Error getting security threats')
         return []
 
 
@@ -785,7 +785,7 @@ def get_performance_optimization():
 
         return optimizations
     except Exception:
-        logging.exception('Error getting performance optimization: %s')
+        logging.exception('Error getting performance optimization')
         return []
 
 
@@ -838,7 +838,7 @@ def get_user_behavior_analysis():
             else 0,
         }
     except Exception:
-        logging.exception('Error getting user behavior analysis: %s')
+        logging.exception('Error getting user behavior analysis')
         return {}
 
 
@@ -893,7 +893,7 @@ def get_resource_utilization():
             else 'critical',
         }
     except Exception:
-        logging.exception('Error getting resource utilization: %s')
+        logging.exception('Error getting resource utilization')
         return {}
 
 
@@ -929,7 +929,7 @@ def system_monitor():
         return render_template('super_admin/system_monitor.html', system_info=system_info)
 
     except Exception:
-        logging.exception('Error in system monitor: %s')
+        logging.exception('Error in system monitor')
         flash('حدث خطأ في مراقب النظام', 'error')
         return render_template('super_admin/system_monitor.html', system_info={})
 

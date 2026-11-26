@@ -1,20 +1,21 @@
 {% extends "base.html" %}
-{% block title %}منشئ التقارير{% endblock %}
+{% block title %}{{ _('منشئ التقارير') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">{{ _(_('منشئ التقارير المخصصة')) }}</h2>
     {% if module_active('reporting') %}
     <a href="{{ url_for('manager.reports_center') }}" class="btn btn-outline-secondary btn-sm">
-    {% endif %}      <i class="fas fa-chart-bar me-1"></i>{{ _(_('مركز التقارير')) }}
+      <i class="fas fa-chart-bar me-1"></i>{{ _(_('مركز التقارير')) }}
     </a>
+    {% endif %}
   </div>
   <div class="card animate-in">
     <div class="card-body">
       <div class="row g-3 mb-3">
         <div class="col-md-4">
           <label class="form-label" for="templateSelect">{{ _(_('قالب محفوظ')) }}</label>
-          <select class="form-select" id="templateSelect" title="تحميل قالب محفوظ">
+          <select class="form-select" id="templateSelect" title="{{ _('تحميل قالب محفوظ') }}">
             <option value="">{{ _(_('— جديد —')) }}</option>
             {% for tpl in saved_templates or [] %}
               <option value="{{ tpl.id }}" {% if active_template and active_template.id == tpl.id %}selected{% endif %}>{{ tpl.name }}</option>
@@ -23,7 +24,7 @@
         </div>
         <div class="col-md-4">
           <label class="form-label" for="templateName">{{ _(_('اسم القالب')) }}</label>
-          <input type="text" class="form-control" id="templateName" placeholder="مثال: تقرير المرضى الشهري">
+          <input type="text" class="form-control" id="templateName" placeholder="{{ _('مثال: تقرير المرضى الشهري') }}">
         </div>
         <div class="col-md-4 d-flex align-items-end gap-2">
           <button type="button" class="btn btn-success" id="saveTemplateBtn">{{ _(_('حفظ القالب')) }}</button>
@@ -33,7 +34,7 @@
       <div class="row g-3">
         <div class="col-md-3">
           <label class="form-label" for="entitySelect">{{ _(_('الكيان')) }}</label>
-          <select class="form-select" id="entitySelect" title="اختر الكيان">
+          <select class="form-select" id="entitySelect" title="{{ _('اختر الكيان') }}">
             <option value="">{{ _(_('اختر الكيان')) }}</option>
             {% for key, info in entities.items() %}
               <option value="{{ key }}" {% if active_config and active_config.entity == key %}selected{% endif %}>{{ info.label }}</option>
@@ -42,7 +43,7 @@
         </div>
         <div class="col-md-6">
           <label class="form-label" for="fieldsContainer">{{ _(_('الحقول')) }}</label>
-          <div id="fieldsContainer" class="border rounded p-2 report-fields-box" role="group" aria-label="حقول التقرير المختارة"></div>
+          <div id="fieldsContainer" class="border rounded p-2 report-fields-box" role="group" aria-label="{{ _('حقول التقرير المختارة') }}"></div>
         </div>
         <div class="col-md-2">
           <label class="form-label" for="limitInput">{{ _(_('الحد')) }}</label>

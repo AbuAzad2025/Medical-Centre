@@ -85,7 +85,7 @@ def api_audit_log():
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('API audit log error: %s')
+        logging.exception('API audit log error')
         return jsonify({'success': False, 'message': 'تعذر تسجيل الحدث حالياً'}), 500
 
 
@@ -146,7 +146,7 @@ def api_recent_activities():
         return jsonify({'success': True, 'activities': activities}), 200
 
     except Exception:
-        logging.exception('API recent activities error: %s')
+        logging.exception('API recent activities error')
         return jsonify({'success': False, 'activities': []}), 200
 
 
@@ -182,7 +182,7 @@ def api_ai_assistant():
         return jsonify({'success': True, 'response': response, 'actions': actions}), 200
 
     except Exception:
-        logging.exception('AI Assistant error: %s')
+        logging.exception('AI Assistant error')
         import traceback
 
         traceback.print_exc()

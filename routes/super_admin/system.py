@@ -311,7 +311,7 @@ def system_config():
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('System config error: %s')
+        logging.exception('System config error')
         import traceback
 
         traceback.print_exc()
@@ -410,7 +410,7 @@ def queue_settings():
         return render_template('super_admin/queue_settings.html')
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Queue settings error: %s')
+        logging.exception('Queue settings error')
         return jsonify({'success': False, 'message': 'حدث خطأ في إعدادات الأقسام'}), 500
 
 
@@ -422,7 +422,7 @@ def system_backup():
     try:
         return redirect(url_for('super_admin.backup'))
     except Exception:
-        logging.exception('System backup error: %s')
+        logging.exception('System backup error')
         flash('حدث خطأ في تحميل النسخ الاحتياطية', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -454,7 +454,7 @@ def system_maintenance():
         return render_template('super_admin/system_maintenance.html', stats=stats)
 
     except Exception:
-        logging.exception('System maintenance error: %s')
+        logging.exception('System maintenance error')
         flash('حدث خطأ في تحميل صفحة صيانة النظام', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -536,7 +536,7 @@ def system_cleanup():
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('System cleanup error: %s')
+        logging.exception('System cleanup error')
         flash('حدث خطأ في تنظيف النظام', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
 
@@ -563,7 +563,7 @@ def test_sms():
             return jsonify({'success': True, 'message': 'تم إرسال الرسالة التجريبية بنجاح'}), 200
         return jsonify({'success': False, 'message': result.get('error', 'فشل الإرسال')}), 500
     except Exception as e:
-        logging.exception('Test SMS error: %s')
+        logging.exception('Test SMS error')
         return jsonify({'success': False, 'message': f'خطأ: {e!s}'}), 500
 
 
@@ -578,7 +578,7 @@ def process_notification_queue_route():
         count = process_notification_queue()
         return jsonify({'success': True, 'message': f'تمت معالجة {count} إشعار'}), 200
     except Exception as e:
-        logging.exception('Process notification queue error: %s')
+        logging.exception('Process notification queue error')
         return jsonify({'success': False, 'message': f'خطأ: {e!s}'}), 500
 
 
@@ -594,7 +594,7 @@ def run_notifications():
         flash(msg, 'success' if res.get('success') else 'error')
         return redirect(url_for('super_admin.system_maintenance'))
     except Exception:
-        logging.exception('Run notifications error: %s')
+        logging.exception('Run notifications error')
         flash('حدث خطأ في تشغيل التنبيهات', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
 
@@ -613,7 +613,7 @@ def init_notification_templates():
         )
         return redirect(url_for('super_admin.system_maintenance'))
     except Exception:
-        logging.exception('Init notification templates error: %s')
+        logging.exception('Init notification templates error')
         flash('حدث خطأ في إنشاء القوالب الافتراضية', 'error')
         return redirect(url_for('super_admin.system_maintenance'))
 
@@ -699,7 +699,7 @@ def save_backup_settings():
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error saving backup settings: %s')
+        logging.exception('Error saving backup settings')
         return jsonify({'success': False, 'message': 'تعذر حفظ إعدادات النسخ الاحتياطي حالياً'}), 500
 
 
@@ -746,5 +746,5 @@ def maintenance_automation():
         return render_template('super_admin/maintenance_automation.html', settings=settings)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Maintenance automation error: %s')
+        logging.exception('Maintenance automation error')
         return render_template('super_admin/maintenance_automation.html', settings={})

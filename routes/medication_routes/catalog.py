@@ -129,7 +129,7 @@ def add_medication():
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error adding medication: %s')
+            logging.exception('Error adding medication')
             flash('تعذر إضافة الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     return render_template('medication/add.html')
@@ -212,7 +212,7 @@ def edit_medication(medication_id):
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error editing medication: %s')
+            logging.exception('Error editing medication')
             flash('تعذر تحديث الدواء، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     from datetime import date as _date

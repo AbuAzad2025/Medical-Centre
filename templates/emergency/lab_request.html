@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}طلب فحوصات - الطوارئ{% endblock %}
+{% block title %}{{ _('طلب فحوصات') }} - {{ _('الطوارئ') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -41,7 +41,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label" for="notesField">{{ _(_('ملاحظات')) }}</label>
-                                    <textarea class="form-control" id="notesField" name="notes" rows="4" placeholder="ملاحظات للطبيب أو المختبر"></textarea>
+                                    <textarea class="form-control" id="notesField" name="notes" rows="4" placeholder="{{ _('ملاحظات للطبيب أو المختبر') }}"></textarea>
                                 </div>
                             </div>
                         </div>

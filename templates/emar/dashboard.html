@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}eMAR — سجل الأدوية{% endblock %}
+{% block title %}eMAR — {{ _('سجل الأدوية') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-4">eMAR <span class="text-muted">{{ today }}</span></h2>
@@ -11,8 +11,9 @@
   <div class="card">
     <div class="card-header">{{ _(_('الأدوية المعلقة')) }}</div>
     <div class="card-body">
+      <div class="table-responsive">
       <table class="table table-hover">
-        <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الوقت المجدول')) }}</th><th>{{ _(_('الجرعة')) }}</th><th></th></tr></thead>
+        <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الدواء')) }}</th><th>{{ _(_('الوقت المجدول')) }}</th><th>{{ _(_('الجرعة')) }}</th><th>{{ _('إجراء') }}</th></tr></thead>
         <tbody>
         {% for a in pending %}
           <tr>
@@ -32,6 +33,7 @@
         {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>

@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% block title %}وصفة الطوارئ{% endblock %}
+{% block title %}{{ _('وصفة الطوارئ') }}{% endblock %}
 {% block content %}
 <div class="container">
-  <h2 class="mb-3">الوصفة للحالة #{{ emergency.id }}</h2>
+  <h2 class="mb-3">{{ _('الوصفة للحالة') }} #{{ emergency.id }}</h2>
   <form method="post" action="{{ url_for('emergency.prescription', emergency_id=emergency.id) }}" class="card p-3 shadow-sm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div id="meds">
       <div class="row g-2 align-items-end mb-2">
-        <div class="col"><input class="form-control" name="medications[]" placeholder="الدواء"></div>
-        <div class="col"><input class="form-control" name="dosages[]" placeholder="الجرعة"></div>
-        <div class="col"><input class="form-control" name="frequencies[]" placeholder="التكرار"></div>
-        <div class="col"><input class="form-control" name="durations[]" placeholder="المدة"></div>
-        <div class="col"><input class="form-control" name="instructions[]" placeholder="تعليمات"></div>
+        <div class="col-12 col-md-4"><input class="form-control" name="medications[]" placeholder="{{ _('الدواء') }}" aria-label="{{ _('الدواء') }}"></div>
+        <div class="col-6 col-md-2"><input class="form-control" name="dosages[]" placeholder="{{ _('الجرعة') }}" aria-label="{{ _('الجرعة') }}"></div>
+        <div class="col-6 col-md-2"><input class="form-control" name="frequencies[]" placeholder="{{ _('التكرار') }}" aria-label="{{ _('التكرار') }}"></div>
+        <div class="col-6 col-md-2"><input class="form-control" name="durations[]" placeholder="{{ _('المدة') }}" aria-label="{{ _('المدة') }}"></div>
+        <div class="col-6 col-md-2"><input class="form-control" name="instructions[]" placeholder="{{ _('تعليمات') }}" aria-label="{{ _('تعليمات') }}"></div>
       </div>
     </div>
     <button type="submit" class="btn btn-primary">{{ _('حفظ') }}</button>

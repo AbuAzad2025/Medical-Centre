@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}DICOM Viewer{% endblock %}
+{% block title %}{{ _('عارض DICOM') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">DICOM Viewer — {{ study.study_description or _('بدون وصف') }}</h2>
+  <h2 class="mb-4">{{ _('عارض DICOM') }} — {{ study.study_description or _('بدون وصف') }}</h2>
   <div class="card">
     <div class="card-body text-center">
       <div class="alert alert-info">

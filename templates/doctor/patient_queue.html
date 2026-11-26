@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'partials/_breadcrumbs.html' import breadcrumb_nav %}
 
-{% block title %}طابور المرضى - الطبيب{% endblock %}
+{% block title %}{{ _('طابور المرضى') }}{% endblock %}
 
 {% block content %}
 {% if queue_stats is not defined %}
@@ -15,7 +15,7 @@
         subtitle=_('إدارة المرضى المخصصين للطبيب'),
         icon='fas fa-users',
         actions=[
-            {'url': url_for('doctor.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'style': 'secondary'},
+            {'url': url_for('doctor.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'},
             {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync', 'style': 'primary', 'data_action': 'refreshQueue'}
         ]
     ) }}
@@ -29,7 +29,7 @@
                 <div class="card-body">
                     <div class="row g-3 align-items-center">
                         <div class="col-md-6">
-                            <input type="text" id="doctorPatientSearch" class="form-control" placeholder="اكتب اسم المريض أو الهاتف أو الهوية...">
+                            <input type="text" id="doctorPatientSearch" class="form-control" placeholder="{{ _('اكتب اسم المريض أو الهاتف أو الهوية...') }}">
                         </div>
                     </div>
                     <div id="doctorPatientResults" class="list-group mt-3"></div>
@@ -163,7 +163,7 @@
                                             {% if patient.visit_time %}
                                                 {{ patient.visit_time.strftime('%H:%M') }}
                                             {% else %}
-                                                غير محدد
+                                                {{ _('غير محدد') }}
                                             {% endif %}
                                         </td>
                                         <td>
@@ -192,14 +192,14 @@
                                                     {% if can_start_map.get(patient.id, False) %}
                                                         <form method="POST" action="{{ url_for('doctor.start_treatment', visit_id=patient.id) }}" class="d-inline">
                                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit" class="btn btn-success btn-sm" title="بدء العلاج">
+                                                            <button type="submit" class="btn btn-success btn-sm" title="{{ _('بدء العلاج') }}">
                                                                 <i class="fas fa-play me-1"></i> <span class="btn-label">{{ _('بدء') }}</span>
                                                             </button>
                                                         </form>
                                                     {% else %}
                                                         <form method="POST" action="{{ url_for('doctor.call_patient', visit_id=patient.id) }}" class="d-inline">
                                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                            <button type="submit" class="btn btn-warning btn-sm" title="استدعاء المريض">
+                                                            <button type="submit" class="btn btn-warning btn-sm" title="{{ _('استدعاء المريض') }}">
                                                                 <i class="fas fa-bullhorn me-1"></i> <span class="btn-label">{{ _('استدعاء') }}</span>
                                                             </button>
                                                         </form>
@@ -228,7 +228,7 @@
                         
                         <!-- Pagination -->
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="text-muted small">عرض {{ total }} مريض</div>
+                            <div class="text-muted small">{{ _('عرض') }} {{ total }} {{ _('مريض') }}</div>
                             <div class="btn-group">
                                 <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
                                    href="{{ url_for('doctor.patient_queue', page=page-1) }}">{{ _(_('السابق')) }}</a>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}قائمة النسخ الاحتياطية{% endblock %}
+{% block title %}{{ _('قائمة النسخ الاحتياطية') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <div class="d-flex justify-content-between align-items-center mb-3">
@@ -20,9 +20,10 @@
               <td>{{ b.id }}</td>
               <td>{{ b.backup_name }}</td>
               <td>{{ b.backup_status }}</td>
-              <td>{{ b.backup_path }}</td>
-              <td>{{ b.created_at }}</td>
-              <td class="d-flex gap-2">
+              <td dir="ltr" class="small text-muted">{{ b.backup_path }}</td>
+              <td dir="ltr">{{ b.created_at }}</td>
+              <td>
+                <div class="d-flex gap-2 flex-wrap">
                 <form method="post" action="{{ url_for('backup.restore_backup', backup_id=b.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button class="btn btn-sm btn-success">{{ _(_('استعادة')) }}</button>
@@ -30,8 +31,9 @@
                 <a class="btn btn-sm btn-secondary" href="{{ url_for('backup.download_backup', backup_id=b.id) }}">{{ _(_('تحميل')) }}</a>
                 <form method="post" action="{{ url_for('backup.delete_backup', backup_id=b.id) }}">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-sm btn-danger" data-confirm="هل أنت متأكد من حذف النسخة الاحتياطية؟">{{ _('حذف') }}</button>
+                  <button class="btn btn-sm btn-danger" data-confirm="{{ _('هل أنت متأكد من حذف النسخة الاحتياطية؟') }}">{{ _('حذف') }}</button>
                 </form>
+                </div>
               </td>
             </tr>
             {% else %}

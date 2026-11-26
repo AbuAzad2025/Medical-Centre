@@ -44,10 +44,10 @@
             <tr>
               <td>{{ loop.index }}</td>
               <td class="max-w-520 text-pre-wrap">{{ row.query }}</td>
-              <td class="text-end">{{ row.calls }}</td>
-              <td class="text-end">{{ "%.2f"|format(row.mean_time or 0) }}</td>
-              <td class="text-end">{{ "%.2f"|format(row.total_time or 0) }}</td>
-              <td class="text-end">{{ row.rows }}</td>
+              <td class="text-end text-nowrap">{{ row.calls }}</td>
+              <td class="text-end text-nowrap">{{ "%.2f"|format(row.mean_time or 0) }}</td>
+              <td class="text-end text-nowrap">{{ "%.2f"|format(row.total_time or 0) }}</td>
+              <td class="text-end text-nowrap">{{ row.rows }}</td>
             </tr>
             {% else %}
             <tr>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}مواعيد الطبيب{% endblock %}
+{% block title %}{{ _('مواعيد الطبيب') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-3"><i class="fas fa-calendar-alt me-2"></i> {{ _(_('المواعيد')) }}</h2>
@@ -83,7 +83,7 @@
     </div>
     {% if pages and pages > 1 %}
     <div class="d-flex justify-content-between align-items-center mt-3">
-      <div class="text-muted small">صفحة {{ page }} من {{ pages }}</div>
+      <div class="text-muted small">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages }}</div>
       <div class="btn-group btn-group-sm">
         <a href="{{ url_for('doctor.appointments', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">{{ _(_('السابق')) }}</a>
         <a href="{{ url_for('doctor.appointments', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">{{ _(_('التالي')) }}</a>

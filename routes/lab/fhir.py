@@ -48,7 +48,7 @@ def api_worklist():
             )
         return jsonify({'success': True, 'requests': data})
     except Exception:
-        logging.exception('Error loading lab api worklist: %s')
+        logging.exception('Error loading lab api worklist')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -116,7 +116,7 @@ def api_fhir_lab_service_request():
         ), 201
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error importing FHIR ServiceRequest: %s')
+        logging.exception('Error importing FHIR ServiceRequest')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -192,7 +192,7 @@ def api_fhir_lab_observation_import():
         return jsonify({'resourceType': 'Observation', 'id': str(res.id), 'status': 'final'}), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error importing FHIR Observation: %s')
+        logging.exception('Error importing FHIR Observation')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -249,7 +249,7 @@ def api_hl7_import():
         return jsonify({'success': True, 'request_id': req.id}), 201
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error importing HL7 lab payload: %s')
+        logging.exception('Error importing HL7 lab payload')
         return jsonify({'success': False, 'message': 'تعذر استيراد HL7'}), 500
 
 
@@ -335,7 +335,7 @@ def api_fhir_lab_observation(result_id):
 
         return jsonify(resource)
     except Exception:
-        logging.exception('Error exporting FHIR Lab Observation: %s')
+        logging.exception('Error exporting FHIR Lab Observation')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',
@@ -419,7 +419,7 @@ def api_fhir_lab_diagnostic_report(result_id):
 
         return jsonify(resource)
     except Exception:
-        logging.exception('Error exporting FHIR Lab DiagnosticReport: %s')
+        logging.exception('Error exporting FHIR Lab DiagnosticReport')
         return jsonify(
             {
                 'resourceType': 'OperationOutcome',

@@ -60,5 +60,5 @@ def api_erp_export():
             }
         ), 200
     except Exception:
-        logging.exception('Error exporting ERP payload: %s')
+        logging.exception('Error exporting ERP payload')
         return jsonify({'success': False, 'message': 'تعذر تصدير بيانات ERP'}), 500

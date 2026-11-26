@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}ملخص الزيارة - {{ visit.patient.full_name }}{% endblock %}
+{% block title %}{{ _('ملخص الزيارة') }} - {{ visit.patient.full_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -29,7 +29,7 @@
                                     <div class="card-body">
                                         <h6 class="text-info">{{ _(_('بيانات المريض')) }}</h6>
                                         <p><strong>{{ _(_('الاسم:')) }}</strong> {{ visit.patient.full_name }}</p>
-                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} سنة</p>
+                                        <p><strong>{{ _(_('العمر:')) }}</strong> {{ visit.patient.age or _('غير محدد') }} {{ _('سنة') }}</p>
                                         <p><strong>{{ _(_('الجنس:')) }}</strong> {{ visit.patient.get_gender_display() }}</p>
                                         <p><strong>{{ _(_('رقم الزيارة:')) }}</strong> {{ visit.visit_id_number or visit.id }}</p>
                                         <p><strong>{{ _(_('تاريخ الزيارة:')) }}</strong> {{ visit.visit_date.strftime('%Y-%m-%d') }}</p>
@@ -62,14 +62,14 @@
                                 <div class="form-group">
                                     <label for="chief_complaint">{{ _(_('الشكوى الرئيسية')) }}</label>
                                     <textarea class="form-control" id="chief_complaint" name="chief_complaint" rows="3" 
-                                              placeholder="أدخل الشكوى الرئيسية للمريض"></textarea>
+                                              placeholder="{{ _('أدخل الشكوى الرئيسية للمريض') }}"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="history_of_present_illness">{{ _(_('تاريخ المرض الحالي')) }}</label>
                                     <textarea class="form-control" id="history_of_present_illness" name="history_of_present_illness" rows="3" 
-                                              placeholder="أدخل تاريخ المرض الحالي"></textarea>
+                                              placeholder="{{ _('أدخل تاريخ المرض الحالي') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -79,14 +79,14 @@
                                 <div class="form-group">
                                     <label for="physical_examination">{{ _(_('الفحص السريري')) }}</label>
                                     <textarea class="form-control" id="physical_examination" name="physical_examination" rows="4" 
-                                              placeholder="أدخل نتائج الفحص السريري"></textarea>
+                                              placeholder="{{ _('أدخل نتائج الفحص السريري') }}"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="vital_signs">{{ _(_('العلامات الحيوية')) }}</label>
                                     <textarea class="form-control" id="vital_signs" name="vital_signs" rows="4" 
-                                              placeholder="أدخل العلامات الحيوية (ضغط الدم، النبض، الحرارة، إلخ)"></textarea>
+                                              placeholder="{{ _('أدخل العلامات الحيوية (ضغط الدم، النبض، الحرارة، إلخ)') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -96,14 +96,14 @@
                                 <div class="form-group">
                                     <label for="diagnosis">{{ _(_('التشخيص')) }}</label>
                                     <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" 
-                                              placeholder="أدخل التشخيص النهائي"></textarea>
+                                              placeholder="{{ _('أدخل التشخيص النهائي') }}"></textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="treatment_plan">{{ _(_('خطة العلاج')) }}</label>
                                     <textarea class="form-control" id="treatment_plan" name="treatment_plan" rows="3" 
-                                              placeholder="أدخل خطة العلاج"></textarea>
+                                              placeholder="{{ _('أدخل خطة العلاج') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -113,7 +113,7 @@
                                 <div class="form-group">
                                     <label for="recommendations">{{ _(_('التوصيات')) }}</label>
                                     <textarea class="form-control" id="recommendations" name="recommendations" rows="3" 
-                                              placeholder="أدخل التوصيات للمريض"></textarea>
+                                              placeholder="{{ _('أدخل التوصيات للمريض') }}"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -128,7 +128,7 @@
                                         </div>
                                         <div class="col-md-6">
                                             <input type="text" class="form-control" id="follow_up_notes" name="follow_up_notes" 
-                                                   placeholder="ملاحظات المتابعة">
+                                                   placeholder="{{ _('ملاحظات المتابعة') }}">
                                         </div>
                                     </div>
                                 </div>

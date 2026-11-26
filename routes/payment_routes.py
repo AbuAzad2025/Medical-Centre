@@ -95,7 +95,7 @@ def dashboard():
 
         return render_template('accountant/dashboard.html', stats=stats)
     except Exception:
-        logging.exception('Error in payment dashboard: %s')
+        logging.exception('Error in payment dashboard')
         flash('حدث خطأ في تحميل لوحة التحكم', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -542,7 +542,7 @@ def process_payment(visit_id):
             return redirect(url_for('reception.print_receipt', visit_id=visit_id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error processing payment: %s')
+            logging.exception('Error processing payment')
             err = {'success': False, 'message': 'حدث خطأ في معالجة الدفع'}
             if _wants_json():
                 return jsonify(err), 500
@@ -621,7 +621,7 @@ def payment_history():
             date_to=date_to,
         )
     except Exception:
-        logging.exception('Error loading payment history: %s')
+        logging.exception('Error loading payment history')
         flash('حدث خطأ في تحميل تاريخ المدفوعات', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -642,7 +642,7 @@ def payment_methods():
         ]
         return render_template('payment/methods.html', methods=methods)
     except Exception:
-        logging.exception('Error loading payment methods: %s')
+        logging.exception('Error loading payment methods')
         flash('حدث خطأ في تحميل طرق الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -691,7 +691,7 @@ def payment_reports():
             method_stats=method_stats,
         )
     except Exception:
-        logging.exception('Error loading payment reports: %s')
+        logging.exception('Error loading payment reports')
         flash('حدث خطأ في تحميل تقارير الدفع', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -720,7 +720,7 @@ def request_refund(payment_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error requesting refund: %s')
+        logging.exception('Error requesting refund')
         flash('حدث خطأ أثناء طلب الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -740,7 +740,7 @@ def approve_refund(refund_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error approving refund: %s')
+        logging.exception('Error approving refund')
         flash('حدث خطأ أثناء موافقة الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 
@@ -760,7 +760,7 @@ def execute_refund(refund_id):
         return redirect(url_for('payment.dashboard'))
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error executing refund: %s')
+        logging.exception('Error executing refund')
         flash('حدث خطأ أثناء تنفيذ الاسترداد', 'error')
         return redirect(url_for('payment.dashboard'))
 

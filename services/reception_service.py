@@ -75,7 +75,7 @@ class ReceptionService:
             if not safe_commit(db.session, error_message='Failed to register patient'):
                 return None
         except Exception:
-            logging.exception('Error registering patient: %s')
+            logging.exception('Error registering patient')
             return None
         else:
             return patient
@@ -115,7 +115,7 @@ class ReceptionService:
             if not safe_commit(db.session, error_message='Failed to create visit'):
                 return None
         except Exception:
-            logging.exception('Error creating visit: %s')
+            logging.exception('Error creating visit')
             return None
         else:
             return visit

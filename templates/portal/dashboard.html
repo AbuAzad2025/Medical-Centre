@@ -1,5 +1,5 @@
 {% extends "portal/base.html" %}
-{% block title %}الرئيسية{% endblock %}
+{% block title %}{{ _('الرئيسية') }}{% endblock %}
 {% block content %}
 {% if critical_results %}
 <div class="alert alert-warning" role="alert">
@@ -39,7 +39,7 @@
       <h5 class="mb-3">{{ _(_('الزيارات الأخيرة')) }}</h5>
       {% for v in recent_visits[:5] %}
         <div class="d-flex justify-content-between py-2 border-bottom">
-          <span>زيارة #{{ v.id }}</span>
+          <span>{{ _('زيارة') }} #{{ v.id }}</span>
           <span class="text-muted">{{ v.visit_date }}</span>
         </div>
       {% else %}

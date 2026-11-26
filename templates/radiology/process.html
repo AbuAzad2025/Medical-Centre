@@ -3,9 +3,9 @@
 
 {% block title %}
 {% if radiology_request %}
-إدخال تقرير الأشعة - {{ radiology_request.patient.full_name }}
+{{ _('إدخال تقرير الأشعة') }} - {{ radiology_request.patient.full_name }}
 {% else %}
-قائمة عمل الأشعة
+{{ _('قائمة عمل الأشعة') }}
 {% endif %}
 {% endblock %}
 
@@ -13,7 +13,7 @@
 <div class="container-fluid">
     {% if radiology_request %}
     {{ page_header(_('إدخال تقرير الأشعة'), subtitle=radiology_request.patient.full_name ~ _(' — طلب رقم: ') ~ (radiology_request.request_number or radiology_request.id), icon='fas fa-x-ray', actions=[
-        {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'url': url_for('radiology.worklist'), 'style': 'secondary'},
+        {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'url': url_for('radiology.worklist'), 'style': 'secondary'},
         {'label': _('طباعة'), 'icon': 'fas fa-print', 'url': url_for('radiology.print_report', radiology_scan_id=radiology_request.id), 'style': 'primary'}
     ]) }}
 
@@ -79,7 +79,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="body_part">{{ _(_('جزء الجسم')) }}</label>
-                                    <input type="text" class="form-control" id="body_part" name="body_part" value="{{ radiology_request.body_part or '' }}" placeholder="أدخل جزء الجسم المفحوص">
+                                    <input type="text" class="form-control" id="body_part" name="body_part" value="{{ radiology_request.body_part or '' }}" placeholder="{{ _('أدخل جزء الجسم المفحوص') }}">
                                 </div>
                             </div>
                         </div>
@@ -88,7 +88,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="description">{{ _('وصف الفحص') }}</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="أدخل وصف الفحص المطلوب">{{ radiology_request.notes or '' }}</textarea>
+                                    <textarea class="form-control" id="description" name="description" rows="3" placeholder="{{ _('أدخل وصف الفحص المطلوب') }}">{{ radiology_request.notes or '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -123,7 +123,7 @@
                                         <i class="fas fa-magic me-1"></i>
                                         {{ _(_('تطبيق القالب')) }}
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary" id="manage_templates_btn" data-bs-toggle="modal" data-bs-target="#radiologyTemplatesModal" title="إدارة القوالب">
+                                    <button type="button" class="btn btn-outline-secondary" id="manage_templates_btn" data-bs-toggle="modal" data-bs-target="#radiologyTemplatesModal" title="{{ _('إدارة القوالب') }}">
                                         <i class="fas fa-sliders-h"></i> <span class="btn-label">{{ _(_('إعدادات')) }}</span>
                                     </button>
                                 </div>
@@ -134,7 +134,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="results">{{ _(_('الخلاصة (Impression)')) }}</label>
-                                    <textarea class="form-control" id="results" name="results" rows="4" placeholder="أدخل خلاصة التقرير" required>{{ radiology_result.impression if radiology_result else '' }}</textarea>
+                                    <textarea class="form-control" id="results" name="results" rows="4" placeholder="{{ _('أدخل خلاصة التقرير') }}" required>{{ radiology_result.impression if radiology_result else '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -143,7 +143,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="findings">{{ _(_('التفاصيل (Findings)')) }}</label>
-                                    <textarea class="form-control" id="findings" name="findings" rows="4" placeholder="أدخل النتائج التفصيلية">{{ radiology_result.findings if radiology_result else '' }}</textarea>
+                                    <textarea class="form-control" id="findings" name="findings" rows="4" placeholder="{{ _('أدخل النتائج التفصيلية') }}">{{ radiology_result.findings if radiology_result else '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -152,7 +152,7 @@
                             <div class="col-12">
                                 <div class="form-group">
                                     <label for="recommendations">{{ _(_('ملاحظات/توصيات')) }}</label>
-                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" placeholder="أدخل ملاحظات أو توصيات">{{ radiology_result.notes if radiology_result else '' }}</textarea>
+                                    <textarea class="form-control" id="recommendations" name="recommendations" rows="3" placeholder="{{ _('أدخل ملاحظات أو توصيات') }}">{{ radiology_result.notes if radiology_result else '' }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -176,7 +176,7 @@
                                 <div class="form-group">
                                     <label for="is_critical">{{ _(_('نتيجة حرجة')) }}</label>
                                     <select class="form-control" id="is_critical" name="is_critical">
-                                        <option value="0" {% if not radiology_result or not radiology_result.is_critical %}selected{% endif %}>لا</option>
+                                        <option value="0" {% if not radiology_result or not radiology_result.is_critical %}selected{% endif %}>{{ _('لا') }}</option>
                                         <option value="1" {% if radiology_result and radiology_result.is_critical %}selected{% endif %}>{{ _(_('نعم')) }}</option>
                                     </select>
                                 </div>
@@ -189,12 +189,12 @@
                                             <option value="">{{ _(_('اختر')) }}</option>
                                         </select>
                                         <select class="form-control" id="macro_target" style="max-width: 200px;">
-                                            <option value="findings">Findings</option>
-                                            <option value="results">Impression</option>
-                                            <option value="recommendations">Recommendations</option>
+                                            <option value="findings">{{ _('التفاصيل (Findings)') }}</option>
+                                            <option value="results">{{ _('الخلاصة (Impression)') }}</option>
+                                            <option value="recommendations">{{ _('التوصيات') }}</option>
                                         </select>
                                         <button type="button" class="btn btn-outline-primary" id="apply_macro_btn">{{ _(_('إدراج')) }}</button>
-                                        <button type="button" class="btn btn-outline-secondary" id="manage_macros_btn" data-bs-toggle="modal" data-bs-target="#radiologyMacrosModal" title="إدارة الماكروز">
+                                        <button type="button" class="btn btn-outline-secondary" id="manage_macros_btn" data-bs-toggle="modal" data-bs-target="#radiologyMacrosModal" title="{{ _('إدارة الماكروز') }}">
                                             <i class="fas fa-sliders-h"></i> <span class="btn-label">{{ _(_('إعدادات')) }}</span>
                                         </button>
                                     </div>
@@ -262,7 +262,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ _(_('قوالب تقارير الأشعة')) }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
@@ -286,15 +286,15 @@
                                             </select>
                                         </div>
                                         <div class="mb-2">
-                                            <label class="form-label">Findings</label>
+                                            <label class="form-label">{{ _('التفاصيل (Findings)') }}</label>
                                             <textarea class="form-control" id="tpl_findings" name="findings" rows="5"></textarea>
                                         </div>
                                         <div class="mb-2">
-                                            <label class="form-label">Impression</label>
+                                            <label class="form-label">{{ _('الخلاصة (Impression)') }}</label>
                                             <textarea class="form-control" id="tpl_impression" name="impression" rows="4"></textarea>
                                         </div>
                                         <div class="mb-2">
-                                            <label class="form-label">Recommendations</label>
+                                            <label class="form-label">{{ _('التوصيات') }}</label>
                                             <textarea class="form-control" id="tpl_recommendations" name="recommendations" rows="3"></textarea>
                                         </div>
                                         <div class="form-check mb-3">
@@ -335,7 +335,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <div class="text-muted small">يمكنك استخدام {{BODY_PART}} داخل النص ليتم استبدالها بمنطقة الفحص.</div>
+                    <div class="text-muted small">{{ _('يمكنك استخدام') }} {{BODY_PART}} {{ _('داخل النص ليتم استبدالها بمنطقة الفحص.') }}</div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _(_('إغلاق')) }}</button>
                 </div>
             </div>
@@ -347,7 +347,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ _(_('ماكروز تقارير الأشعة')) }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
@@ -410,7 +410,7 @@
 
     <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
     window.__M = window.__M || [];
-    __M0__='{{ url_for("radiology.api_ai_assist") }}'; __M1__='{{ url_for("radiology.api_report_templates") }}'; __M2__='{{ url_for("radiology.api_report_macros") }}'; __M3__='{{BODY_PART}}'; __M4__='{{ url_for("radiology.upsert_report_macro") }}'; __M5__={{ url_for("radiology.delete_report_macro", macro_id="__M__") }}; __M6__={{ url_for("radiology.delete_report_template", template_id="__TPL__") }}; __M7__='{{ url_for("radiology.upsert_report_template") }}';
+    __M0__='{{ url_for("radiology.api_ai_assist") }}'; __M1__='{{ url_for("radiology.api_report_templates") }}'; __M2__='{{ url_for("radiology.api_report_macros") }}'; __M3__='{{BODY_PART}}'; __M4__='{{ url_for("radiology.upsert_report_macro") }}'; __M5__='{{ url_for("radiology.delete_report_macro", macro_id="__M__") }}'; __M6__='{{ url_for("radiology.delete_report_template", template_id="__TPL__") }}'; __M7__='{{ url_for("radiology.upsert_report_template") }}';
 </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/radiology/process.js') }}"></script>
     {% else %}
@@ -467,7 +467,7 @@
                                         <td>
                                             {% set st = (r.status or '').upper() %}
                                             <span class="badge {% if st == 'REQUESTED' %}bg-info{% elif st == 'IN_PROGRESS' %}bg-warning{% elif st == 'DONE' %}bg-success{% else %}bg-secondary{% endif %}">
-                                                {% if st == 'REQUESTED' %}قيد الطلب{% elif st == 'IN_PROGRESS' %}قيد التنفيذ{% elif st == 'DONE' %}مكتمل{% else %}{{ st }}{% endif %}
+                                                {% if st == 'REQUESTED' %}{{ _('قيد الطلب') }}{% elif st == 'IN_PROGRESS' %}{{ _('قيد التنفيذ') }}{% elif st == 'DONE' %}{{ _('مكتمل') }}{% else %}{{ st }}{% endif %}
                                             </span>
                                         </td>
                                         <td class="text-end">

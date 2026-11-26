@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}تفاصيل الرقود{% endblock %}
+{% block title %}{{ _('تفاصيل الرقود') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">تفاصيل الرقود #{{ admission.id }}</h2>
+  <h2 class="mb-4">{{ _('تفاصيل الرقود') }} #{{ admission.id }}</h2>
   <div class="card">
     <div class="card-body">
       <div class="row g-3">

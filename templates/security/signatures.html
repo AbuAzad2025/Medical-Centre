@@ -1,26 +1,28 @@
 {% extends "base.html" %}
-{% block title %}التوقيعات الإلكترونية{% endblock %}
+{% block title %}{{ _('التوقيعات الإلكترونية') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-4">{{ _(_('التوقيعات الإلكترونية')) }}</h2>
   <div class="card">
     <div class="card-body">
+      <div class="table-responsive">
       <table class="table table-hover">
         <thead><tr><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('المستخدم')) }}</th><th>{{ _(_('نوع المستند')) }}</th><th>{{ _(_('الطريقة')) }}</th><th>{{ _(_('صالح')) }}</th></tr></thead>
         <tbody>
         {% for s in signatures %}
           <tr>
-            <td>{{ s.signed_at.strftime('%Y-%m-%d %H:%M') if s.signed_at else '-' }}</td>
+            <td dir="ltr">{{ s.signed_at.strftime('%Y-%m-%d %H:%M') if s.signed_at else '-' }}</td>
             <td>{{ s.user.full_name if s.user else '-' }}</td>
             <td>{{ s.document_type }}</td>
             <td>{{ s.signing_method }}</td>
-            <td>{% if s.is_valid %}<span class="badge bg-success">{{ _(_('نعم')) }}</span>{% else %}<span class="badge bg-danger">لا</span>{% endif %}</td>
+            <td>{% if s.is_valid %}<span class="badge bg-success">{{ _('نعم') }}</span>{% else %}<span class="badge bg-danger">{{ _('لا') }}</span>{% endif %}</td>
           </tr>
         {% else %}
           <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد توقيعات')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}الوصفات الطبية{% endblock %}
+{% block title %}{{ _('الوصفات الطبية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     {{ page_header(_('الوصفات الطبية'), subtitle=_('إدارة ومراجعة الوصفات الطبية'), icon='fas fa-prescription', actions=[
-        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.dashboard'), 'style': 'secondary'},
+        {'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.dashboard'), 'style': 'secondary'},
         {'label': _('طابور المرضى'), 'icon': 'fas fa-list-ol', 'url': url_for('doctor.patient_queue'), 'style': 'primary'}
     ]) }}
 
@@ -50,7 +50,7 @@
                     <h6 class="m-0 fw-bold text-primary">
                         <i class="fas fa-list me-2"></i>{{ _(_('قائمة الوصفات الطبية')) }}
                     </h6>
-                    <span class="badge bg-secondary">{{ total }} وصفة</span>
+                    <span class="badge bg-secondary">{{ total }} {{ _('وصفة') }}</span>
                 </div>
                 <div class="card-body p-0">
                     {% if prescriptions %}
@@ -87,7 +87,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ p.items.count() }} دواء</span>
+                                        <span class="badge bg-info">{{ p.items.count() }} {{ _('دواء') }}</span>
                                     </td>
                                     <td>
                                         <span class="text-muted small">
@@ -96,12 +96,12 @@
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
-                                            <a href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank" class="btn btn-outline-primary" title="طباعة">
-                                                <i class="fas fa-print"></i>
+                                            <a href="{{ url_for('doctor.print_prescription', prescription_id=p.id) }}" target="_blank" class="btn btn-outline-primary" title="{{ _('طباعة') }}">
+                                                <i class="fas fa-print"></i> <span class="btn-label">{{ _('طباعة') }}</span>
                                             </a>
                                             {% if p.visit_id %}
-                                            <a href="{{ url_for('doctor.patient_details', visit_id=p.visit_id) }}" class="btn btn-outline-info" title="الزيارة">
-                                                <i class="fas fa-eye"></i>
+                                            <a href="{{ url_for('doctor.patient_details', visit_id=p.visit_id) }}" class="btn btn-outline-info" title="{{ _('الزيارة') }}">
+                                                <i class="fas fa-eye"></i> <span class="btn-label">{{ _('الزيارة') }}</span>
                                             </a>
                                             {% endif %}
                                         </div>
@@ -115,7 +115,7 @@
                     <!-- Pagination -->
                     {% if pages > 1 %}
                     <div class="d-flex justify-content-between align-items-center p-3 border-top">
-                        <div class="text-muted small">صفحة {{ page }} من {{ pages }}</div>
+                        <div class="text-muted small">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages }}</div>
                         <div class="btn-group btn-group-sm">
                             <a href="{{ url_for('doctor.prescriptions', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">{{ _(_('السابق')) }}</a>
                             <a href="{{ url_for('doctor.prescriptions', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">{{ _(_('التالي')) }}</a>

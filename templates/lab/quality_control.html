@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}ضبط جودة المختبر{% endblock %}
+{% block title %}{{ _('ضبط جودة المختبر') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   {{ page_header(_('ضبط جودة المختبر'), subtitle=_('تسجيل قراءات QC ومتابعتها'), icon='fas fa-sliders-h', actions=[
       {'label': _('مؤشرات الجودة'), 'icon': 'fas fa-shield-alt', 'url': url_for('lab.quality'), 'style': 'outline-primary'},
-      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('lab.dashboard'), 'style': 'secondary'}
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'url': url_for('lab.dashboard'), 'style': 'secondary'}
   ]) }}
 
   <div class="card shadow mb-4">
@@ -41,14 +41,14 @@
           <label class="form-label">{{ _(_('المدى المتوقع')) }}</label>
           <input class="form-control" name="expected_range">
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <label class="form-label">{{ _(_('النتيجة')) }}</label>
           <select class="form-select" name="status">
             <option value="PASS" selected>{{ _(_('مطابق')) }}</option>
             <option value="FAIL">{{ _(_('غير مطابق')) }}</option>
           </select>
         </div>
-        <div class="col-md-10">
+        <div class="col-md-9">
           <label class="form-label">{{ _(_('ملاحظات')) }}</label>
           <input class="form-control" name="notes">
         </div>
@@ -60,7 +60,7 @@
   </div>
 
   <div class="card shadow">
-    <div class="card-header">السجلات ({{ entries|length }})</div>
+    <div class="card-header">{{ _(_('السجلات')) }} ({{ entries|length }})</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped align-middle">

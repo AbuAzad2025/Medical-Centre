@@ -63,12 +63,12 @@
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <div>
-              <h6 class="text-muted text-uppercase small mb-1">الصحة المالية</h6>
+              <h6 class="text-muted text-uppercase small mb-1">{{ _('الصحة المالية') }}</h6>
               <h3 class="mb-0 fw-bold">{{ stats.financial_health.overall_score or 100 }}%</h3>
             </div>
             <div class="bg-info bg-opacity-10 p-3 rounded"><i class="fas fa-heartbeat text-info fa-lg"></i></div>
           </div>
-          <div class="small text-muted">ديون متأخرة: <strong class="text-danger">{{ debt_alerts.overdue_60_count or 0 }}</strong></div>
+          <div class="small text-muted">{{ _('ديون متأخرة:') }} <strong class="text-danger">{{ debt_alerts.overdue_60_count or 0 }}</strong></div>
           <canvas id="sparkHealth" height="40" class="mt-2"></canvas>
         </div>
       </div>
@@ -78,7 +78,7 @@
   <div class="row g-3 mb-4">
     <div class="col-md-8">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>أداء مالي — إيرادات وفواتير</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-line text-primary me-2"></i>{{ _('أداء مالي — إيرادات وفواتير') }}</h6></div>
         <div class="card-body"><canvas id="accMainChart" height="260"></canvas></div>
       </div>
     </div>
@@ -86,24 +86,24 @@
       <div class="row g-3">
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>دورة الإيرادات</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie text-success me-2"></i>{{ _('دورة الإيرادات') }}</h6></div>
             <div class="card-body">
               <div class="small text-start">
-                <div class="d-flex justify-content-between mb-1"><span>متوسط التحصيل</span><strong>{{ stats.revenue_cycle.avg_collection_time or 0 }} يوم</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>نسبة التحصيل</span><strong class="text-success">{{ stats.revenue_cycle.collection_rate or 0 }}%</strong></div>
-                <div class="d-flex justify-content-between"><span>نسبة الرفض</span><strong class="text-danger">{{ stats.revenue_cycle.denial_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _('متوسط التحصيل') }}</span><strong>{{ stats.revenue_cycle.avg_collection_time or 0 }} {{ _('يوم') }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _('نسبة التحصيل') }}</span><strong class="text-success">{{ stats.revenue_cycle.collection_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _('نسبة الرفض') }}</span><strong class="text-danger">{{ stats.revenue_cycle.denial_rate or 0 }}%</strong></div>
               </div>
             </div>
           </div>
         </div>
         <div class="col-12">
           <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>التنبؤ المالي</h6></div>
+            <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-brain text-info me-2"></i>{{ _('التنبؤ المالي') }}</h6></div>
             <div class="card-body">
               <div class="small text-start">
-                <div class="d-flex justify-content-between mb-1"><span>التوقع الشهري</span><strong>{{ "%.2f"|format(stats.financial_forecasting.monthly_forecast or 0) }} ر.س</strong></div>
-                <div class="d-flex justify-content-between mb-1"><span>التوقع السنوي</span><strong>{{ "%.2f"|format(stats.financial_forecasting.annual_forecast or 0) }} ر.س</strong></div>
-                <div class="d-flex justify-content-between"><span>معدل النمو</span><strong class="{{ 'text-success' if (stats.financial_forecasting.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.financial_forecasting.growth_rate or 0 }}%</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _('التوقع الشهري') }}</span><strong class="text-nowrap">{{ "%.2f"|format(stats.financial_forecasting.monthly_forecast or 0) }} {{ _('ر.س') }}</strong></div>
+                <div class="d-flex justify-content-between mb-1"><span>{{ _('التوقع السنوي') }}</span><strong class="text-nowrap">{{ "%.2f"|format(stats.financial_forecasting.annual_forecast or 0) }} {{ _('ر.س') }}</strong></div>
+                <div class="d-flex justify-content-between"><span>{{ _('معدل النمو') }}</span><strong class="text-nowrap {{ 'text-success' if (stats.financial_forecasting.growth_rate or 0) > 0 else 'text-danger' }}">{{ stats.financial_forecasting.growth_rate or 0 }}%</strong></div>
               </div>
             </div>
           </div>
@@ -117,36 +117,36 @@
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">دقة الفواتير</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _('دقة الفواتير') }}</div>
           <h3 class="fw-bold text-success">{{ stats.smart_analytics.billing_accuracy or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="دقة الفواتير"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الفواتير" data-width="{{ stats.smart_analytics.billing_accuracy or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('دقة الفواتير') }}"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="{{ _('دقة الفواتير') }}" data-width="{{ stats.smart_analytics.billing_accuracy or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">امتثال التدقيق</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _('امتثال التدقيق') }}</div>
           <h3 class="fw-bold text-primary">{{ stats.smart_analytics.audit_compliance or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="امتثال التدقيق"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="امتثال التدقيق" data-width="{{ stats.smart_analytics.audit_compliance or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('امتثال التدقيق') }}"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('امتثال التدقيق') }}" data-width="{{ stats.smart_analytics.audit_compliance or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">نسبة التحصيل</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _('نسبة التحصيل') }}</div>
           <h3 class="fw-bold text-info">{{ stats.revenue_cycle.collection_rate or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="نسبة التحصيل"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="نسبة التحصيل" data-width="{{ stats.revenue_cycle.collection_rate or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('نسبة التحصيل') }}"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="{{ _('نسبة التحصيل') }}" data-width="{{ stats.revenue_cycle.collection_rate or 0 }}"></div></div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body text-center">
-          <div class="text-muted small text-uppercase mb-2">الصحة المالية</div>
+          <div class="text-muted small text-uppercase mb-2">{{ _('الصحة المالية') }}</div>
           <h3 class="fw-bold text-warning">{{ stats.financial_health.overall_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="الصحة المالية"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الصحة المالية" data-width="{{ stats.financial_health.overall_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('الصحة المالية') }}"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="{{ _('الصحة المالية') }}" data-width="{{ stats.financial_health.overall_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -157,7 +157,7 @@
   <div class="row g-3 mb-4">
     <div class="col-12">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-coins text-warning me-2"></i>المدفوعات حسب العملة — اليوم</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-coins text-warning me-2"></i>{{ _('المدفوعات حسب العملة — اليوم') }}</h6></div>
         <div class="card-body">
           <div class="row g-3">
             {% for code, data in stats.currency_breakdown.items() %}
@@ -165,9 +165,9 @@
               <div class="card border-0 bg-light h-100">
                 <div class="card-body text-center">
                   <h5 class="fw-bold text-primary">{{ data.count }}</h5>
-                  <div class="small text-muted mb-1">عملية دفع</div>
-                  <div class="fw-bold">{{ "%.2f"|format(data.original) }} {{ code }}</div>
-                  {% if code != 'ILS' %}<div class="small text-success">≈ {{ "%.2f"|format(data.converted) }} ILS</div>{% endif %}
+                  <div class="small text-muted mb-1">{{ _('عملية دفع') }}</div>
+                  <div class="fw-bold text-nowrap"><bdi>{{ "%.2f"|format(data.original) }} {{ code }}</bdi></div>
+                  {% if code != 'ILS' %}<div class="small text-success text-nowrap"><bdi>≈ {{ "%.2f"|format(data.converted) }} ILS</bdi></div>{% endif %}
                 </div>
               </div>
             </div>
@@ -182,34 +182,34 @@
   <div class="row g-3 mb-4">
     <div class="col-md-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>توصيات ذكية</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-lightbulb text-warning me-2"></i>{{ _('توصيات ذكية') }}</h6></div>
         <div class="card-body">
-          {% if stats.smart_recommendations.recommendations %}<div class="list-group list-group-flush">{% for r in stats.smart_recommendations.recommendations %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ r }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">لا توجد توصيات حالياً</p>{% endif %}
+          {% if stats.smart_recommendations.recommendations %}<div class="list-group list-group-flush">{% for r in stats.smart_recommendations.recommendations %}<div class="list-group-item px-0"><i class="fas fa-angle-left text-warning me-2"></i>{{ r }}</div>{% endfor %}</div>{% else %}<p class="text-muted text-center my-3">{{ _('لا توجد توصيات حالياً') }}</p>{% endif %}
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>إجراءات سريعة</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-bolt text-primary me-2"></i>{{ _('إجراءات سريعة') }}</h6></div>
         <div class="card-body">
           <div class="d-grid gap-2">
-            <a href="{{ url_for('accountant.open_invoices') }}" class="btn btn-primary btn-sm"><i class="fas fa-file-invoice me-1"></i> الفواتير</a>
-            <a href="{{ url_for('accountant.payments') }}" class="btn btn-success btn-sm"><i class="fas fa-money-bill me-1"></i> المدفوعات</a>
-            <a href="{{ url_for('accountant.financial_report') }}" class="btn btn-info btn-sm"><i class="fas fa-chart-bar me-1"></i> التقارير</a>
+            <a href="{{ url_for('accountant.open_invoices') }}" class="btn btn-primary btn-sm"><i class="fas fa-file-invoice me-1"></i> {{ _('الفواتير') }}</a>
+            <a href="{{ url_for('accountant.payments') }}" class="btn btn-success btn-sm"><i class="fas fa-money-bill me-1"></i> {{ _('المدفوعات') }}</a>
+            <a href="{{ url_for('accountant.financial_report') }}" class="btn btn-info btn-sm"><i class="fas fa-chart-bar me-1"></i> {{ _('التقارير') }}</a>
           </div>
         </div>
       </div>
     </div>
     <div class="col-md-3">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>أتمتة المدفوعات</h6></div>
+        <div class="card-header bg-white border-bottom"><h6 class="mb-0 fw-bold"><i class="fas fa-cogs text-secondary me-2"></i>{{ _('أتمتة المدفوعات') }}</h6></div>
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.payment_optimization.automation_rate or 0 }}%</h2>
-          <p class="text-muted small">نسبة الأتمتة</p>
-          <div class="progress mb-2 prog-thin" title="نسبة أتمتة المدفوعات">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="نسبة أتمتة المدفوعات" data-width="{{ stats.payment_optimization.automation_rate or 0 }}"></div>
+          <p class="text-muted small">{{ _('نسبة الأتمتة') }}</p>
+          <div class="progress mb-2 prog-thin" title="{{ _('نسبة أتمتة المدفوعات') }}">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('نسبة أتمتة المدفوعات') }}" data-width="{{ stats.payment_optimization.automation_rate or 0 }}"></div>
           </div>
-          <div class="small text-muted">وقت موفر: <strong>{{ stats.payment_optimization.time_saved or 0 }} س</strong></div>
+          <div class="small text-muted">{{ _('وقت موفر:') }} <strong class="text-nowrap">{{ stats.payment_optimization.time_saved or 0 }} {{ _('س') }}</strong></div>
         </div>
       </div>
     </div>
@@ -217,25 +217,25 @@
 
   <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>آخر المعاملات</h6>
-      <a href="{{ url_for('accountant.payments') }}" class="small text-decoration-none">الكل</a>
+      <h6 class="mb-0 fw-bold"><i class="fas fa-list me-2 text-primary"></i>{{ _('آخر المعاملات') }}</h6>
+      <a href="{{ url_for('accountant.payments') }}" class="small text-decoration-none">{{ _('الكل') }}</a>
     </div>
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
-            <tr><th>#</th><th>النوع</th><th>المبلغ</th><th>التاريخ</th><th>الحالة</th></tr>
+            <tr><th>#</th><th>{{ _('النوع') }}</th><th class="text-end">{{ _('المبلغ') }}</th><th>{{ _('التاريخ') }}</th><th>{{ _('الحالة') }}</th></tr>
           </thead>
           <tbody>
             {% for t in recent_transactions %}
             <tr>
               <td>{{ t.id }}</td>
               <td>{{ t.type or '-' }}</td>
-              <td><strong>{{ t.amount or '-' }}</strong></td>
+              <td class="text-end text-nowrap"><strong>{{ t.amount or '-' }}</strong></td>
               <td class="small text-muted">{{ t.date or '-' }}</td>
               <td><span class="badge bg-{{ t.status_color or 'secondary' }}">{{ t.status or '-' }}</span></td>
             </tr>
-            {% else %}<tr><td colspan="5" class="text-muted text-center py-4">لا توجد معاملات</td></tr>
+            {% else %}<tr><td colspan="5" class="text-muted text-center py-4">{{ _('لا توجد معاملات') }}</td></tr>
             {% endfor %}
           </tbody>
         </table>

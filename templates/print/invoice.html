@@ -1,9 +1,9 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'invoice' %}
 
-{% block doc_title %}فاتورة — {{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else 'غير محدد' }}{% endblock %}
-{% block print_button_label %}طباعة الفاتورة{% endblock %}
-{% block doc_heading %}فاتورة خدمات طبية{% endblock %}
+{% block doc_title %}{{ _('فاتورة') }} — {{ invoice.visit.patient.full_name if invoice.visit and invoice.visit.patient else _('غير محدد') }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة الفاتورة') }}{% endblock %}
+{% block doc_heading %}{{ _('فاتورة خدمات طبية') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الفاتورة:') }}</strong> {{ invoice.invoice_number }}</span>
@@ -63,7 +63,7 @@
 {% endblock %}
 
 {% block legal_footer %}
-<p><strong>شكراً لثقتكم في {{ branding.organization_name if branding else (ui.organization_name if ui else _('المركز')) }}</strong></p>
+<p><strong>{{ _('شكراً لثقتكم في') }} {{ branding.organization_name if branding else (ui.organization_name if ui else _('المركز')) }}</strong></p>
 <p>{{ _(_('هذه الفاتورة صالحة للاستخدام القانوني')) }}</p>
 {% endblock %}
 

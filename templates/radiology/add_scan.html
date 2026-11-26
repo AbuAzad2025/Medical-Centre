@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    {{ page_header(_('إضافة فحص أشعة جديد'), subtitle=_('إضافة طلب فحص أشعة جديد للمريض'), icon='fas fa-plus', actions=[{'label': _('العودة للقائمة'), 'icon': 'fas fa-arrow-left', 'url': url_for('radiology.requests'), 'style': 'secondary'}]) }}
+    {{ page_header(_('إضافة فحص أشعة جديد'), subtitle=_('إضافة طلب فحص أشعة جديد للمريض'), icon='fas fa-plus', actions=[{'label': _('العودة للقائمة'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'url': url_for('radiology.requests'), 'style': 'secondary'}]) }}
 
     <!-- Form -->
     <div class="row">
@@ -48,27 +48,27 @@
                                 <input type="date" name="scan_date" class="form-control" required>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">وقت الفحص</label>
+                                <label class="form-label">{{ _('وقت الفحص') }}</label>
                                 <input type="time" name="scan_time" class="form-control">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">الفني المسؤول</label>
-                                <input type="text" name="technician" class="form-control" placeholder="اسم الفني">
+                                <label class="form-label">{{ _('الفني المسؤول') }}</label>
+                                <input type="text" name="technician" class="form-control" placeholder="{{ _('اسم الفني') }}">
                             </div>
                             <div class="col-12 mb-3">
-                                <label class="form-label">ملاحظات إضافية</label>
-                                <textarea name="notes" class="form-control" rows="3" placeholder="أي ملاحظات إضافية..."></textarea>
+                                <label class="form-label">{{ _('ملاحظات إضافية') }}</label>
+                                <textarea name="notes" class="form-control" rows="3" placeholder="{{ _('أي ملاحظات إضافية...') }}"></textarea>
                             </div>
                         </div>
                         
-                        <div class="d-flex gap-2">
+                        <div class="d-flex flex-wrap gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>
-                                حفظ الفحص
+                                {{ _('حفظ الفحص') }}
                             </button>
                             <a href="{{ url_for('radiology.requests') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i>
-                                إلغاء
+                                {{ _('إلغاء') }}
                             </a>
                         </div>
                     </form>
@@ -79,16 +79,16 @@
         <div class="col-lg-4">
             <div class="card shadow">
                 <div class="card-header py-3">
-                    <h6 class="m-0 fw-bold text-primary">معلومات مهمة</h6>
+                    <h6 class="m-0 fw-bold text-primary">{{ _('معلومات مهمة') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle me-2"></i>تعليمات</h6>
+                        <h6><i class="fas fa-info-circle me-2"></i>{{ _('تعليمات') }}</h6>
                         <ul class="mb-0">
-                            <li>تأكد من صحة بيانات المريض</li>
-                            <li>اختر نوع الفحص المناسب</li>
-                            <li>حدد الوقت المناسب للفحص</li>
-                            <li>أضف أي ملاحظات مهمة</li>
+                            <li>{{ _('تأكد من صحة بيانات المريض') }}</li>
+                            <li>{{ _('اختر نوع الفحص المناسب') }}</li>
+                            <li>{{ _('حدد الوقت المناسب للفحص') }}</li>
+                            <li>{{ _('أضف أي ملاحظات مهمة') }}</li>
                         </ul>
                     </div>
                 </div>

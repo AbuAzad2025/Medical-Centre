@@ -1,9 +1,9 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'emergency_report' %}
 
-{% block doc_title %}تقرير طوارئ — {{ emergency.patient.full_name if emergency.patient else 'غير محدد' }}{% endblock %}
-{% block print_button_label %}طباعة التقرير{% endblock %}
-{% block doc_heading %}تقرير حالة طوارئ{% endblock %}
+{% block doc_title %}{{ _('تقرير طوارئ') }} — {{ emergency.patient.full_name if emergency.patient else _('غير محدد') }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة التقرير') }}{% endblock %}
+{% block doc_heading %}{{ _('تقرير حالة طوارئ') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الحالة:') }}</strong> {{ emergency.case_number }}</span>
@@ -54,7 +54,7 @@
 
 {% block legal_footer %}
 <p><strong>{{ _(_('هذا التقرير صالح للاستخدام الطبي')) }}</strong></p>
-<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+<p>{{ _('للاستفسارات:') }} {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 
 {% block extra_print_js %}

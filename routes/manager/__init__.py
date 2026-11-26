@@ -161,7 +161,7 @@ def get_smart_analytics():
             else 'declining',
         }
     except Exception:
-        logging.exception('Error getting smart analytics: %s')
+        logging.exception('Error getting smart analytics')
         return {}
 
 
@@ -270,7 +270,7 @@ def get_business_insights():
 
         return insights
     except Exception:
-        logging.exception('Error getting business insights: %s')
+        logging.exception('Error getting business insights')
         return []
 
 
@@ -339,7 +339,7 @@ def get_performance_metrics():
             'overall_score': round((completion_rate + appointment_rate + satisfaction_rate) / 3, 2),
         }
     except Exception:
-        logging.exception('Error getting performance metrics: %s')
+        logging.exception('Error getting performance metrics')
         return {}
 
 
@@ -413,7 +413,7 @@ def get_financial_forecasting():
             else 'declining',
         }
     except Exception:
-        logging.exception('Error getting financial forecasting: %s')
+        logging.exception('Error getting financial forecasting')
         return {}
 
 
@@ -528,7 +528,7 @@ def get_operational_efficiency():
             else 'needs_improvement',
         }
     except Exception:
-        logging.exception('Error getting operational efficiency: %s')
+        logging.exception('Error getting operational efficiency')
         return {}
 
 
@@ -595,7 +595,7 @@ def get_staff_productivity():
             else 'needs_attention',
         }
     except Exception:
-        logging.exception('Error getting staff productivity: %s')
+        logging.exception('Error getting staff productivity')
         return {}
 
 
@@ -655,7 +655,7 @@ def get_patient_satisfaction():
             ],
         }
     except Exception:
-        logging.exception('Error getting patient satisfaction: %s')
+        logging.exception('Error getting patient satisfaction')
         return {}
 
 
@@ -753,7 +753,7 @@ def get_resource_optimization():
 
         return optimizations
     except Exception:
-        logging.exception('Error getting resource optimization: %s')  # pragma: no cover
+        logging.exception('Error getting resource optimization')  # pragma: no cover
         return []  # pragma: no cover
 
 

@@ -52,7 +52,7 @@ def stock_alerts():
             'medication/stock_alerts.html', low_stock=low_stock, expiring_soon=expiring_soon
         )
     except Exception:
-        logging.exception('Error loading stock alerts: %s')
+        logging.exception('Error loading stock alerts')
         flash('حدث خطأ في تحميل تنبيهات المخزون', 'error')
         return redirect(url_for('medication.dashboard'))
 
@@ -138,7 +138,7 @@ def create_supply_request():
             return redirect(url_for('medication.view_supply_request', request_id=req.id))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error creating supply request: %s')
+            logging.exception('Error creating supply request')
             flash('حدث خطأ في إنشاء طلب التوريد', 'error')
             return redirect(url_for('medication.supply_requests'))
 
@@ -215,7 +215,7 @@ def approve_supply_request(request_id: int):
         return jsonify({'success': True}), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error approving supply request: %s')
+        logging.exception('Error approving supply request')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500
 
 
@@ -277,5 +277,5 @@ def fulfill_supply_request(request_id: int):
         return jsonify({'success': True}), 200
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error fulfilling supply request: %s')
+        logging.exception('Error fulfilling supply request')
         return jsonify({'success': False, 'message': 'حدث خطأ'}), 500

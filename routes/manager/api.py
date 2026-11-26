@@ -53,5 +53,5 @@ def api_what_if():
             }
         ), 200
     except Exception:
-        logging.exception('Error computing what-if: %s')
+        logging.exception('Error computing what-if')
         return jsonify({'success': False, 'message': 'تعذر احتساب السيناريو'}), 500

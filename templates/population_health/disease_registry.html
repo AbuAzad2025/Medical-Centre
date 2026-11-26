@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% block title %}سجل الأمراض{% endblock %}
+{% block title %}{{ _('سجل الأمراض') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-4">{{ _(_('سجل الأمراض والأوبئة')) }}</h2>
   <div class="card">
     <div class="card-body">
+      <div class="table-responsive">
       <table class="table table-hover">
         <thead><tr><th>{{ _(_('المريض')) }}</th><th>{{ _(_('المرض')) }}</th><th>{{ _(_('تاريخ البداية')) }}</th><th>{{ _(_('النتيجة')) }}</th><th>{{ _(_('إخطار')) }}</th></tr></thead>
         <tbody>
@@ -14,13 +15,14 @@
             <td>{{ d.disease_name }}</td>
             <td>{{ d.onset_date or '-' }}</td>
             <td><span class="badge bg-secondary">{{ d.outcome or _('غير معروف') }}</span></td>
-            <td>{% if d.notification_sent %}<span class="badge bg-success">تم</span>{% else %}<span class="badge bg-warning">{{ _(_('لم يتم')) }}</span>{% endif %}</td>
+            <td>{% if d.notification_sent %}<span class="badge bg-success">{{ _('تم') }}</span>{% else %}<span class="badge bg-warning">{{ _(_('لم يتم')) }}</span>{% endif %}</td>
           </tr>
         {% else %}
           <tr><td colspan="5" class="text-muted text-center">{{ _(_('لا يوجد سجل')) }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>

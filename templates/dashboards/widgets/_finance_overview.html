@@ -16,8 +16,8 @@
       <div class="progress-bar {% if (widget_data.metrics.collection_rate or 0) >= 80 %}bg-success{% elif (widget_data.metrics.collection_rate or 0) >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ widget_data.metrics.collection_rate or 0 }}%"></div>
     </div>
     <div class="d-flex justify-content-between mt-2 small text-muted">
-      <span>المفوتر: {{ "%.0f"|format(widget_data.metrics.total_billed or 0) }}</span>
-      <span>المحصل: {{ "%.0f"|format(widget_data.metrics.total_collected or 0) }}</span>
+      <span>{{ _('المفوتر:') }} {{ "%.0f"|format(widget_data.metrics.total_billed or 0) }}</span>
+      <span>{{ _('المحصل:') }} {{ "%.0f"|format(widget_data.metrics.total_collected or 0) }}</span>
     </div>
   </div>
 </div>

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}الخط الزمني - {{ patient.full_name }}{% endblock %}
+{% block title %}{{ _('الخط الزمني') }} - {{ patient.full_name }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
   {{ page_header(_('الخط الزمني للمريض'), subtitle=(patient.full_name ~ (' - ' ~ patient.phone if patient.phone else '')), icon='fas fa-stream', actions=[
-      {'label': _('العودة'), 'icon': 'fas fa-arrow-left', 'url': url_for('doctor.patients'), 'style': 'secondary'},
+      {'label': _('العودة'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patients'), 'style': 'secondary'},
       {'label': _('السجل الطبي'), 'icon': 'fas fa-notes-medical', 'url': url_for('doctor.medical_history', patient_id=patient.id), 'style': 'outline-primary'},
       {'label': _('الوصفات'), 'icon': 'fas fa-file-prescription', 'url': url_for('doctor.prescriptions_history', patient_id=patient.id), 'style': 'outline-info'}
   ]) }}
@@ -59,7 +59,7 @@
     <div class="col-12">
       <div class="card shadow">
         <div class="card-header py-3">
-          <h6 class="m-0 fw-bold text-primary">الأحداث ({{ events|length }})</h6>
+          <h6 class="m-0 fw-bold text-primary">{{ _('الأحداث') }} ({{ events|length }})</h6>
         </div>
         <div class="card-body">
           {% if events %}

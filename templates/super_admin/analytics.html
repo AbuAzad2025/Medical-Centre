@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}التحليلات - لوحة الأمان{% endblock %}
+{% block title %}{{ _('التحليلات') }} - {{ _('لوحة الأمان') }}{% endblock %}
 
 {% block content %}
-{{ page_header(title='التحليلات', subtitle='إحصائيات حقيقية محسوبة مباشرة من قاعدة البيانات', icon='fas fa-chart-line', actions=[
-    {'type': 'button', 'label': 'تحديث', 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
-    {'type': 'button', 'label': 'تصدير التحليلات', 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
+{{ page_header(title=_('التحليلات'), subtitle=_('إحصائيات حقيقية محسوبة مباشرة من قاعدة البيانات'), icon='fas fa-chart-line', actions=[
+    {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync-alt', 'data_action': 'refresh-analytics', 'style': 'primary'},
+    {'type': 'button', 'label': _('تصدير التحليلات'), 'icon': 'fas fa-download', 'data_action': 'export-analytics', 'style': 'success'}
 ]) }}
 
 <!-- KPI Overview -->
@@ -16,7 +16,7 @@
             <i class="fas fa-users"></i>
         </div>
         <div class="stat-value">{{ stats.total_users if stats.total_users is not none else '—' }}</div>
-        <div class="stat-label">إجمالي المستخدمين</div>
+        <div class="stat-label">{{ _('إجمالي المستخدمين') }}</div>
     </div>
 
     <div class="stat-card">
@@ -24,7 +24,7 @@
             <i class="fas fa-procedures"></i>
         </div>
         <div class="stat-value">{{ stats.total_patients if stats.total_patients is not none else '—' }}</div>
-        <div class="stat-label">إجمالي المرضى</div>
+        <div class="stat-label">{{ _('إجمالي المرضى') }}</div>
     </div>
 
     <div class="stat-card">
@@ -32,7 +32,7 @@
             <i class="fas fa-notes-medical"></i>
         </div>
         <div class="stat-value">{{ stats.total_visits if stats.total_visits is not none else '—' }}</div>
-        <div class="stat-label">إجمالي الزيارات</div>
+        <div class="stat-label">{{ _('إجمالي الزيارات') }}</div>
     </div>
 
     <div class="stat-card">
@@ -40,7 +40,7 @@
             <i class="fas fa-stethoscope"></i>
         </div>
         <div class="stat-value">{{ stats.visits_today if stats.visits_today is not none else '—' }}</div>
-        <div class="stat-label">زيارات اليوم</div>
+        <div class="stat-label">{{ _('زيارات اليوم') }}</div>
     </div>
 </div>
 
@@ -49,7 +49,7 @@
     <div class="col-lg-8">
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">الزيارات خلال آخر 7 أيام</h6>
+                <h6 class="m-0 fw-bold text-primary">{{ _('الزيارات خلال آخر 7 أيام') }}</h6>
             </div>
             <div class="card-body">
                 <canvas id="usageChart" width="400" height="200"></canvas>
@@ -60,7 +60,7 @@
     <div class="col-lg-4">
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">توزيع المستخدمين حسب الدور</h6>
+                <h6 class="m-0 fw-bold text-primary">{{ _('توزيع المستخدمين حسب الدور') }}</h6>
             </div>
             <div class="card-body">
                 <canvas id="userDistributionChart" width="400" height="200"></canvas>
@@ -74,19 +74,19 @@
     <div class="col-lg-6">
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">مدفوعات اليوم</h6>
+                <h6 class="m-0 fw-bold text-primary">{{ _('مدفوعات اليوم') }}</h6>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="stat-item">
-                            <div class="stat-label">عدد المدفوعات</div>
+                            <div class="stat-label">{{ _('عدد المدفوعات') }}</div>
                             <div class="stat-value">{{ stats.payments_today if stats.payments_today is not none else '—' }}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="stat-item">
-                            <div class="stat-label">إجمالي المبلغ</div>
+                            <div class="stat-label">{{ _('إجمالي المبلغ') }}</div>
                             <div class="stat-value">{{ '%.2f'|format(stats.payment_amount_today|float) if stats.payment_amount_today is not none else '—' }}</div>
                         </div>
                     </div>
@@ -98,19 +98,19 @@
     <div class="col-lg-6">
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">نشاط اليوم</h6>
+                <h6 class="m-0 fw-bold text-primary">{{ _('نشاط اليوم') }}</h6>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="stat-item">
-                            <div class="stat-label">وصفات طبية اليوم</div>
+                            <div class="stat-label">{{ _('وصفات طبية اليوم') }}</div>
                             <div class="stat-value">{{ stats.prescriptions_today if stats.prescriptions_today is not none else '—' }}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="stat-item">
-                            <div class="stat-label">أحداث الأمان اليوم<br><small class="text-muted">(فشل الدخول / منع الوصول)</small></div>
+                            <div class="stat-label">{{ _('أحداث الأمان اليوم') }}<br><small class="text-muted">({{ _('فشل الدخول / منع الوصول') }})</small></div>
                             <div class="stat-value">{{ stats.audit_errors_today if stats.audit_errors_today is not none else '—' }}</div>
                         </div>
                     </div>
@@ -125,17 +125,17 @@
     <div class="col-12">
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 fw-bold text-primary">آخر أحداث التدقيق</h6>
+                <h6 class="m-0 fw-bold text-primary">{{ _('آخر أحداث التدقيق') }}</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-bordered mb-0">
                         <thead>
                             <tr>
-                                <th>المستخدم</th>
-                                <th>الإجراء</th>
-                                <th>نوع الكيان</th>
-                                <th>الوقت</th>
+                                <th>{{ _('المستخدم') }}</th>
+                                <th>{{ _('الإجراء') }}</th>
+                                <th>{{ _('نوع الكيان') }}</th>
+                                <th>{{ _('الوقت') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,7 +148,7 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="4" class="text-center text-muted">لا توجد أحداث تدقيق مسجلة حتى الآن</td>
+                                <td colspan="4" class="text-center text-muted">{{ _('لا توجد أحداث تدقيق مسجلة حتى الآن') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

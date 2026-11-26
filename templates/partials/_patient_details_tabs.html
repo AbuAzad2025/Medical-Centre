@@ -296,7 +296,8 @@
                                                     {% endif %}
                                                 </td>
                                                 <td>{{ record.title }}</td>
-                                                <td>{{ record.content[:100] }}{% if record.content|length > 100 %}...{% endif %}</td>
+                                                {% set rec_text = record.details or record.diagnosis or _('لا يوجد تفاصيل') %}
+                                                <td>{{ rec_text[:100] }}{% if rec_text|length > 100 %}...{% endif %}</td>
                                                 <td>{{ record.created_at.strftime('%Y-%m-%d') if record.created_at else _('غير محدد') }}</td>
                                             </tr>
                                             {% endfor %}

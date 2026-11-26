@@ -37,9 +37,9 @@
                             <td>{{ row.name_ar or '-' }}</td>
                             <td>{{ row.type }}</td>
                             <td>{{ row.normal_balance }}</td>
-                            <td class="text-end">{{ "%.2f"|format(row.total_credit) }}</td>
-                            <td class="text-end">{{ "%.2f"|format(row.total_debit) }}</td>
-                            <td class="text-end fw-bold">
+                            <td class="text-end text-nowrap">{{ "%.2f"|format(row.total_credit) }}</td>
+                            <td class="text-end text-nowrap">{{ "%.2f"|format(row.total_debit) }}</td>
+                            <td class="text-end text-nowrap fw-bold">
                                 {% if row.balance >= 0 %}
                                 {{ "%.2f"|format(row.balance) }}
                                 {% else %}

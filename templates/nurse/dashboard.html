@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}لوحة التمريض الاحترافية{% endblock %}
+{% block title %}{{ _('لوحة التمريض الاحترافية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -29,8 +29,10 @@
                             <ul class="mb-0">
                                 <li>{{ _(_('مساعدة الأطباء في العلاج')) }}</li>
                                 <li>{{ _(_('تسجيل ملاحظات التمريض')) }}</li>
-                            <li>{{ _(_('التنسيق مع الأقسام الأخرى')) }}</li>
-                        </ul>
+                                    <li>{{ _(_('التنسيق مع الأقسام الأخرى')) }}</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -247,12 +249,12 @@
                                 <div>
                                     <h5 class="mb-1"><bdi>{{ current_user.full_name }}</bdi></h5>
                                     <p class="text-muted mb-0">{{ current_user.get_role_display() }}</p>
-                                    <small class="text-muted">آخر دخول: {{ current_user.last_login|format_datetime if current_user.last_login else _('الآن') }}</small>
+                                    <small class="text-muted">{{ _('آخر دخول:') }} {{ current_user.last_login|format_datetime if current_user.last_login else _('الآن') }}</small>
                                 </div>
                                 <div class="text-center border-start ps-4">
                                     {% if current_user.digital_signature %}
                                         <div class="mb-2">
-                                            <img src="{{ current_user.digital_signature }}" alt="Signature" class="max-h-40">
+                                            <img src="{{ current_user.digital_signature }}" alt="{{ _('التوقيع') }}" class="max-h-40">
                                         </div>
                                         <span class="badge bg-success">{{ _(_('التوقيع مفعل')) }}</span>
                                     {% else %}
@@ -482,7 +484,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
-                                        <h4 class="text-info">{{ stats.workflow_automation.avg_processing_time or 0 }} دقيقة</h4>
+                                        <h4 class="text-info">{{ stats.workflow_automation.avg_processing_time or 0 }} {{ _('دقيقة') }}</h4>
                                         <p class="text-muted mb-0">{{ _(_('متوسط وقت المعالجة')) }}</p>
                                     </div>
                                 </div>
@@ -526,11 +528,9 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
-                                    <div class="text-center">
                                         <h4 class="text-info">{{ stats.predictive_insights.growth_rate or 0 }}%</h4>
                                         <p class="text-muted mb-0">{{ _(_('معدل النمو')) }}</p>
                                     </div>
-                                </div>
                                 <div class="col-md-3">
                                     <div class="text-center">
                                         <h4 class="text-warning">{{ stats.predictive_insights.workload_forecast_accuracy or 0 }}%</h4>
@@ -675,7 +675,7 @@
                                         <div class="card-body">
                                             <h6 class="card-title">{{ recommendation.title }}</h6>
                                             <p class="card-text">{{ recommendation.description }}</p>
-                                            <small class="text-muted">الأولوية: {{ recommendation.priority }} | الفئة: {{ recommendation.category }}</small>
+                                            <small class="text-muted">{{ _('الأولوية:') }} {{ recommendation.priority }} | {{ _('الفئة:') }} {{ recommendation.category }}</small>
                                         </div>
                                     </div>
                                 </div>

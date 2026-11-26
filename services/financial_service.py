@@ -134,7 +134,7 @@ class FinancialService:
             from utils.db_safety import safe_rollback
 
             safe_rollback(db.session, error_message='Error reconciling visit payments')
-            logging.exception('Error reconciling visit payments: %s')
+            logging.exception('Error reconciling visit payments')
             return {'ok': False, 'error': str(e)}
 
     @staticmethod
@@ -227,7 +227,7 @@ class FinancialService:
                 return None
             return invoice
         except Exception:
-            logging.exception('Error creating invoice: %s')
+            logging.exception('Error creating invoice')
             return None
 
     @staticmethod
@@ -262,7 +262,7 @@ class FinancialService:
                 return False
             return safe_commit(db.session, error_message='Failed to record payment')
         except Exception:
-            logging.exception('Error recording payment: %s')
+            logging.exception('Error recording payment')
             return False
 
     @staticmethod
@@ -308,7 +308,7 @@ class FinancialService:
                 'limit': limit,
             }
         except Exception as e:
-            logging.exception('Error loading expenses: %s')
+            logging.exception('Error loading expenses')
             return {
                 'success': False,
                 'available': True,
@@ -370,7 +370,7 @@ class FinancialService:
                 'message': None,
             }
         except Exception as e:
-            logging.exception('Error recording expense: %s')
+            logging.exception('Error recording expense')
             return {'success': False, 'available': True, 'expense': None, 'message': str(e)}
 
     @staticmethod

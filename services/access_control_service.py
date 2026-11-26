@@ -151,7 +151,7 @@ class AccessControlService:
             return bool(user.role == 'emergency' and visit.is_emergency)
 
         except Exception:
-            logging.exception('Error checking visit access: %s')
+            logging.exception('Error checking visit access')
             return False
 
     @staticmethod
@@ -190,7 +190,7 @@ class AccessControlService:
             return False
 
         except Exception:
-            logging.exception('Error checking visit modification: %s')
+            logging.exception('Error checking visit modification')
             return False
 
     @staticmethod
@@ -296,7 +296,7 @@ class AccessControlService:
             return []
 
         except Exception:
-            logging.exception('Error getting accessible visits: %s')
+            logging.exception('Error getting accessible visits')
             return []
 
     @staticmethod
@@ -372,7 +372,7 @@ class AccessControlService:
             return []
 
         except Exception:
-            logging.exception('Error getting accessible patients: %s')
+            logging.exception('Error getting accessible patients')
             return []
 
     @staticmethod
@@ -399,7 +399,7 @@ class AccessControlService:
             return role_routes.get(user.role, '/dashboard')
 
         except Exception:
-            logging.exception('Error getting dashboard route: %s')
+            logging.exception('Error getting dashboard route')
             return '/dashboard'
 
     @staticmethod
@@ -499,7 +499,7 @@ class AccessControlService:
             return role_menus.get(user.role, [])
 
         except Exception:
-            logging.exception('Error getting menu items: %s')
+            logging.exception('Error getting menu items')
             return []
 
     @staticmethod

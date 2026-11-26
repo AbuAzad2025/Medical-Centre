@@ -583,7 +583,7 @@ def prescription(visit_id):
         # instead of the real cause. One rejected prescription left the session
         # broken for the rest of the request.
         db.session.rollback()
-        logging.exception('Error in prescription: %s')
+        logging.exception('Error in prescription')
         flash('حدث خطأ في حفظ الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -621,7 +621,7 @@ def print_prescription(prescription_id):
             'print/prescription.html', prescription=prescription, qr_data_uri=qr_data_uri
         )
     except Exception:
-        logging.exception('Error printing prescription: %s')
+        logging.exception('Error printing prescription')
         flash('حدث خطأ في طباعة الوصفة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -674,7 +674,7 @@ def download_prescription_pdf(prescription_id):
         )
         return resp
     except Exception:
-        logging.exception('Error generating prescription PDF: %s')
+        logging.exception('Error generating prescription PDF')
         flash('حدث خطأ في إنشاء ملف PDF', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -740,7 +740,7 @@ def prescriptions():
             pages=pages,
         )
     except Exception:
-        logging.exception('Error loading prescriptions: %s')
+        logging.exception('Error loading prescriptions')
         flash('حدث خطأ في تحميل الوصفات', 'error')
         return redirect(url_for('doctor.dashboard'))
 
@@ -781,7 +781,7 @@ def print_invoice(invoice_id):
         )
         return render_template('print/invoice.html', invoice=invoice, qr_data_uri=qr_data_uri)
     except Exception:
-        logging.exception('Error printing invoice (doctor): %s')
+        logging.exception('Error printing invoice (doctor)')
         flash('حدث خطأ في طباعة الفاتورة', 'error')
         return redirect(url_for('doctor.patient_queue'))
 
@@ -825,6 +825,6 @@ def print_receipt(visit_id):
             survey_url=None,
         )
     except Exception:
-        logging.exception('Error printing receipt (doctor): %s')
+        logging.exception('Error printing receipt (doctor)')
         flash('حدث خطأ في طباعة الإيصال', 'error')
         return redirect(url_for('doctor.patient_queue'))

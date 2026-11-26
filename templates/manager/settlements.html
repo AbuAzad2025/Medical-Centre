@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}تسويات مالية شهرية{% endblock %}
+{% block title %}{{ _('تسويات مالية شهرية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -106,7 +106,7 @@
         <div class="col-12">
             <div class="card shadow-sm">
                 <div class="card-header">
-                    <h6 class="m-0">الفترة: {{ stats.period_start.strftime('%Y-%m-%d') }} إلى {{ stats.period_end.strftime('%Y-%m-%d') }}{% if stats.target_name %} | الهدف: {{ stats.target_name }}{% endif %}</h6>
+                    <h6 class="m-0">{{ _('الفترة:') }} {{ stats.period_start.strftime('%Y-%m-%d') }} {{ _('إلى') }} {{ stats.period_end.strftime('%Y-%m-%d') }}{% if stats.target_name %} | {{ _('الهدف:') }} {{ stats.target_name }}{% endif %}</h6>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">

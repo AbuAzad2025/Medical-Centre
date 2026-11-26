@@ -78,7 +78,7 @@ def force_payment_approvals():
         )
 
     except Exception:
-        logging.exception('Error loading force payment approvals: %s')
+        logging.exception('Error loading force payment approvals')
         flash('حدث خطأ في تحميل صفحة الموافقات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -153,7 +153,7 @@ def approve_force_payment(visit_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error approving force payment: %s')
+        logging.exception('Error approving force payment')
         flash('تعذر تنفيذ الموافقة حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
 
@@ -217,7 +217,7 @@ def reject_force_payment(visit_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error rejecting force payment: %s')
+        logging.exception('Error rejecting force payment')
         flash('تعذر تنفيذ الرفض حالياً، يرجى المحاولة مرة أخرى', 'error')
         return redirect(url_for('manager.force_payment_approvals'))
 
@@ -269,7 +269,7 @@ def custom_service_approvals():
             approved_services=approved,
         )
     except Exception:
-        logging.exception('Error loading custom service approvals: %s')
+        logging.exception('Error loading custom service approvals')
         flash('حدث خطأ في تحميل صفحة الموافقات', 'error')
         return redirect(url_for('manager.dashboard'))
 
@@ -320,7 +320,7 @@ def approve_custom_service(service_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error approving custom service: %s')
+        logging.exception('Error approving custom service')
         flash('تعذر تنفيذ الموافقة حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))
 
@@ -370,6 +370,6 @@ def reject_custom_service(service_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error rejecting custom service: %s')
+        logging.exception('Error rejecting custom service')
         flash('تعذر تنفيذ الرفض حالياً', 'error')
         return redirect(url_for('manager.custom_service_approvals'))

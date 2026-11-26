@@ -1,0 +1,210 @@
+[
+  {
+    "user": "superadmin",
+    "path": "/owner/dashboard",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1000,
+        1280
+      ],
+      "main": [
+        0,
+        1000
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "superadmin",
+    "path": "/owner/themes",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "superadmin",
+    "path": "/super-admin/dashboard",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_doctor",
+    "path": "/doctor/dashboard",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_doctor",
+    "path": "/doctor/patient-queue",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_reception",
+    "path": "/reception/patients",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_reception",
+    "path": "/reception/queue",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_accountant",
+    "path": "/accountant/invoices",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_manager",
+    "path": "/manager/unit-control",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_nurse",
+    "path": "/nurse/dashboard",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "audit_pharmacist",
+    "path": "/medication/dashboard",
+    "status": 200,
+    "marker": false,
+    "geometry": {
+      "aside": [
+        1020,
+        1280
+      ],
+      "main": [
+        0,
+        1020
+      ],
+      "overlap": false,
+      "overflow": false
+    }
+  },
+  {
+    "user": "patient_0501112233",
+    "path": "/portal/dashboard",
+    "status": 403,
+    "marker": false,
+    "geometry": {
+      "overlap": null,
+      "overflow": false
+    }
+  }
+]

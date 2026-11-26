@@ -4,9 +4,9 @@
 <div class="container-fluid">
   <h2 class="mb-3">{{ _(_('المدفوعات')) }}</h2>
   <div class="card"><div class="card-body">
-    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('المبلغ')) }}</th><th>{{ _(_('الطريقة')) }}</th><th>{{ _(_('تاريخ')) }}</th></tr></thead><tbody>
+    <div class="table-responsive"><table class="table table-striped"><thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th class="text-end">{{ _(_('المبلغ')) }}</th><th>{{ _(_('الطريقة')) }}</th><th class="text-nowrap">{{ _(_('تاريخ')) }}</th></tr></thead><tbody>
       {% for p in payments or [] %}
-      <tr><td>{{ p.id }}</td><td>{{ p.patient.full_name if p.patient else '' }}</td><td>{{ "%.2f"|format(p.amount or 0) }}</td><td>{{ p.method_display }}</td><td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td></tr>
+      <tr><td>{{ p.id }}</td><td>{{ p.patient.full_name if p.patient else '' }}</td><td class="text-end text-nowrap">{{ "%.2f"|format(p.amount or 0) }}</td><td>{{ p.method_display }}</td><td class="text-nowrap">{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '' }}</td></tr>
       {% else %}
       <tr><td colspan="5" class="text-center">{{ _(_('لا مدفوعات')) }}</td></tr>
       {% endfor %}

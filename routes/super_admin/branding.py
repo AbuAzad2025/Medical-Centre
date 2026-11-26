@@ -115,7 +115,7 @@ def branding():
             doc_labels=_DOC_LABELS,
         )
     except Exception:
-        logging.exception('Branding error: %s')
+        logging.exception('Branding error')
         flash('حدث خطأ في تحميل صفحة العلامة التجارية', 'error')
         return redirect(url_for('super_admin.dashboard'))
 
@@ -186,7 +186,7 @@ def apply_branding_theme(theme_id):
         )
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Apply theme error: %s')
+        logging.exception('Apply theme error')
         return jsonify({'success': False, 'error': str(e)}), 400
 
 
@@ -261,7 +261,7 @@ def update_branding():
 
     except Exception as e:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Update branding error: %s')
+        logging.exception('Update branding error')
         if _wants_json():
             return jsonify({'success': False, 'error': str(e)}), 400
         flash('حدث خطأ في تحديث إعدادات العلامة التجارية', 'error')

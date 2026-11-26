@@ -1,9 +1,9 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'report' %}
 
-{% block doc_title %}تقرير طبي — {{ visit.patient.full_name if visit.patient else 'غير محدد' }}{% endblock %}
-{% block print_button_label %}طباعة التقرير{% endblock %}
-{% block doc_heading %}تقرير طبي{% endblock %}
+{% block doc_title %}{{ _('تقرير طبي') }} — {{ visit.patient.full_name if visit.patient else _('غير محدد') }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة التقرير') }}{% endblock %}
+{% block doc_heading %}{{ _('تقرير طبي') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الزيارة:') }}</strong> {{ visit.id }}</span>
@@ -64,7 +64,7 @@
 
 {% block legal_footer %}
 <p><strong>{{ _(_('هذا التقرير صالح للاستخدام الطبي')) }}</strong></p>
-<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+<p>{{ _('للاستفسارات:') }} {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 
 {% block extra_print_js %}

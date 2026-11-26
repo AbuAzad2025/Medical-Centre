@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}إدارة الأدوية{% endblock %}
+{% block title %}{{ _('إدارة الأدوية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -77,7 +77,7 @@
 
             {% if administration_logs %}
               <hr class="my-3">
-              <h6 class="mb-2">سجل التنفيذ (آخر {{ administration_logs|length }})</h6>
+              <h6 class="mb-2">{{ _('سجل التنفيذ') }} ({{ _('آخر') }} {{ administration_logs|length }})</h6>
               <div class="table-responsive">
                 <table class="table table-sm table-striped align-middle mb-0">
                   <thead>

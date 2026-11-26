@@ -1,12 +1,12 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'prescription' %}
 
-{% block doc_title %}روشتة طبية — {{ prescription.patient.full_name }}{% endblock %}
-{% block print_button_label %}طباعة الروشتة{% endblock %}
+{% block doc_title %}{{ _('روشتة طبية') }} — {{ prescription.patient.full_name }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة الروشتة') }}{% endblock %}
 {% block extra_print_actions %}
-<a class="print-action-btn no-print print-pdf-btn" href="{{ url_for('doctor.download_prescription_pdf', prescription_id=prescription.id) }}">تحميل PDF</a>
+<a class="print-action-btn print-pdf-btn" href="{{ url_for('doctor.download_prescription_pdf', prescription_id=prescription.id) }}">{{ _('تحميل PDF') }}</a>
 {% endblock %}
-{% block doc_heading %}روشتة طبية{% endblock %}
+{% block doc_heading %}{{ _('روشتة طبية') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('المنشأة:') }}</strong> {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else '—') }}</span>
@@ -85,7 +85,7 @@
 
 {% block legal_footer %}
 <p><strong>{{ _(_('هذه الروشتة صالحة لمدة 30 يوماً من تاريخ الإصدار')) }}</strong></p>
-<p>للاستفسارات: {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
+<p>{{ _('للاستفسارات:') }} {{ branding.organization_email if branding and branding.organization_email else '—' }}{% if branding and branding.organization_phone %} | {{ branding.organization_phone }}{% endif %}</p>
 {% endblock %}
 
 {% block extra_print_js %}

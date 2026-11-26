@@ -14,12 +14,14 @@
               <select class="form-select" id="backup_id" name="backup_id" required>
                 {% for b in backups %}
                 <option value="{{ b.id }}">{{ b.file_name }} — {{ b.created_at }}</option>
+                {% else %}
+                <option value="" disabled>{{ _('لا توجد نسخ متاحة') }}</option>
                 {% endfor %}
               </select>
             </div>
             <input type="hidden" name="operation" value="restore">
             <div class="d-grid">
-              <button type="submit" class="btn btn-warning" data-action="confirm" data-message="هل أنت متأكد من الاستعادة؟ سيُعاد النظام لحالة النسخة المختارة.">
+              <button type="submit" class="btn btn-warning" data-action="confirm" data-message="{{ _('هل أنت متأكد من الاستعادة؟ سيُعاد النظام لحالة النسخة المختارة.') }}">
                 <i class="bi bi-arrow-counterclockwise me-1"></i> {{ _(_('استعادة')) }}
               </button>
             </div>
@@ -29,8 +31,9 @@
     </div>
     <div class="col-md-6">
       <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">{{ _(_('سجل الاستعادات')) }}</div>
+        <div class="card-header bg-info text-dark">{{ _(_('سجل الاستعادات')) }}</div>
         <div class="card-body p-0">
+          <div class="table-responsive">
           <table class="table table-sm mb-0">
             <thead><tr><th>{{ _(_('العملية')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('التاريخ')) }}</th><th>{{ _(_('المدة')) }}</th></tr></thead>
             <tbody>
@@ -42,12 +45,15 @@
                   {% if log.status == 'failed' %}<span class="badge bg-danger">{{ _(_('فشل')) }}</span>{% endif %}
                   {% if log.status == 'pending' %}<span class="badge bg-warning">{{ _(_('معلق')) }}</span>{% endif %}
                 </td>
-                <td>{{ log.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ log.duration_seconds or '—' }} ث</td>
+                <td dir="ltr">{{ log.started_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td dir="ltr">{{ log.duration_seconds or '—' }} {{ _('ث') }}</td>
               </tr>
+              {% else %}
+              <tr><td colspan="4" class="text-center text-muted py-3">{{ _('لا توجد استعادات') }}</td></tr>
               {% endfor %}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>

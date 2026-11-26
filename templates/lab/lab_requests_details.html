@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}تفاصيل طلب التحليل{% endblock %}
+{% block title %}{{ _('تفاصيل طلب التحليل') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     {{ page_header(
-        title='تفاصيل طلب التحليل',
+        title=_('تفاصيل طلب التحليل'),
         subtitle=_('عرض تفاصيل طلب التحليل'),
         icon='fas fa-clipboard-list',
         actions=[
-            {'url': url_for('lab.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
+            {'url': url_for('lab.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-' ~ ('right' if current_locale == 'ar' else 'left'), 'style': 'secondary'}
         ]
     ) }}
 
@@ -30,7 +30,7 @@
                             <strong>{{ _(_('الاسم:')) }}</strong> {{ lab_request.patient.full_name }}
                         </div>
                         <div class="col-md-3">
-                            <strong>{{ _(_('العمر:')) }}</strong> {{ lab_request.patient.age }} سنة
+                            <strong>{{ _(_('العمر:')) }}</strong> {{ lab_request.patient.age }} {{ _('سنة') }}
                         </div>
                         <div class="col-md-3">
                             <strong>{{ _(_('رقم الهوية:')) }}</strong> {{ lab_request.patient.id_number }}
@@ -154,7 +154,7 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
                         {% if (lab_request.status|upper) in ['PENDING','REQUESTED'] %}
                         <a href="{{ url_for('lab.worklist') }}" class="btn btn-primary">
                             <i class="fas fa-cog me-1"></i>
@@ -176,7 +176,7 @@
                             {{ _(_('إرسال النتائج')) }}
                         </a>
                         <a href="{{ url_for('lab.dashboard') }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-right me-1"></i>
+                            <i class="fas fa-arrow-{{ 'right' if current_locale == 'ar' else 'left' }} me-1"></i>
                             {{ _(_('العودة')) }}
                         </a>
                     </div>

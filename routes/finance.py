@@ -104,7 +104,7 @@ def dashboard():
         )
 
     except Exception:
-        logging.exception('Error loading finance dashboard: %s')
+        logging.exception('Error loading finance dashboard')
         flash('حدث خطأ في تحميل لوحة التحكم المالية', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -136,7 +136,7 @@ def post_gl():
         return jsonify({'error': message}), 422
 
     except Exception:
-        logging.exception('Error posting GL: %s')
+        logging.exception('Error posting GL')
         return jsonify({'error': 'تعذر تنفيذ الترحيل المالي حالياً'}), 500
 
 
@@ -182,7 +182,7 @@ def payments():
         return render_template('finance/payments.html', payments=payments)
 
     except Exception:
-        logging.exception('Error loading payments: %s')
+        logging.exception('Error loading payments')
         flash('حدث خطأ في تحميل المدفوعات', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -212,7 +212,7 @@ def invoices():
         return render_template('finance/invoices.html', invoices=invoices)
 
     except Exception:
-        logging.exception('Error loading invoices: %s')
+        logging.exception('Error loading invoices')
         flash('حدث خطأ في تحميل الفواتير', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -246,7 +246,7 @@ def audit():
         return render_template('finance/audit.html', audit_entries=audit_entries)
 
     except Exception:
-        logging.exception('Error loading audit: %s')
+        logging.exception('Error loading audit')
         flash('حدث خطأ في تحميل التدقيق', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -261,7 +261,7 @@ def slow_queries():
         report = ReportService.get_slow_queries_report(limit=limit)
         return render_template('finance/slow_queries.html', report=report, limit=limit)
     except Exception:
-        logging.exception('Error loading slow queries report: %s')
+        logging.exception('Error loading slow queries report')
         flash('حدث خطأ في تحميل تقرير الاستعلامات البطيئة', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -282,7 +282,7 @@ def slow_queries_weekly():
         )
         return render_template('finance/slow_queries_weekly.html', reports=reports)
     except Exception:
-        logging.exception('Error loading weekly slow queries: %s')
+        logging.exception('Error loading weekly slow queries')
         flash('حدث خطأ في تحميل التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.dashboard'))
 
@@ -301,7 +301,7 @@ def slow_queries_weekly_detail(report_id):
             return redirect(url_for('finance.slow_queries_weekly'))
         return render_template('finance/slow_queries_weekly_detail.html', report=report)
     except Exception:
-        logging.exception('Error loading weekly slow queries detail: %s')
+        logging.exception('Error loading weekly slow queries detail')
         flash('حدث خطأ في تحميل تفاصيل التقرير', 'error')
         return redirect(url_for('finance.slow_queries_weekly'))
 
@@ -322,7 +322,7 @@ def capture_slow_queries_weekly():
             url_for('finance.slow_queries_weekly_detail', report_id=result.get('report_id'))
         )
     except Exception:
-        logging.exception('Error capturing weekly slow queries: %s')
+        logging.exception('Error capturing weekly slow queries')
         flash('حدث خطأ في إنشاء التقرير الأسبوعي', 'error')
         return redirect(url_for('finance.slow_queries'))
 

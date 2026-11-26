@@ -1,5 +1,5 @@
 {% if now_cards %}
-<section class="cc-now-panel" aria-label="الآن">
+<section class="cc-now-panel" aria-label="{{ _('الآن') }}">
   <div class="cc-now-panel__title"><i class="fas fa-bolt me-1"></i> {{ _(_('الآن يحتاج انتباهك')) }}</div>
   <div class="cc-now-grid">
     {% for card in now_cards %}
@@ -11,7 +11,7 @@
       <div class="cc-now-card__value" data-metric-value>{{ card.value }}</div>
       <div class="cc-now-card__label"><i class="fas {{ card.icon }} me-1"></i>{{ card.title }}</div>
       {% if card.action_label and card.action_href %}
-      <div class="cc-now-card__action">{{ card.action_label }} ←</div>
+      <div class="cc-now-card__action">{{ card.action_label }} <span class="cc-action-arrow" aria-hidden="true"></span></div>
       {% endif %}
     {% if card.action_href %}
     </a>

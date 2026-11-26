@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}القدرة الاستيعابية{% endblock %}
+{% block title %}{{ _('القدرة الاستيعابية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -23,7 +23,7 @@
           </select>
         </div>
         <div class="col-md-3">
-          <label class="form-label">من</label>
+          <label class="form-label">{{ _('من') }}</label>
           <input class="form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
         </div>
         <div class="col-md-3">

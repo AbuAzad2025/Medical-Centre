@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}جداول عمل الموظفين{% endblock %}
+{% block title %}{{ _('جداول عمل الموظفين') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -39,7 +39,7 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">من</label>
+                    <label class="form-label" for="start_time">{{ _('من') }}</label>
                     <input type="time" class="form-control" name="start_time" required>
                 </div>
                 <div class="col-md-3">
@@ -62,7 +62,7 @@
                     <thead>
                         <tr>
                             <th>{{ _(_('اليوم')) }}</th>
-                            <th>من</th>
+                            <th>{{ _('من') }}</th>
                             <th>{{ _(_('إلى')) }}</th>
                             <th>{{ _(_('الحالة')) }}</th>
                         </tr>

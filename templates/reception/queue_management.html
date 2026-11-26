@@ -50,7 +50,7 @@
                             <div class="info-box bg-danger">
                                 <span class="info-box-icon"><i class="fas fa-exclamation-triangle"></i></span>
                                 <div class="info-box-content">
-                                    <span class="info-box-text">طوارئ</span>
+                                    <span class="info-box-text">{{ _('طوارئ') }}</span>
                                     <span class="info-box-number" id="emergency-count">0</span>
                                 </div>
                             </div>
@@ -59,58 +59,58 @@
 
                     <div class="row">
                         <div class="col-12">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ url_for('reception.add_patient_to_queue') }}" class="btn btn-primary btn-sm">
-                                        <i class="fas fa-plus"></i> إضافة مريض للطابور
+                                        <i class="fas fa-plus"></i> {{ _('إضافة مريض للطابور') }}
                                     </a>
                                     <button class="btn btn-outline-secondary btn-sm" onclick="updateQueueStatus()">
-                                        <i class="fas fa-sync"></i> تحديث
+                                        <i class="fas fa-sync"></i> {{ _('تحديث') }}
                                     </button>
                                     <button class="btn btn-outline-success btn-sm" onclick="callNextForSelectedDepartment()">
-                                        <i class="fas fa-arrow-down"></i> نداء المريض التالي
+                                        <i class="fas fa-arrow-down"></i> {{ _('نداء المريض التالي') }}
                                     </button>
                                 </div>
                                 <div class="text-muted small">
-                                    متوسط الانتظار اليوم: <span id="avg-wait-today">--</span> | متوسط انتظار القسم: <span id="avg-wait-dept">--</span>
+                                    {{ _('متوسط الانتظار اليوم:') }} <span id="avg-wait-today">--</span> | {{ _('متوسط انتظار القسم:') }} <span id="avg-wait-dept">--</span>
                                 </div>
                             </div>
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <div class="row g-2">
                                         <div class="col-md-3">
-                                            <label class="small">القسم</label>
+                                            <label class="small" for="filterDepartment">{{ _('القسم') }}</label>
                                             <select id="filterDepartment" class="form-control">
-                                                <option value="">الكل</option>
+                                                <option value="">{{ _('الكل') }}</option>
                                                 {% for d in all_departments %}
                                                 <option value="{{ d.id }}">{{ d.name }}</option>
                                                 {% endfor %}
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="small">الحالة</label>
+                                            <label class="small" for="filterStatus">{{ _('الحالة') }}</label>
                                             <select id="filterStatus" class="form-control">
-                                                <option value="">الكل</option>
-                                                <option value="waiting">في الانتظار</option>
-                                                <option value="called">مستدعى</option>
-                                                <option value="in_progress">قيد التنفيذ</option>
+                                                <option value="">{{ _('الكل') }}</option>
+                                                <option value="waiting">{{ _('في الانتظار') }}</option>
+                                                <option value="called">{{ _('مستدعى') }}</option>
+                                                <option value="in_progress">{{ _('قيد التنفيذ') }}</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <label class="small">الأولوية</label>
+                                            <label class="small" for="filterPriority">{{ _('الأولوية') }}</label>
                                             <select id="filterPriority" class="form-control">
-                                                <option value="">الكل</option>
-                                                <option value="low">منخفضة</option>
-                                                <option value="normal">عادية</option>
-                                                <option value="high">عالية</option>
-                                                <option value="urgent">عاجلة</option>
+                                                <option value="">{{ _('الكل') }}</option>
+                                                <option value="low">{{ _('منخفضة') }}</option>
+                                                <option value="normal">{{ _('عادية') }}</option>
+                                                <option value="high">{{ _('عالية') }}</option>
+                                                <option value="urgent">{{ _('عاجلة') }}</option>
                                             </select>
                                         </div>
                                         {% if has_permission('patient_create') %}
                                         <div class="col-md-3">
-                                            <label class="small">الطبيب</label>
+                                            <label class="small" for="filterDoctor">{{ _('الطبيب') }}</label>
                                             <select id="filterDoctor" class="form-control">
-                                                <option value="">الكل</option>
+                                                <option value="">{{ _('الكل') }}</option>
                                                 {% for d in all_departments %}
                                                 {% for doc in d.users if d.users %}
                                                 {% if doc.role == 'doctor' %}
@@ -122,21 +122,21 @@
                                         </div>
                                         {% endif %}
                                         <div class="col-md-3">
-                                            <label class="small">بحث</label>
-                                            <input id="filterSearch" type="text" class="form-control" placeholder="اسم المريض أو رقم التذكرة">
+                                            <label class="small" for="filterSearch">{{ _('بحث') }}</label>
+                                            <input id="filterSearch" type="text" class="form-control" placeholder="{{ _('اسم المريض أو رقم التذكرة') }}">
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
                                             <div class="form-check me-3">
                                                 <input id="filterEmergency" class="form-check-input" type="checkbox">
-                                                <label class="form-check-label small" for="filterEmergency">طوارئ</label>
+                                                <label class="form-check-label small" for="filterEmergency">{{ _('طوارئ') }}</label>
                                             </div>
                                             <div class="form-check">
                                                 <input id="filterForce" class="form-check-input" type="checkbox">
-                                                <label class="form-check-label small" for="filterForce">دخول قوي</label>
+                                                <label class="form-check-label small" for="filterForce">{{ _('دخول قوي') }}</label>
                                             </div>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
-                                            <button class="btn btn-outline-primary w-100" onclick="updateQueueStatus()"><i class="fas fa-filter"></i> تطبيق</button>
+                                            <button class="btn btn-outline-primary w-100" onclick="updateQueueStatus()"><i class="fas fa-filter"></i> {{ _('تطبيق') }}</button>
                                         </div>
                                     </div>
                                 </div>
@@ -145,23 +145,23 @@
                                 <table class="table table-striped table-bordered table-sm">
                                     <thead class="thead-light">
                                         <tr>
-                                            <th>رقم التذكرة</th>
-                                            <th>المريض</th>
-                                            <th>القسم</th>
-                                            <th>الطبيب</th>
-                                            <th>الحالة</th>
-                                            <th>الأولوية</th>
-                                            <th>وقت الإدراج</th>
-                                            <th>زمن الانتظار</th>
-                                            <th>وقت الاستدعاء</th>
-                                            <th>إجراءات</th>
+                                            <th>{{ _('رقم التذكرة') }}</th>
+                                            <th>{{ _('المريض') }}</th>
+                                            <th>{{ _('القسم') }}</th>
+                                            <th>{{ _('الطبيب') }}</th>
+                                            <th>{{ _('الحالة') }}</th>
+                                            <th>{{ _('الأولوية') }}</th>
+                                            <th>{{ _('وقت الإدراج') }}</th>
+                                            <th>{{ _('زمن الانتظار') }}</th>
+                                            <th>{{ _('وقت الاستدعاء') }}</th>
+                                            <th>{{ _('إجراءات') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td colspan="10" class="text-center text-muted">
                                                 <i class="fas fa-spinner fa-spin"></i>
-                                                جاري التحميل...
+                                                {{ _('جاري التحميل...') }}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -180,8 +180,8 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="callPatientModalLabel">استدعاء المريض</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="callPatientModalLabel">{{ _('استدعاء المريض') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <div class="modal-body">
                 <div id="patient-info">
@@ -189,10 +189,10 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إغلاق') }}</button>
                 <button type="button" class="btn btn-success" onclick="startTreatment()">
                     <i class="fas fa-play"></i>
-                    بدء العلاج
+                    {{ _('بدء العلاج') }}
                 </button>
             </div>
         </div>
@@ -204,21 +204,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="skipPatientModalLabel">تخطي المريض</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="skipPatientModalLabel">{{ _('تخطي المريض') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <form id="skipPatientForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="skip_reason" class="form-label">سبب التخطي:</label>
-                        <textarea id="skip_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب تخطي المريض..."></textarea>
+                        <label for="skip_reason" class="form-label">{{ _('سبب التخطي:') }}</label>
+                        <textarea id="skip_reason" class="form-control" name="reason" rows="3" placeholder="{{ _('أدخل سبب تخطي المريض...') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
                     <button type="submit" class="btn btn-warning">
                         <i class="fas fa-forward"></i>
-                        تخطي المريض
+                        {{ _('تخطي المريض') }}
                     </button>
                 </div>
             </form>
@@ -231,21 +231,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="cancelTicketModalLabel">إلغاء التذكرة</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="cancelTicketModalLabel">{{ _('إلغاء التذكرة') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <form id="cancelTicketForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="cancel_reason" class="form-label">سبب الإلغاء:</label>
-                        <textarea id="cancel_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب الإلغاء..."></textarea>
+                        <label for="cancel_reason" class="form-label">{{ _('سبب الإلغاء:') }}</label>
+                        <textarea id="cancel_reason" class="form-control" name="reason" rows="3" placeholder="{{ _('أدخل سبب الإلغاء...') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-danger" data-confirm="هل أنت متأكد من إلغاء التذكرة؟">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
+                    <button type="submit" class="btn btn-danger" data-confirm="{{ _('هل أنت متأكد من إلغاء التذكرة؟') }}">
                         <i class="fas fa-times"></i>
-                        إلغاء التذكرة
+                        {{ _('إلغاء التذكرة') }}
                     </button>
                 </div>
             </form>
@@ -258,21 +258,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="approveEmergencyDebtModalLabel">الموافقة على دين الطوارئ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="approveEmergencyDebtModalLabel">{{ _('الموافقة على دين الطوارئ') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <form id="approveEmergencyDebtForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="max_amount" class="form-label">الحد الأقصى للمبلغ:</label>
-                        <input id="max_amount" type="number" class="form-control" name="max_amount" step="0.01" placeholder="أدخل الحد الأقصى للمبلغ">
+                        <label for="max_amount" class="form-label">{{ _('الحد الأقصى للمبلغ:') }}</label>
+                        <input id="max_amount" type="number" class="form-control" name="max_amount" step="0.01" placeholder="{{ _('أدخل الحد الأقصى للمبلغ') }}">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-check"></i>
-                        الموافقة
+                        {{ _('الموافقة') }}
                     </button>
                 </div>
             </form>
@@ -285,21 +285,21 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="approveForceEntryModalLabel">الموافقة على الدخول القوي</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="approveForceEntryModalLabel">{{ _('الموافقة على الدخول القوي') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <form id="approveForceEntryForm">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="force_reason" class="form-label">سبب الدخول القوي:</label>
-                        <textarea id="force_reason" class="form-control" name="reason" rows="3" placeholder="أدخل سبب الدخول القوي..."></textarea>
+                        <label for="force_reason" class="form-label">{{ _('سبب الدخول القوي:') }}</label>
+                        <textarea id="force_reason" class="form-control" name="reason" rows="3" placeholder="{{ _('أدخل سبب الدخول القوي...') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-check"></i>
-                        الموافقة
+                        {{ _('الموافقة') }}
                     </button>
                 </div>
             </form>
@@ -312,31 +312,31 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="transferVisitModalLabel"><i class="fas fa-exchange-alt me-2"></i>تحويل الزيارة لقسم آخر</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+                <h5 class="modal-title" id="transferVisitModalLabel"><i class="fas fa-exchange-alt me-2"></i>{{ _('تحويل الزيارة لقسم آخر') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <form id="transferVisitForm">
                 <div class="modal-body">
                     <input type="hidden" id="transfer_visit_id" name="visit_id">
                     <div class="mb-3">
-                        <label for="transfer_department_id" class="form-label fw-bold">القسم الجديد <span class="text-danger">*</span></label>
+                        <label for="transfer_department_id" class="form-label fw-bold">{{ _('القسم الجديد') }} <span class="text-danger">*</span></label>
                         <select class="form-select" id="transfer_department_id" name="department_id" required>
-                            <option value="">اختر القسم...</option>
+                            <option value="">{{ _('اختر القسم...') }}</option>
                             {% for dept in all_departments %}
                             <option value="{{ dept.id }}">{{ dept.name_ar }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="transfer_doctor_id" class="form-label fw-bold">الطبيب/الموظف (اختياري)</label>
+                        <label for="transfer_doctor_id" class="form-label fw-bold">{{ _('الطبيب/الموظف (اختياري)') }}</label>
                         <select class="form-select" id="transfer_doctor_id" name="doctor_id">
-                            <option value="">اختر بعد القسم...</option>
+                            <option value="">{{ _('اختر بعد القسم...') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-info"><i class="fas fa-exchange-alt me-1"></i> تحويل</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إلغاء') }}</button>
+                    <button type="submit" class="btn btn-info"><i class="fas fa-exchange-alt me-1"></i> {{ _('تحويل') }}</button>
                 </div>
             </form>
         </div>

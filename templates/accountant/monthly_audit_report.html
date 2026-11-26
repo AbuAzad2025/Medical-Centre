@@ -156,7 +156,7 @@
                                 <td>{{ alert.threshold }}</td>
                                 <td>{{ alert.message }}</td>
                             </tr>
-                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                            {% else %}<tr><td colspan="4" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -180,7 +180,7 @@
                                 <td>{{ reason }}</td>
                                 <td>{{ count }}</td>
                             </tr>
-                            {% else %}<tr><td colspan="99" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
+                            {% else %}<tr><td colspan="2" class="text-center text-muted py-3">{{ _(_('لا توجد بيانات')) }}</td></tr>{% endfor %}
                         </tbody>
                     </table>
                 </div>

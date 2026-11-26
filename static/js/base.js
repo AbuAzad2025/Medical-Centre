@@ -7,6 +7,25 @@
   }
   window.escHtml = window.escHtml || escHtml;
 
+  // Shell geometry: the platform owner navbar is much taller than the clinical
+  // one. Measure it and publish the height so CSS can start every sidebar just
+  // below it instead of letting the navbar hide behind it.
+  function measureShell() {
+    var nav = document.querySelector('.platform-navbar, .clinical-navbar, .portal-navbar, header.navbar');
+    if (!nav) return;
+    var height = Math.round(nav.getBoundingClientRect().height);
+    if (height > 20) document.documentElement.style.setProperty('--shell-navbar-h', height + 'px');
+    var aside = document.querySelector('.clinical-sidebar, .owner-sidebar, .portal-sidebar');
+    if (aside) {
+      var visible = window.getComputedStyle(aside).display !== 'none';
+      var width = visible ? Math.round(aside.getBoundingClientRect().width) : 0;
+      document.documentElement.style.setProperty('--shell-sidebar-w', (width > 40 ? width : 0) + 'px');
+    }
+  }
+  document.addEventListener('DOMContentLoaded', measureShell);
+  window.addEventListener('resize', measureShell);
+  measureShell();
+
     // Read the token once at load time. The header name matches Flask-WTF's
     // WTF_CSRF_HEADERS ('X-CSRFToken'), so the server accepts it on any unsafe method.
     const token = (document.querySelector('meta[name="csrf-token"]') || {}).content;

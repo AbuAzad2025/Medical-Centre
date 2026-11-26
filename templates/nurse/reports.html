@@ -1,10 +1,17 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
-{% block title %}تقرير التمريض{% endblock %}
+{% block title %}{{ _('تقرير التمريض') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
+  {% set status_labels = {
+    'pending': _('معلقة'), 'in_progress': _('قيد التنفيذ'), 'completed': _('مكتملة'),
+    'cancelled': _('ملغاة'), 'on_hold': _('معلقة مؤقتاً')
+  } %}
+  {% set priority_labels = {
+    'low': _('منخفضة'), 'medium': _('متوسطة'), 'high': _('عالية'), 'urgent': _('عاجلة')
+  } %}
   {{ page_header(
-      title='تقرير التمريض',
+      title=_('تقرير التمريض'),
       subtitle=_('ملخص المهام خلال فترة'),
       icon='fas fa-chart-bar',
       actions=[
@@ -14,7 +21,7 @@
 
   <form method="GET" class="row g-3 mb-3">
     <div class="col-md-3">
-      <label class="form-label">من</label>
+      <label class="form-label">{{ _('من') }}</label>
       <input class="form-control" type="date" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') if start_date else '' }}">
     </div>
     <div class="col-md-3">
@@ -73,7 +80,7 @@
               </thead>
               <tbody>
                 {% for st, cnt in (by_status or []) %}
-                  <tr><td>{{ st }}</td><td>{{ cnt }}</td></tr>
+                  <tr><td>{{ status_labels.get(st, st) }}</td><td>{{ cnt }}</td></tr>
                 {% else %}
                   <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا بيانات')) }}</td></tr>
                 {% endfor %}
@@ -94,7 +101,7 @@
               </thead>
               <tbody>
                 {% for pr, cnt in (by_priority or []) %}
-                  <tr><td>{{ pr }}</td><td>{{ cnt }}</td></tr>
+                  <tr><td>{{ priority_labels.get(pr, pr) }}</td><td>{{ cnt }}</td></tr>
                 {% else %}
                   <tr><td colspan="2" class="text-center text-muted">{{ _(_('لا بيانات')) }}</td></tr>
                 {% endfor %}
@@ -127,7 +134,7 @@
   </div>
 
   <div class="card shadow">
-    <div class="card-header">{{ _(_('المهام المتأخرة (Top)')) }}</div>
+    <div class="card-header">{{ _('المهام المتأخرة') }}</div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-striped align-middle">
@@ -145,7 +152,7 @@
               <tr>
                 <td>{{ r.title }}</td>
                 <td>{{ r.nurse_name }}</td>
-                <td>{{ r.priority }}</td>
+                <td>{{ priority_labels.get(r.priority, r.priority) }}</td>
                 <td>{{ r.status | enum_label }}</td>
                 <td class="text-danger">{{ r.due_date|format_datetime }}</td>
               </tr>

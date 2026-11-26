@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
 
-{% block title %}العلامات الحيوية{% endblock %}
+{% block title %}{{ _('العلامات الحيوية') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -57,7 +57,7 @@
                     {% if selected_patient %}
                         <div class="mb-3">
                             <div class="fw-bold">{{ selected_patient.full_name }}</div>
-                            <div class="text-muted small">رقم المريض: {{ selected_patient.id }}</div>
+                            <div class="text-muted small">{{ _('رقم المريض:') }} {{ selected_patient.id }}</div>
                         </div>
                         <form id="vitalSignsForm" method="post" action="{{ url_for('nurse.record_vital_signs', patient_id=selected_patient.id) }}">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

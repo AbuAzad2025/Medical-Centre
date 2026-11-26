@@ -316,7 +316,7 @@ def index():
 
         return render_template('booking/index.html', departments=departments, doctors=doctors)
     except Exception:
-        logging.exception('Error loading booking page: %s')
+        logging.exception('Error loading booking page')
         flash('حدث خطأ في تحميل صفحة الحجز', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -474,7 +474,7 @@ def create_booking():
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error creating booking: %s')
+            logging.exception('Error creating booking')
             flash('تعذر إنشاء الحجز، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
 
     preset_department_id = request.args.get('department_id', type=int)
@@ -535,7 +535,7 @@ def confirmation(booking_id):
             'booking/confirmation.html', booking=booking, meeting_link=meeting_link
         )
     except Exception:
-        logging.exception('Error loading booking confirmation: %s')
+        logging.exception('Error loading booking confirmation')
         flash('حدث خطأ في تحميل تأكيد الحجز', 'error')
         return redirect(url_for('booking.index'))
 
@@ -553,7 +553,7 @@ def telemedicine_room(booking_id):
             'booking/telemedicine_room.html', booking=booking, meeting_link=meeting_link
         )
     except Exception:
-        logging.exception('Error loading telemedicine room: %s')
+        logging.exception('Error loading telemedicine room')
         flash('تعذر تحميل جلسة التطبيب عن بُعد', 'error')
         return redirect(url_for('booking.index'))
 
@@ -600,7 +600,7 @@ def payment(booking_id):
 
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error processing payment: %s')
+            logging.exception('Error processing payment')
             flash('تعذر معالجة الدفع حالياً، يرجى المحاولة مرة أخرى', 'error')
 
     return render_template('booking/payment.html', booking=booking)

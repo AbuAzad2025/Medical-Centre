@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}تفاصيل حالة الطوارئ - {{ emergency.patient.full_name }}{% endblock %}
+{% block title %}{{ _('تفاصيل حالة الطوارئ') }} - <bdi>{{ emergency.patient.full_name }}</bdi>{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -15,7 +15,7 @@
                                 <i class="fas fa-heartbeat me-2"></i>
                                 {{ _(_('تفاصيل حالة الطوارئ')) }}
                             </h2>
-                            <p class="text-muted mb-0">{{ emergency.patient.full_name }} - {{ emergency.priority }}</p>
+                            <p class="text-muted mb-0"><bdi>{{ emergency.patient.full_name }}</bdi> - {% if emergency.priority == 'CRITICAL' %}{{ _('حرجة') }}{% elif emergency.priority == 'URGENT' %}{{ _('عاجلة') }}{% elif emergency.priority == 'HIGH' %}{{ _('عالية') }}{% else %}{{ _('عادية') }}{% endif %}</p>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="d-flex gap-2">
@@ -171,7 +171,7 @@
                         {% if emergency.status == 'OBSERVATION' %}
                             <form method="POST" action="{{ url_for('emergency.end_treatment', emergency_id=emergency.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger w-100" data-action="confirm-submit" data-message="هل أنت متأكد من إنهاء العلاج؟">
+                                <button type="submit" class="btn btn-danger w-100" data-action="confirm-submit" data-message="{{ _('هل أنت متأكد من إنهاء العلاج؟') }}">
                                     <i class="fas fa-stop me-2"></i>{{ _('إنهاء العلاج') }}
                                 </button>
                             </form>

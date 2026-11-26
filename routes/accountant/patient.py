@@ -37,7 +37,7 @@ def invoices():
             db.session.execute(query.offset((page - 1) * per_page).limit(per_page)).scalars().all()
         )
     except Exception:
-        logging.exception('Error loading pending visits: %s')
+        logging.exception('Error loading pending visits')
         visits = []
         total = 0
         pages = 0
@@ -159,7 +159,7 @@ def financial():
             statement=statement,
         )
     except Exception:
-        logging.exception('Error loading accountant financial page: %s')
+        logging.exception('Error loading accountant financial page')
         flash('حدث خطأ في تحميل الإدارة المالية', 'error')
         return redirect(url_for('accountant.dashboard'))
 

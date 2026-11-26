@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}لوحة تحكم الطوارئ{% endblock %}
+{% block title %}{{ _('لوحة تحكم الطوارئ') }}{% endblock %}
 {% block content %}
 <div class="row mb-3">
     <div class="col-12 d-flex flex-wrap gap-2">
@@ -67,6 +67,7 @@
         <div class="card h-100">
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-list me-2 text-danger"></i>{{ _(_('قائمة الانتظار — الحالات الحرجة والعاجلة')) }}</h5></div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead><tr><th>#</th><th>{{ _(_('المريض')) }}</th><th>{{ _(_('الشكوى')) }}</th><th>{{ _(_('الخطورة')) }}</th><th>{{ _(_('الحالة')) }}</th><th>{{ _(_('الوقت')) }}</th><th>{{ _(_('الإجراء')) }}</th></tr></thead>
                     <tbody>
@@ -75,8 +76,8 @@
                         <td>{{ c.id }}</td>
                         <td>{{ c.patient.full_name if c.patient else '-' }}</td>
                         <td class="small text-muted">{{ c.chief_complaint or '-' }}</td>
-                        <td><span class="badge bg-{% if c.severity=='CRITICAL' %}dark{% elif c.severity=='HIGH' %}danger{% elif c.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ c.severity or _('غير محدد') }}</span></td>
-                        <td><span class="badge bg-secondary">{{ c.status or '-' }}</span></td>
+                        <td><span class="badge bg-{% if c.severity=='CRITICAL' %}dark{% elif c.severity=='HIGH' %}danger{% elif c.severity=='MODERATE' %}warning{% else %}info{% endif %}">{{ c.severity | enum_label('EmergencySeverity') if c.severity else _('غير محدد') }}</span></td>
+                        <td><span class="badge bg-secondary">{{ c.status | enum_label('EmergencyStatus') if c.status else '-' }}</span></td>
                         <td class="small text-muted">{{ c.created_at.strftime('%H:%M') if c.created_at else '-' }}</td>
                         <td><a href="{{ url_for('emergency.patient_details', emergency_id=c.id) }}" class="btn btn-sm btn-primary">{{ _(_('عرض')) }}</a></td>
                     </tr>
@@ -85,6 +86,7 @@
                     {% endfor %}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     </div>
@@ -93,8 +95,8 @@
             <div class="card-header bg-white"><h5 class="mb-0"><i class="fas fa-stopwatch me-2 text-warning"></i>{{ _(_('مؤشرات الوقت')) }}</h5></div>
             <div class="card-body">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت الانتظار')) }}</span><strong>{{ stats.time_metrics.avg_wait_time or 0 }} د</strong></li>
-                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت العلاج')) }}</span><strong>{{ stats.time_metrics.avg_treatment_time or 0 }} د</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت الانتظار')) }}</span><strong>{{ stats.time_metrics.avg_wait_time or 0 }} {{ _('د') }}</strong></li>
+                    <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('متوسط وقت العلاج')) }}</span><strong>{{ stats.time_metrics.avg_treatment_time or 0 }} {{ _('د') }}</strong></li>
                     <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('إجمالي الحالات (7 أيام)')) }}</span><strong>{{ stats.ems_metrics.ems_cases_7d or 0 }}</strong></li>
                     <li class="list-group-item d-flex justify-content-between"><span>{{ _(_('استجابات اليوم')) }}</span><strong>{{ stats.ems_metrics.today_responses or 0 }}</strong></li>
                 </ul>

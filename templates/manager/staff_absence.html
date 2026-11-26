@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}غيابات الموظفين{% endblock %}
+{% block title %}{{ _('غيابات الموظفين') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -49,7 +49,7 @@
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>من</th>
+                            <th>{{ _('من') }}</th>
                             <th>{{ _(_('إلى')) }}</th>
                             <th>{{ _(_('السبب')) }}</th>
                         </tr>

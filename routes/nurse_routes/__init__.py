@@ -195,7 +195,7 @@ def get_nursing_smart_analytics():
             ),
         }
     except Exception:
-        logging.exception('Error getting nursing smart analytics: %s')
+        logging.exception('Error getting nursing smart analytics')
         return {}
 
 
@@ -255,7 +255,7 @@ def get_patient_care_optimization():
             'efficiency_score': calculate_patient_care_efficiency(completed_tasks, total_tasks),
         }
     except Exception:
-        logging.exception('Error getting patient care optimization: %s')
+        logging.exception('Error getting patient care optimization')
         return {}
 
 
@@ -315,7 +315,7 @@ def get_vital_signs_monitoring():
             ),
         }
     except Exception:
-        logging.exception('Error getting vital signs monitoring: %s')
+        logging.exception('Error getting vital signs monitoring')
         return {}
 
 
@@ -364,7 +364,7 @@ def get_medication_management():
             ),
         }
     except Exception:
-        logging.exception('Error getting medication management: %s')
+        logging.exception('Error getting medication management')
         return {}
 
 
@@ -403,7 +403,7 @@ def get_nursing_workflow_automation():
             'automation_score': calculate_nursing_automation_score(automated_tasks, manual_tasks),
         }
     except Exception:
-        logging.exception('Error getting nursing workflow automation: %s')
+        logging.exception('Error getting nursing workflow automation')
         return {}
 
 
@@ -458,7 +458,7 @@ def get_nursing_predictive_insights():
             'workload_forecast_accuracy': calculate_workload_forecast_accuracy(),
         }
     except Exception:
-        logging.exception('Error getting nursing predictive insights: %s')
+        logging.exception('Error getting nursing predictive insights')
         return {}
 
 
@@ -604,7 +604,7 @@ def get_nursing_smart_recommendations():
             'medium_priority': len([r for r in recommendations if r['priority'] == 'medium']),
         }
     except Exception:
-        logging.exception('Error getting nursing smart recommendations: %s')
+        logging.exception('Error getting nursing smart recommendations')
         return {'recommendations': [], 'total_recommendations': 0}
 
 

@@ -43,7 +43,7 @@ def open_invoices():
 
         return render_template('accountant/open_invoices.html', invoices=invoices)
     except Exception:
-        logging.exception('Error loading open invoices: %s')
+        logging.exception('Error loading open invoices')
         flash('حدث خطأ في تحميل الفواتير المفتوحة', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -68,7 +68,7 @@ def payments():
 
         return render_template('accountant/payments.html', payments=payments)
     except Exception:
-        logging.exception('Error loading payments: %s')
+        logging.exception('Error loading payments')
         flash('حدث خطأ في تحميل سجل المدفوعات', 'error')
         return redirect(url_for('accountant.dashboard'))
 
@@ -87,7 +87,7 @@ def payment_documentation(payment_id):
     except HTTPException:
         raise
     except Exception:
-        logging.exception('Error loading payment documentation: %s')
+        logging.exception('Error loading payment documentation')
         flash('حدث خطأ في تحميل توثيق الدفع', 'error')
         return redirect(url_for('accountant.payments'))
 
@@ -150,6 +150,6 @@ def receipt(payment_id):
     except HTTPException:
         raise
     except Exception:
-        logging.exception('Error generating receipt: %s')
+        logging.exception('Error generating receipt')
         flash('حدث خطأ في إنشاء وصل القبض', 'error')
         return redirect(url_for('accountant.payments'))

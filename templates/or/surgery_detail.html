@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}تفاصيل العملية{% endblock %}
+{% block title %}{{ _('تفاصيل العملية') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
-  <h2 class="mb-4">تفاصيل العملية #{{ surgery.id }}</h2>
+  <h2 class="mb-4">{{ _('تفاصيل العملية') }} #{{ surgery.id }}</h2>
   <div class="row g-3">
     <div class="col-md-6">
       <div class="card">
@@ -34,21 +34,21 @@
     <div class="card-body">
       <div class="row g-3">
         <div class="col-md-4">
-          <h6>Sign In</h6>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_patient_identity %}checked{% endif %} disabled aria-label="هوية المريض مؤكدة"><label>{{ _(_('هوية المريض')) }}</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_site_marked %}checked{% endif %} disabled aria-label="الموقع مُعلم"><label>{{ _(_('الموقع مُعلم')) }}</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_anesthesia_check %}checked{% endif %} disabled aria-label="فحص التخدير"><label>{{ _(_('فحص التخدير')) }}</label></div>
+          <h6>{{ _('الفحص قبل التخدير') }}</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_patient_identity %}checked{% endif %} disabled aria-label="{{ _('هوية المريض مؤكدة') }}"><label>{{ _(_('هوية المريض')) }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_site_marked %}checked{% endif %} disabled aria-label="{{ _('الموقع مُعلم') }}"><label>{{ _(_('الموقع مُعلم')) }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_in_anesthesia_check %}checked{% endif %} disabled aria-label="{{ _('فحص التخدير') }}"><label>{{ _(_('فحص التخدير')) }}</label></div>
         </div>
         <div class="col-md-4">
-          <h6>Time Out</h6>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_team_introduced %}checked{% endif %} disabled aria-label="تعارف الفريق"><label>{{ _(_('تعارف الفريق')) }}</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_procedure %}checked{% endif %} disabled aria-label="تأكيد الإجراء"><label>{{ _(_('تأكيد الإجراء')) }}</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_site %}checked{% endif %} disabled aria-label="تأكيد الموقع"><label>{{ _(_('تأكيد الموقع')) }}</label></div>
+          <h6>{{ _('التأكد قبل الجراحة') }}</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_team_introduced %}checked{% endif %} disabled aria-label="{{ _('تعارف الفريق') }}"><label>{{ _(_('تعارف الفريق')) }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_procedure %}checked{% endif %} disabled aria-label="{{ _('تأكيد الإجراء') }}"><label>{{ _(_('تأكيد الإجراء')) }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.time_out_site %}checked{% endif %} disabled aria-label="{{ _('تأكيد الموقع') }}"><label>{{ _(_('تأكيد الموقع')) }}</label></div>
         </div>
         <div class="col-md-4">
-          <h6>Sign Out</h6>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_procedure_recorded %}checked{% endif %} disabled aria-label="تسجيل الإجراء"><label>{{ _(_('تسجيل الإجراء')) }}</label></div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_specimen_labeled %}checked{% endif %} disabled aria-label="عينات مُعلمة"><label>{{ _(_('عينات مُعلمة')) }}</label></div>
+          <h6>{{ _('المراجعة بعد الجراحة') }}</h6>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_procedure_recorded %}checked{% endif %} disabled aria-label="{{ _('تسجيل الإجراء') }}"><label>{{ _(_('تسجيل الإجراء')) }}</label></div>
+          <div class="form-check"><input class="form-check-input" type="checkbox" {% if checklist.sign_out_specimen_labeled %}checked{% endif %} disabled aria-label="{{ _('عينات مُعلمة') }}"><label>{{ _(_('عينات مُعلمة')) }}</label></div>
         </div>
       </div>
     </div>

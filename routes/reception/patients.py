@@ -295,7 +295,7 @@ def add_patient():
             return redirect(url_for('reception.patients', show_add=1))
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
-            logging.exception('Error adding patient: %s')
+            logging.exception('Error adding patient')
             if _wants_json():
                 return jsonify(
                     {
@@ -600,7 +600,7 @@ def edit_patient(patient_id):
                     }
                 ), 400
             flash('تعذر تحديث بيانات المريض، يرجى التحقق من البيانات والمحاولة مرة أخرى', 'error')
-            logging.exception('Error updating patient: %s')
+            logging.exception('Error updating patient')
 
     patients = (
         db.session.execute(select(Patient).order_by(Patient.created_at.desc()).limit(200))
@@ -674,7 +674,7 @@ def delete_patient(patient_id):
         flash('تم حذف المريض بنجاح.', 'success')
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error deleting patient: %s')
+        logging.exception('Error deleting patient')
         flash('حدث خطأ أثناء حذف المريض.', 'error')
     return redirect(url_for('reception.patients'))
 
@@ -692,7 +692,7 @@ def api_smart_patient_search():
         results = SearchService.search_patients(search_term, limit=10)
         return jsonify({'patients': results})
     except Exception:
-        logging.exception('Error in smart patient search: %s')
+        logging.exception('Error in smart patient search')
         return jsonify({'error': 'حدث خطأ في البحث'}), 500
 
 

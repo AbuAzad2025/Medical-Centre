@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>تسجيل الدخول - {{ branding.organization_name if branding else 'المركز الطبي' }}</title>
+        <title>{{ _('تسجيل الدخول') }} - {{ branding.organization_name if branding else _('المركز الطبي') }}</title>
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
         <link href="/static/vendor/fonts/fonts.css" rel="stylesheet">
@@ -24,20 +24,20 @@
             <div class="medical-hero-content">
                 <div class="hero-badge">
                     <i class="fas fa-shield-alt"></i>
-                    <span>{% if mode == 'owner' %}لوحة تحكم المالك{% else %}منصة طبية آمنة{% endif %}</span>
+                    <span>{% if mode == 'owner' %}{{ _('لوحة تحكم المالك') }}{% else %}{{ _('منصة طبية آمنة') }}{% endif %}</span>
                 </div>
                 <h2 class="medical-hero-title">
                     {% if mode == 'owner' %}
-                    منصة <span class="accent">{{ _('إدارة المنصة') }}</span>
+                    {{ _('منصة') }} <span class="accent">{{ _('إدارة المنصة') }}</span>
                     {% else %}
-                    مرحباً بكم في<br><span class="accent">{{ _('منصة أزاد الطبية') }}</span>
+                    {{ _('مرحباً بكم في') }}<br><span class="accent">{{ _('منصة أزاد الطبية') }}</span>
                     {% endif %}
                 </h2>
                 <p class="medical-hero-subtitle">
                     {% if mode == 'owner' %}
-                    لوحة تحكم المالك — إدارة المنشآت والاشتراكات والإعدادات الأساسية
+                    {{ _('لوحة تحكم المالك — إدارة المنشآت والاشتراكات والإعدادات الأساسية') }}
                     {% else %}
-                    نظام طبي متكامل وآمن — إدارة العيادات والمختبرات والأشعة والمواعيد والفواتير
+                    {{ _('نظام طبي متكامل وآمن — إدارة العيادات والمختبرات والأشعة والمواعيد والفواتير') }}
                     {% endif %}
                 </p>
             </div>
@@ -50,12 +50,12 @@
         <div class="login-panel">
             <div class="login-card">
                 <div class="login-card-header">
-                    <h1>{% if mode == 'owner' %}دخول المالك{% else %}تسجيل الدخول{% endif %}</h1>
+                    <h1>{% if mode == 'owner' %}{{ _('دخول المالك') }}{% else %}{{ _('تسجيل الدخول') }}{% endif %}</h1>
                     <p class="subtitle">
                         {% if mode == 'owner' %}
-                        لوحة تحكم مالك المنصة
+                        {{ _('لوحة تحكم مالك المنصة') }}
                         {% else %}
-                        منصة أزاد الطبية — AZAD Medical Platform
+                        {{ _('منصة أزاد الطبية — AZAD Medical Platform') }}
                         {% endif %}
                     </p>
                 </div>
@@ -73,7 +73,7 @@
                         <label for="username">{{ _('اسم المستخدم') }}</label>
                         <div class="input-wrap">
                             <i class="fas fa-user field-icon"></i>
-                            <input id="username" type="text" name="username" placeholder="اسم المستخدم" required autocomplete="username" spellcheck="false">
+                            <input id="username" type="text" name="username" placeholder="{{ _('اسم المستخدم') }}" required autocomplete="username" spellcheck="false">
                         </div>
                     </div>
 
@@ -82,8 +82,8 @@
                         <label for="password">{{ _('كلمة المرور') }}</label>
                         <div class="input-wrap">
                             <i class="fas fa-lock field-icon"></i>
-                            <input id="password" type="password" name="password" placeholder="كلمة المرور" required autocomplete="current-password">
-                            <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="إظهار كلمة المرور">
+                            <input id="password" type="password" name="password" placeholder="{{ _('كلمة المرور') }}" required autocomplete="current-password">
+                            <button type="button" class="toggle-password-btn" id="togglePassword" aria-label="{{ _('إظهار كلمة المرور') }}">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -95,8 +95,7 @@
                     <div class="form-field tenant-field" id="tenantField">
                         <label for="tenant_slug">{{ _(_('المنشأة')) }}</label>
                         <div class="input-wrap">
-                            <i class="fas fa-building field-icon"></i>
-                            <select id="tenant_slug" name="tenant_slug" aria-label="اختيار المنشأة">
+                            <select id="tenant_slug" name="tenant_slug" aria-label="{{ _('اختيار المنشأة') }}">
                                 <option value="">{{ _(_('-- اختر المنشأة --')) }}</option>
                             </select>
                         </div>
@@ -164,12 +163,12 @@
                     } else {
                         // Show empty state hint
                         tenantField.style.display = '';
-                        tenantSelect.innerHTML = '<option value="">لا توجد منشآت مسجلة</option>';
+                        tenantSelect.innerHTML = '<option value="">' + {{ _('لا توجد منشآت مسجلة')|tojson }} + '</option>';
                     }
                 })
                 .catch(function() {
                     tenantField.style.display = '';
-                    tenantSelect.innerHTML = '<option value="">خطأ في تحميل المنشآت</option>';
+                    tenantSelect.innerHTML = '<option value="">' + {{ _('خطأ في تحميل المنشآت')|tojson }} + '</option>';
                 });
         }
     })();

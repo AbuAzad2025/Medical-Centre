@@ -499,6 +499,7 @@ img {
 /* Skip link — visible only when reached with the keyboard. The old rule
    lived in dark-mode.css, which is not part of any shell's stylesheet list,
    so the link was painted on every page of the app. */
+
 .skip-link {
   position: absolute;
   top: -60px;

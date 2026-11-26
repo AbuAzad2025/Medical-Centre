@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/_page_header.html" import page_header %}
-{% block title %}لوحة تحكم التمريض{% endblock %}
+{% block title %}{{ _('لوحة تحكم التمريض') }}{% endblock %}
 {% block content %}
 <div class="container-fluid py-3">
   {{ page_header(_('قسم التمريض'), subtitle=_('رعاية المرضى والعلامات الحيوية وإدارة الأدوية'), icon='fas fa-user-nurse', actions=[
@@ -118,7 +118,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('دقة الأدوية')) }}</div>
           <h3 class="fw-bold text-success">{{ stats.medication_management.medication_efficiency or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="دقة الأدوية"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="دقة الأدوية" data-width="{{ stats.medication_management.medication_efficiency or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('دقة الأدوية') }}"><div class="progress-bar bg-success progress-dynamic" role="progressbar" title="{{ _('دقة الأدوية') }}" data-width="{{ stats.medication_management.medication_efficiency or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -127,7 +127,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('امتثال العلامات الحيوية')) }}</div>
           <h3 class="fw-bold text-primary">{{ stats.vital_signs_monitoring.monitoring_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="امتثال العلامات"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="امتثال العلامات" data-width="{{ stats.vital_signs_monitoring.monitoring_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('امتثال العلامات الحيوية') }}"><div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('امتثال العلامات الحيوية') }}" data-width="{{ stats.vital_signs_monitoring.monitoring_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -136,7 +136,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('درجة السلامة')) }}</div>
           <h3 class="fw-bold text-info">{{ stats.quality_indicators.safety_score or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="درجة السلامة"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="درجة السلامة" data-width="{{ stats.quality_indicators.safety_score or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('درجة السلامة') }}"><div class="progress-bar bg-info progress-dynamic" role="progressbar" title="{{ _('درجة السلامة') }}" data-width="{{ stats.quality_indicators.safety_score or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -145,7 +145,7 @@
         <div class="card-body text-center">
           <div class="text-muted small text-uppercase mb-2">{{ _(_('الامتثال البروتوكولي')) }}</div>
           <h3 class="fw-bold text-warning">{{ stats.nursing_protocols_compliance_rate or 0 }}%</h3>
-          <div class="progress mb-2 prog-thin" title="الامتثال البروتوكولي"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="الامتثال البروتوكولي" data-width="{{ stats.nursing_protocols_compliance_rate or 0 }}"></div></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('الامتثال البروتوكولي') }}"><div class="progress-bar bg-warning progress-dynamic" role="progressbar" title="{{ _('الامتثال البروتوكولي') }}" data-width="{{ stats.nursing_protocols_compliance_rate or 0 }}"></div></div>
         </div>
       </div>
     </div>
@@ -178,10 +178,10 @@
         <div class="card-body text-center">
           <h2 class="fw-bold text-primary">{{ stats.workflow_automation.automation_score or 0 }}%</h2>
           <p class="text-muted small">{{ _(_('درجة الأتمتة')) }}</p>
-          <div class="progress mb-2 prog-thin" title="درجة الأتمتة">
-            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="درجة الأتمتة" data-width="{{ stats.workflow_automation.automation_score or 0 }}"></div>
+          <div class="progress mb-2 prog-thin" title="{{ _('درجة الأتمتة') }}">
+            <div class="progress-bar bg-primary progress-dynamic" role="progressbar" title="{{ _('درجة الأتمتة') }}" data-width="{{ stats.workflow_automation.automation_score or 0 }}"></div>
           </div>
-          <div class="small text-muted">{{ _(_('وقت المعالجة:')) }} <strong>{{ stats.workflow_automation.avg_processing_time or 0 }} د</strong></div>
+          <div class="small text-muted">{{ _(_('وقت المعالجة:')) }} <strong>{{ stats.workflow_automation.avg_processing_time or 0 }} {{ _('د') }}</strong></div>
         </div>
       </div>
     </div>
@@ -207,13 +207,14 @@
                 <div class="small text-muted">{{ v.patient.medical_record_number if v.patient else '' }}</div>
               </td>
               <td>{{ v.department.name if v.department else '-' }}</td>
-              <td><span class="badge bg-{% if v.status=='IN_PROGRESS' %}primary{% elif v.status=='OPEN' %}warning{% else %}secondary{% endif %}">{{ v.status or 'OPEN' }}</span></td>
+              <td><span class="badge bg-{% if v.status=='IN_PROGRESS' %}primary{% elif v.status=='OPEN' %}warning{% else %}secondary{% endif %}">{{ (v.status or 'OPEN') | enum_label('VisitState') }}</span></td>
               <td class="small text-muted">{{ v.created_at.strftime('%Y-%m-%d %H:%M') if v.created_at else '-' }}</td>
               <td>
-                <div class="d-flex gap-1">
-                  <a href="{{ url_for('nurse.vital_signs', visit_id=v.id) }}" class="btn btn-sm btn-outline-danger" title="حيوي"><i class="fas fa-heartbeat"></i> <span class="btn-label">{{ _('نبض') }}</span></a>
-                  <a href="{{ url_for('nurse.medication_administration', visit_id=v.id) }}" class="btn btn-sm btn-outline-success" title="دواء"><i class="fas fa-pills"></i> <span class="btn-label">{{ _('أدوية') }}</span></a>
-                  <a href="{{ url_for('nurse.patient_monitoring', visit_id=v.id) }}" class="btn btn-sm btn-outline-primary" title="مراقبة"><i class="fas fa-eye"></i> <span class="btn-label">{{ _('عرض') }}</span></a>
+                {# Dense action cell: icon-only controls with tooltips instead of three crammed labelled buttons. #}
+                <div class="table-actions">
+                  <a href="{{ url_for('nurse.vital_signs', visit_id=v.id) }}" class="btn btn-sm btn-outline-danger" title="{{ _('نبض') }}" aria-label="{{ _('نبض') }}"><i class="fas fa-heartbeat" aria-hidden="true"></i></a>
+                  <a href="{{ url_for('nurse.medication_administration', visit_id=v.id) }}" class="btn btn-sm btn-outline-success" title="{{ _('أدوية') }}" aria-label="{{ _('أدوية') }}"><i class="fas fa-pills" aria-hidden="true"></i></a>
+                  <a href="{{ url_for('nurse.patient_monitoring', visit_id=v.id) }}" class="btn btn-sm btn-outline-primary" title="{{ _('مراقبة') }}" aria-label="{{ _('مراقبة') }}"><i class="fas fa-eye" aria-hidden="true"></i></a>
                 </div>
               </td>
             </tr>

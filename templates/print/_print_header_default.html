@@ -14,13 +14,13 @@
         <div class="print-header-default__meta">{{ branding.organization_address }}</div>
         {% endif %}
         <div class="print-header-default__meta">
-            {% if branding and branding.organization_phone %}<span>هاتف: {{ branding.organization_phone }}</span>{% endif %}
+            {% if branding and branding.organization_phone %}<span>{{ _('هاتف:') }} {{ branding.organization_phone }}</span>{% endif %}
             {% if branding and branding.organization_email %}<span> — {{ branding.organization_email }}</span>{% endif %}
         </div>
         {% if branding and (branding.tax_number or branding.license_number) %}
         <div class="print-header-default__ids">
-            {% if branding.tax_number %}رقم ضريبي: {{ branding.tax_number }}{% endif %}
-            {% if branding.license_number %}{% if branding.tax_number %} | {% endif %}ترخيص: {{ branding.license_number }}{% endif %}
+            {% if branding.tax_number %}{{ _('رقم ضريبي:') }} {{ branding.tax_number }}{% endif %}
+            {% if branding.license_number %}{% if branding.tax_number %} | {% endif %}{{ _('ترخيص:') }} {{ branding.license_number }}{% endif %}
         </div>
         {% endif %}
     </div>

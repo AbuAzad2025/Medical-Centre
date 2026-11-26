@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'partials/_breadcrumbs.html' import breadcrumb_nav %}
 
-{% block title %}إنشاء زيارة جديدة - الاستقبال{% endblock %}
+{% block title %}{{ _('إنشاء زيارة جديدة') }} - {{ _('الاستقبال') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/smart-components.css') }}">

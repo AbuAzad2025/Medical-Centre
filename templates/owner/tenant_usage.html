@@ -48,28 +48,28 @@
         <div class="col-md-3">
             <div class="card bg-light border-0 text-center py-3">
                 <small class="text-muted">{{ _('استدعاءات API (24 ساعة)') }}</small>
-                <strong>{{ latest.api_calls_24h }} / {{ limits.api_calls_per_month or 'غير محدود' }} /شهر</strong>
+                <strong>{{ latest.api_calls_24h }} / {{ limits.api_calls_per_month or _('غير محدود') }} / {{ _('شهر') }}</strong>
             </div>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header fw-bold">سجل اللقطات</div>
+        <div class="card-header fw-bold">{{ _('سجل اللقطات') }}</div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>التاريخ</th>
-                            <th>المستخدمون</th>
-                            <th>المرضى</th>
-                            <th>الزيارات</th>
-                            <th>الوصفات</th>
-                            <th>المختبر</th>
-                            <th>الأشعة</th>
-                            <th>المواعيد</th>
-                            <th>الفواتير</th>
-                            <th>API خلال 24 ساعة</th>
+                            <th>{{ _('التاريخ') }}</th>
+                            <th>{{ _('المستخدمون') }}</th>
+                            <th>{{ _('المرضى') }}</th>
+                            <th>{{ _('الزيارات') }}</th>
+                            <th>{{ _('الوصفات') }}</th>
+                            <th>{{ _('المختبر') }}</th>
+                            <th>{{ _('الأشعة') }}</th>
+                            <th>{{ _('المواعيد') }}</th>
+                            <th>{{ _('الفواتير') }}</th>
+                            <th>{{ _('استدعاءات API خلال 24 ساعة') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -87,7 +87,7 @@
                             <td>{{ s.api_calls_24h }}</td>
                         </tr>
                         {% else %}
-                        <tr><td colspan="10" class="text-center text-muted py-3">لا توجد لقطات</td></tr>
+                        <tr><td colspan="10" class="text-center text-muted py-3">{{ _('لا توجد لقطات') }}</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

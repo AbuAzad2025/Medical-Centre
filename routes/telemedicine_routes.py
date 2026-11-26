@@ -38,7 +38,7 @@ def index():
         appointments = query.order_by(TelemedicineAppointment.scheduled_start.desc()).all()
         return render_template('telemedicine/index.html', appointments=appointments)
     except Exception:
-        logging.exception('Telemedicine index error: %s')
+        logging.exception('Telemedicine index error')
         flash('حدث خطأ أثناء تحميل المواعيد', 'error')
         return redirect(url_for('main.dashboard'))
 
@@ -91,7 +91,7 @@ def new_appointment():
         return render_template('telemedicine/new.html', patients=patients, doctors=doctors)
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Telemedicine new appointment error: %s')
+        logging.exception('Telemedicine new appointment error')
         flash('حدث خطأ أثناء إنشاء الموعد', 'error')
         return redirect(url_for('telemedicine.index'))
 
@@ -110,6 +110,6 @@ def view_appointment(tm_id):
             return redirect(url_for('main.dashboard'))
         return render_template('telemedicine/view.html', tm=tm)
     except Exception:
-        logging.exception('Telemedicine view error: %s')
+        logging.exception('Telemedicine view error')
         flash('حدث خطأ أثناء عرض الموعد', 'error')
         return redirect(url_for('telemedicine.index'))

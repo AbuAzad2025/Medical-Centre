@@ -28,11 +28,22 @@
   font-weight: 600;
 }
 
-.kiosk-result--ok {
+.kiosk-result--ok,
+.kiosk-result--err {
+  padding: 1rem;
   font-size: 1.1rem;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+  border-radius: 12px;
+}
+
+.kiosk-result--ok {
   color: var(--color-secondary, #10b981);
+  background: rgb(16 185 129 / 0.08);
 }
 
 .kiosk-result--err {
   color: #dc3545;
+  background: rgb(220 53 69 / 0.07);
 }

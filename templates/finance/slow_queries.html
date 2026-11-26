@@ -5,7 +5,7 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div>
       <h2 class="mb-1">{{ _(_('تقرير الاستعلامات البطيئة')) }}</h2>
-      <div class="text-muted">أعلى {{ limit }} استعلام بحسب متوسط الزمن</div>
+      <div class="text-muted">{{ _('أعلى') }} {{ limit }} {{ _('استعلام') }} {{ _('بحسب متوسط الزمن') }}</div>
     </div>
     <div class="d-flex gap-2">
       <form method="post" action="{{ url_for('finance.capture_slow_queries_weekly') }}">
@@ -53,10 +53,10 @@
             <tr>
               <td>{{ loop.index }}</td>
               <td class="slow-query-cell">{{ row.query }}</td>
-              <td class="text-end">{{ row.calls }}</td>
-              <td class="text-end">{{ "%.2f"|format(row.mean_time or 0) }}</td>
-              <td class="text-end">{{ "%.2f"|format(row.total_time or 0) }}</td>
-              <td class="text-end">{{ row.rows }}</td>
+              <td class="text-end text-nowrap">{{ row.calls }}</td>
+              <td class="text-end text-nowrap">{{ "%.2f"|format(row.mean_time or 0) }}</td>
+              <td class="text-end text-nowrap">{{ "%.2f"|format(row.total_time or 0) }}</td>
+              <td class="text-end text-nowrap">{{ row.rows }}</td>
             </tr>
             {% else %}
             <tr>

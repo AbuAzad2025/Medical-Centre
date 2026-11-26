@@ -117,7 +117,7 @@ def vital_signs():
             vital_records=vital_records,
         )
     except Exception:
-        logging.exception('Error loading vital signs: %s')
+        logging.exception('Error loading vital signs')
         flash('حدث خطأ في تحميل العلامات الحيوية', 'error')
         return redirect(url_for('nurse.dashboard'))
 
@@ -252,7 +252,7 @@ def record_vital_signs(patient_id):
 
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Error recording vital signs: %s')
+        logging.exception('Error recording vital signs')
         return jsonify({'success': False, 'message': 'تعذر تسجيل العلامات الحيوية حالياً'})
 
 

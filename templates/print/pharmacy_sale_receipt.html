@@ -1,9 +1,9 @@
 {% extends 'print/print_base.html' %}
 {% set doc_type = 'pharmacy_sale' %}
 
-{% block doc_title %}إيصال صيدلية — {{ sale.sale_number or sale.id }}{% endblock %}
-{% block print_button_label %}طباعة الإيصال{% endblock %}
-{% block doc_heading %}إيصال بيع صيدلية{% endblock %}
+{% block doc_title %}{{ _('إيصال صيدلية') }} — {{ sale.sale_number or sale.id }}{% endblock %}
+{% block print_button_label %}{{ _('طباعة الإيصال') }}{% endblock %}
+{% block doc_heading %}{{ _('إيصال بيع صيدلية') }}{% endblock %}
 
 {% block doc_meta %}
 <span class="print-doc-meta__item"><strong>{{ _('رقم الفاتورة:') }}</strong> {{ sale.sale_number or ('#' + '%06d' % sale.id) }}</span>
@@ -68,6 +68,6 @@
 {% endblock %}
 
 {% block legal_footer %}
-<p>شكراً لتعاملكم مع {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else 'صيدليتنا') }}</p>
-<p>تاريخ الطباعة: {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
+<p>{{ _('شكراً لتعاملكم مع') }} {{ branding.organization_name if branding and branding.organization_name else (ui.organization_name if ui else _('صيدليتنا')) }}</p>
+<p>{{ _('تاريخ الطباعة:') }} {{ printed_at.strftime('%Y-%m-%d %H:%M') if printed_at else '—' }}</p>
 {% endblock %}

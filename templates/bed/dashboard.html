@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}إدارة الأسرة والأجنحة{% endblock %}
+{% block title %}{{ _('إدارة الأسرة والأجنحة') }}{% endblock %}
 {% block content %}
 <div class="container-fluid">
   <h2 class="mb-4">{{ _(_('إدارة الأسرة والأجنحة')) }}</h2>
@@ -20,9 +20,9 @@
           <div class="col-md-4">
             <div class="border rounded p-3">
               <h6>{{ w.name }}</h6>
-              <div class="text-muted">السعة: {{ w.capacity }} — الطابق: {{ w.floor or '-' }}</div>
+              <div class="text-muted">{{ _('السعة:') }} {{ w.capacity }} — {{ _('الطابق:') }} {{ w.floor or '-' }}</div>
               <div class="mt-2">
-                <span class="badge bg-primary">{{ w.rooms|length }} غرفة</span>
+                <span class="badge bg-primary">{{ w.rooms|length }} {{ _('غرفة') }}</span>
               </div>
             </div>
           </div>

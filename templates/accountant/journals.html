@@ -11,7 +11,7 @@
     <div class="card shadow">
         <div class="card-header">
             <strong>{{ _(_('الدفتر اليومي')) }}</strong>
-            <span class="badge bg-primary float-end">{{ total }} قيد</span>
+            <span class="badge bg-primary float-end">{{ total }} {{ _('قيد') }}</span>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -36,10 +36,10 @@
                             <td>{{ j.source_type }}</td>
                             <td>{{ j.source_id }}</td>
                             <td><span class="badge bg-{{ 'success' if j.status == 'POSTED' else 'warning' }}">{{ j.status }}</span></td>
-                            <td class="text-end font-monospace">{{ "%.2f"|format(j.total_credit()) }}</td>
-                            <td class="text-end font-monospace">{{ "%.2f"|format(j.total_debit()) }}</td>
+                            <td class="text-end text-nowrap font-monospace">{{ "%.2f"|format(j.total_credit()) }}</td>
+                            <td class="text-end text-nowrap font-monospace">{{ "%.2f"|format(j.total_debit()) }}</td>
                             <td>
-                                <span class="btn btn-sm btn-outline-secondary disabled" title="التفاصيل عبر دفتر الحساب">{{ _('تفاصيل') }}</span>
+                                <span class="btn btn-sm btn-outline-secondary disabled" title="{{ _('التفاصيل عبر دفتر الحساب') }}">{{ _('تفاصيل') }}</span>
                             </td>
                         </tr>
                         {% else %}

@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 {% from "macros/forms.html" import csrf %}
-{% block title %}الموردين{% endblock %}
+{% block title %}{{ _('الموردين') }}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="fas fa-truck ms-2"></i>{{ _(_('الموردين')) }}</h4>
-    <a href="{{ url_for('medication.add_supplier') }}" class="btn btn-primary"><i class="fas fa-plus ms-1"></i>{{ _(_('إضافة مورد')) }}</a>
+    <h4 class="mb-0"><i class="fas fa-truck me-2"></i>{{ _('الموردين') }}</h4>
+    <a href="{{ url_for('medication.add_supplier') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>{{ _('إضافة مورد') }}</a>
 </div>
 <div class="card">
-    <div class="card-body p-0">
+    <div class="card-body p-0 table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>{{ _(_('الاسم')) }}</th><th>{{ _(_('جهة الاتصال')) }}</th><th>{{ _(_('الهاتف')) }}</th><th>{{ _(_('البريد')) }}</th><th>{{ _(_('الرقم الضريبي')) }}</th><th></th></tr></thead>
+            <thead><tr><th>{{ _('الاسم') }}</th><th>{{ _('جهة الاتصال') }}</th><th>{{ _('الهاتف') }}</th><th>{{ _('البريد') }}</th><th>{{ _('الرقم الضريبي') }}</th><th></th></tr></thead>
             <tbody>
             {% for s in suppliers %}
             <tr>
@@ -27,7 +27,7 @@
                 </td>
             </tr>
             {% else %}
-            <tr><td colspan="6" class="text-center text-muted py-4">{{ _(_('لا يوجد موردون بعد')) }}</td></tr>
+            <tr><td colspan="6" class="text-center text-muted py-4">{{ _('لا يوجد موردون بعد') }}</td></tr>
             {% endfor %}
             </tbody>
         </table>

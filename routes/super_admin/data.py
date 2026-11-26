@@ -53,7 +53,7 @@ def branch_templates():
         )
     except Exception:
         safe_rollback(db.session, error_message='database rollback')
-        logging.exception('Branch templates error: %s')
+        logging.exception('Branch templates error')
         return render_template('super_admin/branch_templates.html', items=[])
 
 
@@ -67,7 +67,7 @@ def data_warehouse():
         snapshot = DataWarehouseService.export_snapshot(days=30)
         return render_template('super_admin/data_warehouse.html', snapshot=snapshot)
     except Exception:
-        logging.exception('Data warehouse error: %s')
+        logging.exception('Data warehouse error')
         return render_template('super_admin/data_warehouse.html', snapshot={})
 
 
@@ -83,7 +83,7 @@ def data_warehouse_export():
         snapshot = DataWarehouseService.export_snapshot(days=days)
         return jsonify({'success': True, 'snapshot': snapshot}), 200
     except Exception:
-        logging.exception('Data warehouse export error: %s')
+        logging.exception('Data warehouse export error')
         return jsonify({'success': False, 'message': 'تعذر تصدير المستودع'}), 500
 
 
@@ -177,7 +177,7 @@ def export_system_data():
         )
 
     except Exception:
-        logging.exception('Error exporting data: %s')
+        logging.exception('Error exporting data')
         return jsonify({'success': False, 'message': 'تعذر تصدير البيانات حالياً'})
 
 

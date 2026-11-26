@@ -2,7 +2,7 @@
 {% set doc_type = doc_type|default('label') %}
 {% set pc = get_print_context(doc_type) %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ current_locale|default('ar') }}" dir="{{ 'rtl' if (current_locale|default('ar')) == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% from 'partials/_page_header.html' import page_header %}
 
-{% block title %}مركز التقارير - لوحة المدير{% endblock %}
+{% block title %}{{ _('مركز التقارير') }} - {{ _('لوحة المدير') }}{% endblock %}
 
 {% block content %}
-{{ page_header(title='مركز التقارير', subtitle='الوصول إلى تقارير وتحليلات حقيقية مبنية على بيانات النظام', icon='fas fa-chart-line') }}
+{{ page_header(title=_('مركز التقارير'), subtitle=_('الوصول إلى تقارير وتحليلات حقيقية مبنية على بيانات النظام'), icon='fas fa-chart-line') }}
 
 <div class="row g-4">
     <div class="col-md-6 col-lg-4">
@@ -12,9 +12,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-balance-scale fa-2x text-primary me-3"></i>
-                    <h5 class="mb-0">مقارنة الفترات</h5>
+                    <h5 class="mb-0">{{ _('مقارنة الفترات') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">مقارنة الشهر/السنة الحالية بالسابقة، مع تفصيل التحويلات بين الأقسام والسعة ومتطلبات الحجز.</p>
+                <p class="text-muted small mb-0">{{ _('مقارنة الشهر/السنة الحالية بالسابقة، مع تفصيل التحويلات بين الأقسام والسعة ومتطلبات الحجز.') }}</p>
             </div>
         </a>
     </div>
@@ -24,9 +24,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-chart-area fa-2x text-success me-3"></i>
-                    <h5 class="mb-0">التحليلات الذاتية</h5>
+                    <h5 class="mb-0">{{ _('التحليلات الذاتية') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">تحليلات المرضى والزيارات والإيرادات والأقسام مع فلترة بالتاريخ — بيانات محسوبة من قاعدة البيانات.</p>
+                <p class="text-muted small mb-0">{{ _('تحليلات المرضى والزيارات والإيرادات والأقسام مع فلترة بالتاريخ — بيانات محسوبة من قاعدة البيانات.') }}</p>
             </div>
         </a>
     </div>
@@ -36,9 +36,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-gauge-high fa-2x text-warning me-3"></i>
-                    <h5 class="mb-0">لوحة مؤشرات الأداء</h5>
+                    <h5 class="mb-0">{{ _('لوحة مؤشرات الأداء') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">مؤشرات الأداء الشهرية الحقيقية مع تفصيل عمليات الدفع الإجباري.</p>
+                <p class="text-muted small mb-0">{{ _('مؤشرات الأداء الشهرية الحقيقية مع تفصيل عمليات الدفع الإجباري.') }}</p>
             </div>
         </a>
     </div>
@@ -48,9 +48,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-file-pen fa-2x text-info me-3"></i>
-                    <h5 class="mb-0">منشئ التقارير المخصصة</h5>
+                    <h5 class="mb-0">{{ _('منشئ التقارير المخصصة') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">بناء ومعاينة وحفظ تشغيلات التقارير المخصصة مع قوالب محفوظة.</p>
+                <p class="text-muted small mb-0">{{ _('بناء ومعاينة وحفظ تشغيلات التقارير المخصصة مع قوالب محفوظة.') }}</p>
             </div>
         </a>
     </div>
@@ -60,9 +60,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-list-check fa-2x text-danger me-3"></i>
-                    <h5 class="mb-0">تفاصيل الزيارات</h5>
+                    <h5 class="mb-0">{{ _('تفاصيل الزيارات') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">جدول آخر الزيارات المسجّلة (حتى 200 سجل) مع خيار تحديد القسم.</p>
+                <p class="text-muted small mb-0">{{ _('جدول آخر الزيارات المسجّلة (حتى 200 سجل) مع خيار تحديد القسم.') }}</p>
             </div>
         </a>
     </div>
@@ -72,9 +72,9 @@
             <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
                     <i class="fas fa-users fa-2x text-secondary me-3"></i>
-                    <h5 class="mb-0">تفاصيل المرضى</h5>
+                    <h5 class="mb-0">{{ _('تفاصيل المرضى') }}</h5>
                 </div>
-                <p class="text-muted small mb-0">أحدث المرضى المسجلون في الفترة المحددة.</p>
+                <p class="text-muted small mb-0">{{ _('أحدث المرضى المسجلون في الفترة المحددة.') }}</p>
             </div>
         </a>
     </div>

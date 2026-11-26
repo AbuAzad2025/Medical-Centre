@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container py-4">
-  <h4><i class="bi bi-database-gear me-2"></i>Data Warehouse / Analytics</h4>
+  <h4><i class="bi bi-database-gear me-2"></i>{% if current_locale == 'en' %}Data Warehouse / Analytics{% else %}مستودع البيانات / التحليلات{% endif %}</h4>
   <div class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">{{ _(_('مزامنة يدوية')) }}</div>
     <div class="card-body">

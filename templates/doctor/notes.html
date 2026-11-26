@@ -58,7 +58,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-edit me-2"></i>
-                        كتابة الملاحظات الطبية
+                        {{ _('كتابة الملاحظات الطبية') }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -67,32 +67,32 @@
                         <input type="hidden" name="note_type" value="{{ note_type or '' }}">
                         <div class="row g-2 align-items-end mb-3">
                             <div class="col-md-8">
-                                <label class="form-label">قوالب جاهزة</label>
+                                <label class="form-label">{{ _('قوالب جاهزة') }}</label>
                                 <select class="form-control" id="note_template_select" name="note_template_select">
-                                    <option value="">اختر</option>
+                                    <option value="">{{ _('اختر') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-4 d-flex gap-2">
-                                <button type="button" class="btn btn-outline-primary w-100" id="apply_note_template_btn">إدراج</button>
-                                <button type="button" class="btn btn-outline-secondary" id="manage_note_templates_btn" data-bs-toggle="modal" data-bs-target="#doctorNoteTemplatesModal" title="إدارة القوالب">
-                                    <i class="fas fa-sliders-h"></i> <span class="btn-label">إعدادات</span>
+                                <button type="button" class="btn btn-outline-primary w-100" id="apply_note_template_btn">{{ _('إدراج') }}</button>
+                                <button type="button" class="btn btn-outline-secondary" id="manage_note_templates_btn" data-bs-toggle="modal" data-bs-target="#doctorNoteTemplatesModal" title="{{ _('إدارة القوالب') }}">
+                                    <i class="fas fa-sliders-h"></i> <span class="btn-label">{{ _('إعدادات') }}</span>
                                 </button>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">الملاحظات الطبية *</label>
+                            <label class="form-label">{{ _('الملاحظات الطبية *') }}</label>
                             <textarea class="form-control" name="medical_notes" id="medical_notes" rows="10" 
-                                      placeholder="أدخل الملاحظات الطبية للمريض..." required>{{ prefill_notes or '' }}</textarea>
+                                      placeholder="{{ _('أدخل الملاحظات الطبية للمريض...') }}" required>{{ prefill_notes or '' }}</textarea>
                         </div>
                         
                         <div class="d-flex justify-content-end gap-2">
                             <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i>
-                                إلغاء
+                                {{ _('إلغاء') }}
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i>
-                                حفظ الملاحظات
+                                {{ _('حفظ الملاحظات') }}
                             </button>
                         </div>
                     </form>
@@ -105,15 +105,15 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
-                        نصائح
+                        {{ _('نصائح') }}
                     </h5>
                 </div>
                 <div class="card-body">
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-check text-success me-2"></i>اكتب الملاحظات بوضوح</li>
-                        <li><i class="fas fa-check text-success me-2"></i>تأكد من صحة المعلومات</li>
-                        <li><i class="fas fa-check text-success me-2"></i>استخدم المصطلحات الطبية المناسبة</li>
-                        <li><i class="fas fa-check text-success me-2"></i>اذكر أي تحذيرات أو تنبيهات</li>
+                        <li><i class="fas fa-check text-success me-2"></i>{{ _('اكتب الملاحظات بوضوح') }}</li>
+                        <li><i class="fas fa-check text-success me-2"></i>{{ _('تأكد من صحة المعلومات') }}</li>
+                        <li><i class="fas fa-check text-success me-2"></i>{{ _('استخدم المصطلحات الطبية المناسبة') }}</li>
+                        <li><i class="fas fa-check text-success me-2"></i>{{ _('اذكر أي تحذيرات أو تنبيهات') }}</li>
                     </ul>
                 </div>
             </div>
@@ -124,7 +124,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-history me-2"></i>
-                        الملاحظات السابقة
+                        {{ _('الملاحظات السابقة') }}
                     </h5>
                 </div>
                 <div class="card-body">
@@ -142,7 +142,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">قوالب ملاحظات الطبيب</h5>
+                <h5 class="modal-title">{{ _('قوالب ملاحظات الطبيب') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -150,24 +150,24 @@
                     <div class="col-lg-5">
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
-                                <h6 class="mb-3">إضافة/تعديل</h6>
+                                <h6 class="mb-3">{{ _('إضافة/تعديل') }}</h6>
                                 <form id="doctorNoteTemplateForm">
                                     <input type="hidden" id="dnt_id" value="">
                                     <div class="mb-2">
-                                        <label class="form-label">الاسم</label>
+                                        <label class="form-label">{{ _('الاسم') }}</label>
                                         <input type="text" class="form-control" id="dnt_name" required>
                                     </div>
                                     <div class="mb-2">
-                                        <label class="form-label">النص</label>
+                                        <label class="form-label">{{ _('النص') }}</label>
                                         <textarea class="form-control" id="dnt_text" rows="6"></textarea>
                                     </div>
                                     <div class="form-check mb-3">
                                         <input class="form-check-input" type="checkbox" id="dnt_active" checked>
-                                        <label class="form-check-label" for="dnt_active">فعال</label>
+                                        <label class="form-check-label" for="dnt_active">{{ _('فعال') }}</label>
                                     </div>
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <button type="button" class="btn btn-light" id="dnt_reset_btn">تفريغ</button>
-                                        <button type="submit" class="btn btn-primary">حفظ</button>
+                                        <button type="button" class="btn btn-light" id="dnt_reset_btn">{{ _('تفريغ') }}</button>
+                                        <button type="submit" class="btn btn-primary">{{ _('حفظ') }}</button>
                                     </div>
                                 </form>
                             </div>
@@ -177,16 +177,16 @@
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0">القائمة</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="dnt_refresh_btn">تحديث</button>
+                                    <h6 class="mb-0">{{ _('القائمة') }}</h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="dnt_refresh_btn">{{ _('تحديث') }}</button>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-striped align-middle">
                                         <thead>
                                             <tr>
-                                                <th>الاسم</th>
-                                                <th style="width: 70px;">فعال</th>
-                                                <th class="text-end" style="width: 140px;">إجراءات</th>
+                                                <th>{{ _('الاسم') }}</th>
+                                                <th style="width: 70px;">{{ _('فعال') }}</th>
+                                                <th class="text-end" style="width: 140px;">{{ _('إجراءات') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody id="dnt_table_body"></tbody>
@@ -198,17 +198,17 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('إغلاق') }}</button>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
-        __M0__='{{ url_for("doctor.api_note_templates") }}'; __M1__='{{ url_for("doctor.upsert_note_template") }}'; __M2__={{ url_for("doctor.delete_note_template", template_id="__T__") }};
+        __M0__='{{ url_for("doctor.api_note_templates") }}'; __M1__='{{ url_for("doctor.upsert_note_template") }}'; __M2__='{{ url_for("doctor.delete_note_template", template_id="__T__") }}';
         </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/doctor/notes.js') }}"></script>
 {% endblock %}

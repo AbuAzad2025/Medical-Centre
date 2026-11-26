@@ -9,7 +9,7 @@
             <div class="card-modern">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
                     <div class="d-flex align-items-center">
-                        <div class="icon-circle bg-primary-subtle text-primary ms-3">
+                        <div class="icon-circle bg-primary-subtle text-primary me-3">
                             <i class="fas fa-user-circle fa-2x"></i>
                         </div>
                         <div>
@@ -48,14 +48,14 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">رقم الهاتف</label>
+                                <label class="form-label fw-bold">{{ _('رقم الهاتف') }}</label>
                                 <input type="tel" class="form-control" name="phone" value="{{ user.phone }}">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">القسم</label>
+                                <label class="form-label fw-bold">{{ _('القسم') }}</label>
                                 <select class="form-select" name="department_id" required>
-                                    <option value="" disabled {% if not user.department_id %}selected{% endif %}>اختر القسم</option>
+                                    <option value="" disabled {% if not user.department_id %}selected{% endif %}>{{ _('اختر القسم') }}</option>
                                     {% for dept in departments %}
                                     <option value="{{ dept.id }}" {% if user.department_id == dept.id %}selected{% endif %}>{{ dept.name_ar }}</option>
                                     {% endfor %}
@@ -63,59 +63,59 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">الدور الوظيفي</label>
+                                <label class="form-label fw-bold">{{ _('الدور الوظيفي') }}</label>
                                 <input type="text" class="form-control bg-light" value="{{ user.role | enum_label('UserRole') }}" readonly>
-                                <small class="text-muted">لا يمكن تغيير الدور من الملف الشخصي — تواصل مع مدير النظام</small>
+                                <small class="text-muted">{{ _('لا يمكن تغيير الدور من الملف الشخصي — تواصل مع مدير النظام') }}</small>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">رقم الغرفة / العيادة</label>
-                                <input type="text" class="form-control" name="doctor_room" value="{{ user.doctor_room or '' }}" placeholder="مثال: غرفة 105">
+                                <label class="form-label fw-bold">{{ _('رقم الغرفة / العيادة') }}</label>
+                                <input type="text" class="form-control" name="doctor_room" value="{{ user.doctor_room or '' }}" placeholder="{{ _('مثال: غرفة 105') }}">
                             </div>
 
                             <!-- الأمان -->
                             <div class="col-12 mt-4">
                                 <h6 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-shield-alt me-2"></i>الأمان
+                                    <i class="fas fa-shield-alt me-2"></i>{{ _('الأمان') }}
                                 </h6>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">كلمة المرور الجديدة</label>
-                                <input type="password" class="form-control" name="new_password" placeholder="اتركها فارغة إذا لم ترد التغيير">
+                                <label class="form-label fw-bold">{{ _('كلمة المرور الجديدة') }}</label>
+                                <input type="password" class="form-control" name="new_password" placeholder="{{ _('اتركها فارغة إذا لم ترد التغيير') }}">
                             </div>
 
                             <!-- التوقيع الرقمي -->
                             <div class="col-12 mt-4">
                                 <h6 class="text-primary border-bottom pb-2 mb-3">
-                                    <i class="fas fa-signature me-2"></i>التوقيع الرقمي
+                                    <i class="fas fa-signature me-2"></i>{{ _('التوقيع الرقمي') }}
                                 </h6>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">التوقيع الحالي</label>
+                                <label class="form-label fw-bold">{{ _('التوقيع الحالي') }}</label>
                                 <div class="border rounded p-3 text-center bg-light mb-2 h-150 d-flex align-items-center justify-content-center">
                                     {% if user.digital_signature %}
-                                        <img src="{{ user.digital_signature }}" alt="Signature" class="max-h-100pct max-w-100pct">
+                                        <img src="{{ user.digital_signature }}" alt="Signature" style="max-height:100%;max-width:100%;object-fit:contain;">
                                     {% else %}
-                                        <p class="text-muted mb-0">لا يوجد توقيع محفوظ</p>
+                                        <p class="text-muted mb-0">{{ _('لا يوجد توقيع محفوظ') }}</p>
                                     {% endif %}
                                 </div>
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label fw-bold">رفع توقيع جديد</label>
+                                <label class="form-label fw-bold">{{ _('رفع توقيع جديد') }}</label>
                                 <input type="file" class="form-control" name="signature" accept="image/*">
-                                <small class="text-muted d-block mt-2">يفضل أن تكون الصورة بخلفية شفافة (PNG)</small>
+                                <small class="text-muted d-block mt-2">{{ _('يفضل أن تكون الصورة بخلفية شفافة (PNG)') }}</small>
                             </div>
 
                             <!-- أزرار التحكم -->
                             <div class="col-12 mt-4 pt-3 border-top">
                                 <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="fas fa-save me-2"></i>حفظ التغييرات
+                                    <i class="fas fa-save me-2"></i>{{ _('حفظ التغييرات') }}
                                 </button>
-                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-lg px-4 me-2">
-                                    إلغاء
+                                <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary btn-lg px-4 ms-2">
+                                    {{ _('إلغاء') }}
                                 </a>
                             </div>
                         </div>
@@ -126,12 +126,12 @@
             <div class="card-modern mt-4">
                 <div class="card-header bg-transparent border-0 pt-4 pb-2">
                     <div class="d-flex align-items-center">
-                        <div class="icon-circle bg-warning-subtle text-warning ms-3">
+                        <div class="icon-circle bg-warning-subtle text-warning me-3">
                             <i class="fas fa-history fa-2x"></i>
                         </div>
                         <div>
-                            <h4 class="mb-0 fw-bold text-primary">سجل تسجيل الدخول</h4>
-                            <p class="text-muted mb-0">آخر محاولات تسجيل الدخول لحسابك</p>
+                            <h4 class="mb-0 fw-bold text-primary">{{ _('سجل تسجيل الدخول') }}</h4>
+                            <p class="text-muted mb-0">{{ _('آخر محاولات تسجيل الدخول لحسابك') }}</p>
                         </div>
                     </div>
                 </div>
@@ -139,15 +139,15 @@
                     <div class="row g-4">
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-check-circle me-2"></i>الناجحة
+                                <i class="fas fa-check-circle me-2"></i>{{ _('الناجحة') }}
                             </h6>
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead>
                                         <tr>
-                                            <th>الوقت</th>
+                                            <th>{{ _('الوقت') }}</th>
                                             <th>IP</th>
-                                            <th>المتصفح</th>
+                                            <th>{{ _('المتصفح') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -159,7 +159,7 @@
                                             </tr>
                                         {% else %}
                                             <tr>
-                                                <td colspan="3" class="text-center text-muted py-3">لا يوجد</td>
+                                                <td colspan="3" class="text-center text-muted py-3">{{ _('لا يوجد') }}</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -169,15 +169,15 @@
 
                         <div class="col-12">
                             <h6 class="text-primary border-bottom pb-2 mb-3">
-                                <i class="fas fa-exclamation-triangle me-2"></i>الفاشلة
+                                <i class="fas fa-exclamation-triangle me-2"></i>{{ _('الفاشلة') }}
                             </h6>
                             <div class="table-responsive">
                                 <table class="table table-striped align-middle mb-0">
                                     <thead>
                                         <tr>
-                                            <th>الوقت</th>
+                                            <th>{{ _('الوقت') }}</th>
                                             <th>IP</th>
-                                            <th>المتصفح</th>
+                                            <th>{{ _('المتصفح') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -189,7 +189,7 @@
                                             </tr>
                                         {% else %}
                                             <tr>
-                                                <td colspan="3" class="text-center text-muted py-3">لا يوجد</td>
+                                                <td colspan="3" class="text-center text-muted py-3">{{ _('لا يوجد') }}</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
