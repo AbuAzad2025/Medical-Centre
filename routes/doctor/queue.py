@@ -13,12 +13,14 @@ from app.extensions import db
 from app.shared.enums import OrderState, PaymentStatus, VisitState
 from models.department import Department
 from models.lab_request import LabRequest
+from models.medical_record import MedicalRecord
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
 from models.visit import Visit
 from routes.doctor import doctor_bp
 from services.feature_gate_service import FeatureGateService
 from services.reception_service import ReceptionService
+from services.visit_state_machine_service import VisitStateMachineService
 from utils.db_safety import safe_commit
 from utils.decorators import role_required
 from utils.tenant_query import get_tenant_record
@@ -87,11 +89,29 @@ def patient_queue():
             chief_complaint=(request.form.get('chief_complaint') or '').strip() or None,
         )
         db.session.add(visit)
+        db.session.flush()
         if not safe_commit(db.session, error_message='Failed to create walk-in visit'):
             flash('تعذر إنشاء الزيارة', 'error')
-        else:
-            flash('تم تسجيل المريض والزيارة — يمكنك بدء العلاج الآن', 'success')
-        return redirect(url_for('doctor.patient_queue'))
+            return redirect(url_for('doctor.patient_queue'))
+
+        # Entering a patient means starting care immediately — no extra stop
+        # at the queue. Reuse the same validated state machine as the doctor
+        # treatment route.
+        for target in (VisitState.CHECKED_IN, VisitState.IN_PROGRESS):
+            if VisitStateMachineService.can_transition(visit, target):
+                VisitStateMachineService.transition(visit, target, actor=current_user)
+        db.session.add(
+            MedicalRecord(
+                patient_id=visit.patient_id,
+                visit_id=visit.id,
+                title='بدء العلاج',
+                details=f'تم بدء العلاج من قبل الطبيب: {current_user.full_name}',
+                created_by=current_user.id,
+            )
+        )
+        safe_commit(db.session, error_message='Failed to start treatment')
+        flash('تم تسجيل المريض وبدء العلاج مباشرة', 'success')
+        return redirect(url_for('doctor.patient_details', visit_id=visit.id))
 
     page = request.args.get('page', 1, type=int)
     per_page = 25

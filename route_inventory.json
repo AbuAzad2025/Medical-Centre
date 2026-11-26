@@ -1,5 +1,5 @@
 {
-  "total_routes": 968,
+  "total_routes": 969,
   "routes": [
     {
       "endpoint": "main.index",
@@ -1584,6 +1584,15 @@
     {
       "endpoint": "booking.cancel_booking",
       "path": "/booking/cancel/<int:booking_id>",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.convert_booking_to_visit",
+      "path": "/booking/convert-to-visit/<int:booking_id>",
       "methods": [
         "OPTIONS",
         "POST"

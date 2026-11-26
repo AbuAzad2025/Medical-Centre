@@ -317,6 +317,62 @@ def cancel_booking(booking_id):
     return redirect(url_for('booking.dashboard_portal'))
 
 
+@booking_bp.route('/convert-to-visit/<int:booking_id>', methods=['POST'])
+@login_required
+def convert_booking_to_visit(booking_id):
+    """Turn a public booking into a visit from the booking dashboard itself."""
+    if current_user.role not in {'reception', 'admin', 'manager', 'doctor', 'super_admin'}:
+        flash('ليس لديك صلاحية لتحويل الحجز', 'error')
+        return redirect(url_for('booking.dashboard_portal'))
+
+    booking = db.session.get(OnlineBooking, booking_id)
+    if not booking or getattr(booking, 'tenant_id', None) != g.tenant_id:
+        flash('الحجز غير موجود', 'error')
+        return redirect(url_for('booking.dashboard_portal'))
+    if (booking.status or '').lower() in {'cancelled', 'converted', 'expired'}:
+        flash('لا يمكن تحويل هذا الحجز إلى زيارة', 'warning')
+        return redirect(url_for('booking.dashboard_portal'))
+
+    from services.booking_conversion_service import OnlineBookingConversionService
+
+    try:
+        result = OnlineBookingConversionService.convert_to_visit(booking)
+    except Exception:
+        logging.exception('Error converting booking to visit')
+        flash('تعذر تحويل الحجز إلى زيارة', 'error')
+        return redirect(url_for('booking.dashboard_portal'))
+
+    # The converted patient is in the clinic now — open the treatment screen
+    # with the visit already started, just like a walk-in registration.
+    from app.shared.enums import VisitState
+    from models.medical_record import MedicalRecord
+    from models.visit import Visit
+    from services.visit_state_machine_service import VisitStateMachineService
+
+    visit = db.session.get(Visit, result['visit_id'])
+    if visit:
+        for target in (VisitState.CHECKED_IN, VisitState.IN_PROGRESS):
+            if VisitStateMachineService.can_transition(visit, target):
+                VisitStateMachineService.transition(visit, target, actor=current_user)
+        # Public bookings often arrive without a doctor assigned. Assign it
+        # after the state transitions so no lifecycle hook can clear it.
+        if not visit.doctor_id:
+            visit.doctor_id = current_user.id
+        db.session.add(
+            MedicalRecord(
+                patient_id=visit.patient_id,
+                visit_id=visit.id,
+                title='بدء العلاج',
+                details=f'تم تحويل حجز وبدء العلاج بواسطة {current_user.full_name}',
+                created_by=current_user.id,
+            )
+        )
+        safe_commit(db.session, error_message='Failed to start converted visit')
+
+    flash('تم تحويل الحجز وبدء العلاج مباشرة', 'success')
+    return redirect(url_for('doctor.patient_details', visit_id=result['visit_id']))
+
+
 @booking_bp.route('/')
 def index():
     """صفحة الحجز الرئيسية"""

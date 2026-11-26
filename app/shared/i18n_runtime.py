@@ -270,6 +270,11 @@ AR_TO_EN: dict[str, str] = {
     'الحد الأقصى لمستخدمي الباقة مكتمل. لتعيين طبيب ثانٍ، احذف حساب مستخدم غير مطلوب أولاً.': 'The package user limit is full. To assign a second doctor, remove an unneeded user account first.',
     'تستطيع الباقة تعيين مستخدم إضافي ضمن حد المقاعد.': 'The package can assign one more user within its seat limit.',
     'إضافة مستخدم / طبيب': 'Add user / doctor',
+    'تحويل الحجز إلى زيارة': 'Convert booking to visit',
+    'تحويل لزيارة': 'Convert to visit',
+    'تم تحويل الحجز إلى زيارة — يمكنك بدء العلاج': 'Booking converted to a visit — treatment can start now',
+    'تم تسجيل المريض وبدء العلاج مباشرة': 'Patient registered and treatment started',
+    'تم تحويل الحجز وبدء العلاج مباشرة': 'Booking converted and treatment started',
 }
 
 
