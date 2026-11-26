@@ -36,7 +36,9 @@ class LegacyEntitlementAdapter:
                 select(Package.slug)
                 .join(PackageVersion, PackageVersion.package_id == Package.id)
                 .join(SubscriptionLine, SubscriptionLine.package_version_id == PackageVersion.id)
-                .filter(SubscriptionLine.tenant_id == tenant.id, SubscriptionLine.status == 'active')
+                .filter(
+                    SubscriptionLine.tenant_id == tenant.id, SubscriptionLine.status == 'active'
+                )
                 .order_by(SubscriptionLine.effective_from.desc())
                 .limit(1)
             )
@@ -45,9 +47,7 @@ class LegacyEntitlementAdapter:
         )
         if slug:
             purchased = (
-                db.session.execute(
-                    select(ProductBundle).filter_by(slug=slug, is_active=True)
-                )
+                db.session.execute(select(ProductBundle).filter_by(slug=slug, is_active=True))
                 .scalars()
                 .first()
             )

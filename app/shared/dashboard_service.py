@@ -28,6 +28,14 @@ def _enabled_modules() -> set[str]:
     return set(getattr(g, 'enabled_modules', None) or [])
 
 
+def _tenant_href(href: str | None) -> str | None:
+    """Keep tenant-scoped links inside /t/<slug>/ after url_for()."""
+    slug = getattr(g, 'tenant_slug', None)
+    if slug and href and href.startswith('/') and not href.startswith('/t/'):
+        return f'/t/{slug}{href}'
+    return href
+
+
 def _user_hidden_widgets(user) -> set[str]:
     from app.shared.user_preferences import get_user_preferences
 
@@ -663,7 +671,7 @@ def build_now_cards(
         action_href: str | None = None
         if w.action_url:
             try:
-                action_href = url_for(w.action_url)
+                action_href = _tenant_href(url_for(w.action_url))
                 enabled = _enabled_modules()
                 if enabled:
                     parts = action_href.split('?')[0].strip('/').split('/')
@@ -718,7 +726,7 @@ def build_command_center_context(user, role: str | None = None, **extra: Any) ->
         if module_by_endpoint.get(ep) and module_by_endpoint[ep] not in enabled:
             continue
         try:
-            href = url_for(ep)
+            href = _tenant_href(url_for(ep))
         except Exception:
             continue
         # Only expose shortcuts the tenant's package actually includes.

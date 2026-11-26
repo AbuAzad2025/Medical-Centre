@@ -221,15 +221,17 @@ def resolve_nav_for_user(user) -> list[NavSection]:
     if role in ('super_admin', 'admin'):
         admin = NavSection(id='admin', title_ar='الإدارة')
         if role == 'admin':
-            # A clinic admin manages the clinic itself; the super-admin
-            # dashboard is not part of a solo clinic's package.
+            # A clinic admin manages the clinic itself. Clinics without the
+            # doctor module cannot reach /doctor/settings, so use the shared
+            # settings page there instead of a link that always 403s.
+            settings_path = '/doctor/settings' if 'doctor' in enabled else '/settings'
             admin.items.append(
                 NavItem(
                     id='clinic_settings',
                     label_ar='إعدادات العيادة',
                     icon='fas fa-cogs',
-                    href=_tenant_path('/doctor/settings'),
-                    active_prefix='/doctor/settings',
+                    href=_tenant_path(settings_path),
+                    active_prefix=settings_path,
                 )
             )
         else:

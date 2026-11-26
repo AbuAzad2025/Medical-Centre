@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ _(_('500 — تعذر تنفيذ الطلب')) }}</title>
+    <title>{{ _(_('500 Ã¢â‚¬â€ Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜ÂªÃ™â€ Ã™ÂÃ™Å Ã˜Â° Ã˜Â§Ã™â€žÃ˜Â·Ã™â€žÃ˜Â¨')) }}</title>
             <link href="/static/vendor/fonts/fonts.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/fontawesome/css/all.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.rtl.min.css') }}" rel="stylesheet">
@@ -25,9 +25,9 @@
     <div class="error-card">
         <div class="error-icon"><i class="fas fa-triangle-exclamation" aria-hidden="true"></i></div>
         <div class="error-code">500</div>
-        <div class="error-title">{{ _(_('تعذر تنفيذ الطلب')) }}</div>
-        <p class="error-desc">{{ _(_('واجهنا مشكلة فنية أثناء معالجة طلبك. يرجى المحاولة مرة أخرى لاحقاً، أو التواصل مع الدعم الفني إذا استمرت المشكلة.')) }}</p>
-        <a href="/" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> {{ _(_('العودة للصفحة الرئيسية')) }}</a>
+        <div class="error-title">{{ _(_('Ã˜ÂªÃ˜Â¹Ã˜Â°Ã˜Â± Ã˜ÂªÃ™â€ Ã™ÂÃ™Å Ã˜Â° Ã˜Â§Ã™â€žÃ˜Â·Ã™â€žÃ˜Â¨')) }}</div>
+        <p class="error-desc">{{ _(_('Ã™Ë†Ã˜Â§Ã˜Â¬Ã™â€¡Ã™â€ Ã˜Â§ Ã™â€¦Ã˜Â´Ã™Æ’Ã™â€žÃ˜Â© Ã™ÂÃ™â€ Ã™Å Ã˜Â© Ã˜Â£Ã˜Â«Ã™â€ Ã˜Â§Ã˜Â¡ Ã™â€¦Ã˜Â¹Ã˜Â§Ã™â€žÃ˜Â¬Ã˜Â© Ã˜Â·Ã™â€žÃ˜Â¨Ã™Æ’. Ã™Å Ã˜Â±Ã˜Â¬Ã™â€° Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€žÃ˜Â© Ã™â€¦Ã˜Â±Ã˜Â© Ã˜Â£Ã˜Â®Ã˜Â±Ã™â€° Ã™â€žÃ˜Â§Ã˜Â­Ã™â€šÃ˜Â§Ã™â€¹Ã˜Å’ Ã˜Â£Ã™Ë† Ã˜Â§Ã™â€žÃ˜ÂªÃ™Ë†Ã˜Â§Ã˜ÂµÃ™â€ž Ã™â€¦Ã˜Â¹ Ã˜Â§Ã™â€žÃ˜Â¯Ã˜Â¹Ã™â€¦ Ã˜Â§Ã™â€žÃ™ÂÃ™â€ Ã™Å  Ã˜Â¥Ã˜Â°Ã˜Â§ Ã˜Â§Ã˜Â³Ã˜ÂªÃ™â€¦Ã˜Â±Ã˜Âª Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â´Ã™Æ’Ã™â€žÃ˜Â©.')) }}</p>
+        <a href="{{ ("/t/" ~ g.tenant_slug ~ "/") if g.tenant_slug else "/" }}" class="btn-back"><i class="fas fa-arrow-right" aria-hidden="true"></i> {{ _(_('Ã˜Â§Ã™â€žÃ˜Â¹Ã™Ë†Ã˜Â¯Ã˜Â© Ã™â€žÃ™â€žÃ˜ÂµÃ™ÂÃ˜Â­Ã˜Â© Ã˜Â§Ã™â€žÃ˜Â±Ã˜Â¦Ã™Å Ã˜Â³Ã™Å Ã˜Â©')) }}</a>
     </div>
 </body>
 </html>

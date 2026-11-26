@@ -9,7 +9,7 @@
 {% block content %}
 <div class="command-center" data-dashboard-role="{{ dashboard_role }}">
   <div class="d-flex justify-content-end gap-2 mb-2">
-    {% if 'reception' not in enabled_modules and dashboard_role in ('doctor', 'admin', 'manager') %}
+    {% if 'doctor' in enabled_modules and 'reception' not in enabled_modules and dashboard_role in ('doctor', 'admin', 'manager') %}
     <a href="{{ url_for('doctor.patient_queue') }}#walkin-form" class="btn btn-success btn-sm">
       <i class="fas fa-user-plus me-1"></i>{{ _('زيارة جديدة') }}
     </a>
