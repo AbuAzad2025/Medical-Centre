@@ -16,7 +16,7 @@
                                         <strong>{{ _('العلامات الحيوية:') }}</strong>
                                         {% set nvs = nurse_latest_vital_signs or {} %}
                                         {% set vs = structured_vital_signs or {} %}
-                                        {% if nvs.get('blood_pressure') or nvs.get('heart_rate') or nvs.get('temperature') or nvs.get('respiratory_rate') or nvs.get('oxygen_saturation') %}
+                                        {% if module_active('nursing') and (nvs.get('blood_pressure') or nvs.get('heart_rate') or nvs.get('temperature') or nvs.get('respiratory_rate') or nvs.get('oxygen_saturation')) %}
                                             <div class="text-muted small mb-1">
                                                 آخر قياس تمريض
                                                 {% if nurse_latest_vital_signs_recorded_at %}

@@ -125,7 +125,9 @@
         restore_backup: {{ url_for('super_admin.restore_backup', backup_id=0)|tojson }},
         delete_backup: {{ url_for('super_admin.delete_backup', backup_id=0)|tojson }},
         cancel_backup: {{ url_for('super_admin.cancel_backup', backup_id=0)|tojson }},
+        {% if module_active('reception') %}
         queue_status: {{ url_for('reception.get_smart_queue_management', department_id=0)|tojson }},
+        {% endif %}
         owner_api_bundles: {{ url_for('owner.api_list_bundles')|tojson }},
         owner_api_bundle: {{ url_for('owner.api_get_bundle', bundle_id=0)|tojson }},
         owner_api_create_bundle: {{ url_for('owner.api_create_bundle')|tojson }},

@@ -187,6 +187,9 @@ def lab_request(visit_id):
 @role_required('doctor', 'admin', 'manager')
 def lab_results(patient_id):
     """عرض نتائج المختبر للطبيب — للإطلاع فقط"""
+    if 'lab' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة المختبر غير مفعّلة في باقتك الحالية', 'warning')
+        return redirect(url_for('doctor.patient_queue'))
     try:
         patient = (
             db.session.execute(

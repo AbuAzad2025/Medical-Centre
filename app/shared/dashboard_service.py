@@ -664,6 +664,13 @@ def build_now_cards(
         if w.action_url:
             try:
                 action_href = url_for(w.action_url)
+                enabled = _enabled_modules()
+                if enabled:
+                    parts = action_href.split('?')[0].strip('/').split('/')
+                    if parts and parts[0] == 't':
+                        parts = parts[2:]
+                    if parts and parts[0] not in (set(enabled) | {'inbox'}):
+                        action_href = None
             except Exception:
                 action_href = None
         cards.append(
@@ -702,11 +709,21 @@ def build_command_center_context(user, role: str | None = None, **extra: Any) ->
     data = _load_role_data(role, user)
     quick = ROLE_QUICK_ACTIONS.get(role, [])
     quick_actions: list[dict[str, Any]] = []
+    enabled = set(getattr(g, 'enabled_modules', set()) or ())
     for ep, icon, label in quick:
         try:
-            quick_actions.append({'href': url_for(ep), 'icon': icon, 'label': label})
+            href = url_for(ep)
         except Exception:
             continue
+        # Only expose shortcuts the tenant's package actually includes.
+        # Cross-cutting inbox stays available to every authenticated role.
+        if enabled:
+            parts = href.split('?')[0].strip('/').split('/')
+            if parts and parts[0] == 't':
+                parts = parts[2:]
+            if parts and parts[0] not in (enabled | {'inbox'}):
+                continue
+        quick_actions.append({'href': href, 'icon': icon, 'label': label})
     ctx: dict[str, Any] = {
         'hero': build_hero_context(user),
         'widgets': widgets,

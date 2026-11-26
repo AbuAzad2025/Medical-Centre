@@ -137,8 +137,40 @@ a.btn-info {
   border-bottom: 1px solid var(--med-border) !important;
 }
 
-.table tbody tr:hover {
-  background: rgb(14 116 144 / 0.045) !important;
+.table tbody tr:hover,
+.table tbody tr.row-hover {
+  background: var(--color-surface-elevated, rgb(14 116 144 / 0.045)) !important;
+}
+
+/* Bootstrap utility colours keep light-mode !important values in dark mode. */
+
+[data-theme='dark'] .text-muted,
+[data-theme='dark'] .text-white-50 {
+  color: var(--color-text-muted) !important;
+}
+
+[data-theme='dark'] .text-info {
+  color: var(--color-info, #7dd3fc) !important;
+}
+
+[data-theme='dark'] .text-warning {
+  color: var(--color-warning, #fbbf24) !important;
+}
+
+[data-theme='dark'] .table-light {
+  background: var(--color-surface) !important;
+  color: var(--color-text) !important;
+}
+
+/* Bootstrap's !important .bg-warning wins over the card-stat gradient. */
+
+.card-stat.bg-warning {
+  background: linear-gradient(135deg, #d97706, #f59e0b) !important;
+  color: #fff !important;
+}
+
+.card-stat.bg-warning .text-white-50 {
+  color: rgb(255 255 255 / 0.78) !important;
 }
 
 /* Buttons: consistent height and radius, no cramped labels. */

@@ -10,7 +10,7 @@
         subtitle=_('كتابة الملاحظات الطبية للمريض'),
         icon='fas fa-notes-medical',
         actions=[
-            {'url': url_for('doctor.patient_queue'), 'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-left', 'style': 'secondary'}
+            {'url': url_for('doctor.patient_queue'), 'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
         ]
     ) }}
 
@@ -143,7 +143,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">{{ _('قوالب ملاحظات الطبيب') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('إغلاق') }}"></button>
             </div>
             <div class="modal-body">
                 <div class="row g-3">

@@ -403,9 +403,13 @@ def patient_details(visit_id):
         recent_visits = _get_recent_other_visits(visit.patient_id, visit.id)
 
         structured_vital_signs = _parse_visit_vital_signs(visit)
-        nurse_latest_vital_signs, nurse_latest_vital_signs_recorded_at = _get_nurse_vital_signs(
-            visit.patient_id
-        )
+        enabled_modules = getattr(g, 'enabled_modules', set())
+        if 'nursing' in enabled_modules:
+            nurse_latest_vital_signs, nurse_latest_vital_signs_recorded_at = _get_nurse_vital_signs(
+                visit.patient_id
+            )
+        else:
+            nurse_latest_vital_signs, nurse_latest_vital_signs_recorded_at = {}, None
 
         try:
             from models.lab_request import LabRequest
@@ -423,6 +427,8 @@ def patient_details(visit_id):
             lab_requests = []
         critical_lab_results_count = 0
         try:
+            if 'lab' not in enabled_modules:
+                raise LookupError('lab module disabled')
             from models.lab_request import LabResult
 
             req_ids = [r.id for r in (lab_requests or []) if getattr(r, 'id', None)]
@@ -454,6 +460,8 @@ def patient_details(visit_id):
             radiology_requests = []
         critical_radiology_results_count = 0
         try:
+            if 'radiology' not in enabled_modules:
+                raise LookupError('radiology module disabled')
             from models.radiology_result import RadiologyResult
 
             req_ids = [r.id for r in (radiology_requests or []) if getattr(r, 'id', None)]

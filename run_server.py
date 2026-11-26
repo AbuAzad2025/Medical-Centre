@@ -21,4 +21,11 @@ from waitress import serve
 from app_factory import create_app
 
 app = create_app('development')
-serve(app, host='0.0.0.0', port=8000, threads=200, connection_limit=2000, channel_timeout=120)
+serve(
+    app,
+    host='0.0.0.0',
+    port=int(os.environ.get('PORT', '8000')),
+    threads=200,
+    connection_limit=2000,
+    channel_timeout=120,
+)

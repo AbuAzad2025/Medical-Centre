@@ -14,25 +14,28 @@
   <div class="row mb-3">
     <div class="col-12">
       <div class="d-flex flex-wrap gap-2 mb-3">
-        {% for key, label in [('visit',_('زيارات')),('lab',_('مختبر')),('radiology',_('أشعة')),('prescription',_('وصفات')),('record',_('سجلات')),('appointment',_('مواعيد'))] %}
+        {% set chips = [('visit', _('زيارات')), ('prescription', _('وصفات')), ('record', _('سجلات')), ('appointment', _('مواعيد'))] %}
+        {% if module_active('lab') %}{% set chips = chips + [('lab', _('مختبر'))] %}{% endif %}
+        {% if module_active('radiology') %}{% set chips = chips + [('radiology', _('أشعة'))] %}{% endif %}
+        {% for key, label in chips %}
         <span class="badge bg-light text-dark border">{{ label }}: {{ event_summary.get(key, 0) if event_summary is defined else 0 }}</span>
         {% endfor %}
       </div>
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="d-flex flex-wrap gap-2">
-            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id) }}">{{ _(_('الكل')) }}</a>
-            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='visit') }}">{{ _(_('الزيارات')) }}</a>
+            <a class="btn btn-sm {% if not filter_type %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id) }}">{{ _('الكل') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'visit' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='visit') }}">{{ _('الزيارات') }}</a>
             {% if module_active('lab') %}
-            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='lab') }}">{{ _(_('المختبر')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'lab' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='lab') }}">{{ _('المختبر') }}</a>
             {% endif %}
             {% if module_active('radiology') %}
-            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='radiology') }}">{{ _(_('الأشعة')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'radiology' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='radiology') }}">{{ _('الأشعة') }}</a>
             {% endif %}
-            <a class="btn btn-sm {% if filter_type == 'prescription' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='prescription') }}">{{ _(_('الوصفات')) }}</a>
-            <a class="btn btn-sm {% if filter_type == 'record' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='record') }}">{{ _(_('السجلات')) }}</a>
-            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='appointment') }}">{{ _(_('المواعيد')) }}</a>
-            <a class="btn btn-sm {% if filter_type == 'follow_up' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='follow_up') }}">{{ _(_('المتابعات')) }}</a>
+            <a class="btn btn-sm {% if filter_type == 'prescription' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='prescription') }}">{{ _('الوصفات') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'record' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='record') }}">{{ _('السجلات') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'appointment' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='appointment') }}">{{ _('المواعيد') }}</a>
+            <a class="btn btn-sm {% if filter_type == 'follow_up' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{{ url_for('doctor.patient_timeline', patient_id=patient.id, type='follow_up') }}">{{ _('المتابعات') }}</a>
           </div>
         </div>
       </div>
@@ -67,10 +70,10 @@
               <table class="table table-striped align-middle">
                 <thead>
                   <tr>
-                    <th class="min-w-180">{{ _(_('التاريخ')) }}</th>
-                    <th class="min-w-140">{{ _(_('النوع')) }}</th>
-                    <th>{{ _(_('العنوان')) }}</th>
-                    <th class="min-w-120">{{ _(_('الحالة')) }}</th>
+                    <th class="min-w-180">{{ _('التاريخ') }}</th>
+                    <th class="min-w-140">{{ _('النوع') }}</th>
+                    <th>{{ _('العنوان') }}</th>
+                    <th class="min-w-120">{{ _('الحالة') }}</th>
                     <th class="min-w-140"></th>
                   </tr>
                 </thead>
@@ -80,19 +83,19 @@
                       <td>{{ e.dt|format_datetime }}</td>
                       <td>
                         {% if e.type == 'visit' %}
-                          <span class="badge bg-primary">{{ _(_('زيارة')) }}</span>
+                          <span class="badge bg-primary">{{ _('زيارة') }}</span>
                         {% elif module_active('lab') and e.type == 'lab' %}
-                          <span class="badge bg-warning text-dark">{{ _(_('مختبر')) }}</span>
+                          <span class="badge bg-warning text-dark">{{ _('مختبر') }}</span>
                         {% elif module_active('radiology') and e.type == 'radiology' %}
-                          <span class="badge bg-info text-dark">{{ _(_('أشعة')) }}</span>
+                          <span class="badge bg-info text-dark">{{ _('أشعة') }}</span>
                         {% elif e.type == 'prescription' %}
-                          <span class="badge bg-success">{{ _(_('وصفة')) }}</span>
+                          <span class="badge bg-success">{{ _('وصفة') }}</span>
                         {% elif e.type == 'record' %}
-                          <span class="badge bg-secondary">{{ _(_('سجل')) }}</span>
+                          <span class="badge bg-secondary">{{ _('سجل') }}</span>
                         {% elif e.type == 'appointment' %}
-                          <span class="badge bg-dark">{{ _(_('موعد')) }}</span>
+                          <span class="badge bg-dark">{{ _('موعد') }}</span>
                         {% elif e.type == 'follow_up' %}
-                          <span class="badge bg-danger">{{ _(_('متابعة')) }}</span>
+                          <span class="badge bg-danger">{{ _('متابعة') }}</span>
                         {% else %}
                           <span class="badge bg-light text-dark">{{ e.type }}</span>
                         {% endif %}
@@ -108,7 +111,7 @@
                         {% if e.link %}
                           <a href="{{ e.link }}" class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-eye me-1"></i>
-                            {{ _(_('عرض')) }}
+                            {{ _('عرض') }}
                           </a>
                         {% else %}
                           <span class="text-muted small">—</span>
@@ -122,12 +125,12 @@
           {% else %}
             <div class="text-center py-5 text-muted">
               <i class="fas fa-stream fa-3x mb-3"></i>
-              <div>{{ _(_('لا توجد بيانات لعرضها')) }}</div>
+              <div>{{ _('لا توجد بيانات لعرضها') }}</div>
             </div>
           {% endif %}
           {% if pagination is defined and pagination %}
           <div class="pagination-wrapper">
-            <nav aria-label="Timeline pagination">
+            <nav aria-label="{{ _('تصفح الخط الزمني') }}">
               <ul class="pagination pagination-sm mb-0">
                 {% if pagination.has_prev %}
                 <li class="page-item"><a class="page-link" href="?page={{ pagination.prev_num }}{% if filter_type %}&type={{ filter_type }}{% endif %}">‹</a></li>

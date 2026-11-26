@@ -10,21 +10,84 @@
 {% from 'partials/_empty_state.html' import empty_state %}
 {% from 'partials/_page_header.html' import page_header %}
 <div class="container-fluid" data-dept="{{ current_user.department_id or 0 }}">
+    {% set actions = [
+        {'url': url_for('doctor.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'}
+    ] %}
+    {% if 'reception' in enabled_modules %}
+        {% set actions = actions + [{'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync', 'style': 'primary', 'data_action': 'refreshQueue'}] %}
+    {% else %}
+        {% set actions = actions + [{'url': url_for('doctor.patient_queue'), 'label': _('تحديث'), 'icon': 'fas fa-sync', 'style': 'primary'}] %}
+        {% set actions = [{'url': url_for('doctor.patient_queue') ~ '#walkin-form', 'label': _('زيارة جديدة'), 'icon': 'fas fa-user-plus', 'style': 'success'}] + actions %}
+    {% endif %}
     {{ page_header(
         title=_('طابور المرضى'),
         subtitle=_('إدارة المرضى المخصصين للطبيب'),
         icon='fas fa-users',
-        actions=[
-            {'url': url_for('doctor.dashboard'), 'label': _('العودة للوحة التحكم'), 'icon': 'fas fa-arrow-right', 'style': 'secondary'},
-            {'type': 'button', 'label': _('تحديث'), 'icon': 'fas fa-sync', 'style': 'primary', 'data_action': 'refreshQueue'}
-        ]
+        actions=actions
     ) }}
+
+    {# The same queue template adapts to the package: a clinic without
+       reception registers the walk-in patient here instead of a second
+       template or a separate route. #}
+    {% if not reception_enabled %}
+    <div class="row mb-4" id="walkin-form">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-header py-3">
+                    <h6 class="mb-0"><i class="fas fa-user-plus me-2"></i>{{ _('إدخال مريض وزيارة جديدة') }}</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctor.patient_queue') }}" class="row g-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_patient">{{ _('مريض موجود') }}</label>
+                            <select class="form-select" id="walkin_patient" name="patient_id">
+                                <option value="">{{ _('— مريض جديد —') }}</option>
+                                {% for p in walkin_patients or [] %}
+                                <option value="{{ p.id }}">{{ p.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_first">{{ _('الاسم الأول (لمريض جديد)') }}</label>
+                            <input class="form-control" id="walkin_first" name="first_name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_last">{{ _('اسم العائلة') }}</label>
+                            <input class="form-control" id="walkin_last" name="last_name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_phone">{{ _('هاتف المريض') }}</label>
+                            <input class="form-control" id="walkin_phone" name="phone">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_dept">{{ _('القسم') }}</label>
+                            <select class="form-select" id="walkin_dept" name="department_id" required>
+                                {% for d in walkin_departments or [] %}
+                                <option value="{{ d.id }}" {{ 'selected' if d.id == current_user.department_id else '' }}>{{ d.name_ar or d.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="walkin_complaint">{{ _('الشكوى الرئيسية') }}</label>
+                            <input class="form-control" id="walkin_complaint" name="chief_complaint">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success"><i class="fas fa-plus me-1"></i>{{ _('إنشاء الزيارة') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Doctor Patient Search -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h6 class="mb-0"><i class="fas fa-search me-2"></i>{{ _(_('بحث عن مريض')) }}</h6>
+                    <h6 class="mb-0"><i class="fas fa-search me-2"></i>{{ _('بحث عن مريض') }}</h6>
                 </div>
                 <div class="card-body">
                     <div class="row g-3 align-items-center">
@@ -45,7 +108,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('إجمالي المرضى')) }}</div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('إجمالي المرضى') }}</div>
                             <div class="h2 mb-0 fw-bold gradient-text" id="stat-total">{{ queue_stats.total_patients or 0 }}</div>
                         </div>
                         <div class="icon-circle bg-primary bg-opacity-10 text-primary">
@@ -61,7 +124,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('جاهز للعلاج')) }}</div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('جاهز للعلاج') }}</div>
                             <div class="h2 mb-0 fw-bold gradient-text" id="stat-ready">{{ queue_stats.ready_patients or 0 }}</div>
                         </div>
                         <div class="icon-circle bg-success bg-opacity-10 text-success">
@@ -77,10 +140,10 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('قيد العلاج')) }}</div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('قيد العلاج') }}</div>
                             <div class="h2 mb-0 fw-bold gradient-text" id="stat-in-progress">{{ queue_stats.in_progress or 0 }}</div>
                         </div>
-                        <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                        <div class="icon-circle bg-warning bg-opacity-10 text-warning-emphasis">
                             <i class="fas fa-clock fa-2x"></i>
                         </div>
                     </div>
@@ -93,8 +156,8 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _(_('متوسط الانتظار')) }}</div>
-                            <div class="h2 mb-0 fw-bold gradient-text"><span id="stat-wait">{{ queue_stats.average_wait_time or 0 }}</span> {{ _(_('دقيقة')) }}</div>
+                            <div class="text-uppercase text-muted small fw-bold mb-2">{{ _('متوسط الانتظار') }}</div>
+                            <div class="h2 mb-0 fw-bold gradient-text"><span id="stat-wait">{{ queue_stats.average_wait_time or 0 }}</span> {{ _('دقيقة') }}</div>
                         </div>
                         <div class="icon-circle bg-info bg-opacity-10 text-info">
                             <i class="fas fa-hourglass-half fa-2x"></i>
@@ -111,7 +174,7 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-list me-2"></i>{{ _(_('قائمة المرضى')) }}
+                        <i class="fas fa-list me-2"></i>{{ _('قائمة المرضى') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -121,12 +184,12 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th>#</th>
-                                        <th>{{ _(_('اسم المريض')) }}</th>
-                                        <th>{{ _(_('نوع الزيارة')) }}</th>
-                                        <th>{{ _(_('الوقت')) }}</th>
-                                        <th>{{ _(_('الحالة')) }}</th>
-                                        <th>{{ _(_('الأولوية')) }}</th>
-                                        <th>{{ _(_('الإجراءات')) }}</th>
+                                        <th>{{ _('اسم المريض') }}</th>
+                                        <th>{{ _('نوع الزيارة') }}</th>
+                                        <th>{{ _('الوقت') }}</th>
+                                        <th>{{ _('الحالة') }}</th>
+                                        <th>{{ _('الأولوية') }}</th>
+                                        <th>{{ _('الإجراءات') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -146,15 +209,15 @@
                                         </td>
                                         <td>
                                             {% if patient.visit_type in ['first','FIRST'] %}
-                                                <span class="badge text-bg-primary">{{ _(_('أولى')) }}</span>
+                                                <span class="badge text-bg-primary">{{ _('أولى') }}</span>
                                             {% elif patient.visit_type in ['follow_up','FOLLOW_UP'] %}
-                                                <span class="badge text-bg-info">{{ _(_('متابعة')) }}</span>
+                                                <span class="badge text-bg-info">{{ _('متابعة') }}</span>
                                             {% elif patient.visit_type in ['emergency','EMERGENCY'] %}
-                                                <span class="badge text-bg-danger">{{ _(_('طوارئ')) }}</span>
+                                                <span class="badge text-bg-danger">{{ _('طوارئ') }}</span>
                                             {% elif patient.visit_type in ['REGULAR'] %}
-                                                <span class="badge text-bg-secondary">{{ _(_('اعتيادية')) }}</span>
+                                                <span class="badge text-bg-secondary">{{ _('اعتيادية') }}</span>
                                             {% elif patient.visit_type in ['CONSULTATION','consultation'] %}
-                                                <span class="badge text-bg-success">{{ _(_('استشارة')) }}</span>
+                                                <span class="badge text-bg-success">{{ _('استشارة') }}</span>
                                             {% else %}
                                                 <span class="badge text-bg-secondary">{{ patient.visit_type }}</span>
                                             {% endif %}
@@ -168,22 +231,22 @@
                                         </td>
                                         <td>
                                             {% if patient.status == 'OPEN' %}
-                                                <span class="badge text-bg-success">{{ _(_('في الانتظار')) }}</span>
+                                                <span class="badge text-bg-success">{{ _('في الانتظار') }}</span>
                                             {% elif patient.status == 'IN_PROGRESS' %}
-                                                <span class="badge text-bg-warning">{{ _(_('قيد العلاج')) }}</span>
+                                                <span class="badge text-bg-warning">{{ _('قيد العلاج') }}</span>
                                             {% elif patient.status == 'COMPLETED' %}
-                                                <span class="badge text-bg-info">{{ _(_('مكتمل')) }}</span>
+                                                <span class="badge text-bg-info">{{ _('مكتمل') }}</span>
                                             {% elif patient.status == 'ARCHIVED' %}
-                                                <span class="badge text-bg-secondary">{{ _(_('مؤرشف')) }}</span>
+                                                <span class="badge text-bg-secondary">{{ _('مؤرشف') }}</span>
                                             {% else %}
                                                 <span class="badge text-bg-secondary">{{ patient.status | enum_label('VisitState') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
                                             {% if patient.visit_type == 'emergency' %}
-                                                <span class="badge text-bg-danger">{{ _(_('عاجل')) }}</span>
+                                                <span class="badge text-bg-danger">{{ _('عاجل') }}</span>
                                             {% else %}
-                                                <span class="badge text-bg-info">{{ _(_('عادي')) }}</span>
+                                                <span class="badge text-bg-info">{{ _('عادي') }}</span>
                                             {% endif %}
                                         </td>
                                         <td>
@@ -207,14 +270,14 @@
                                                 {% endif %}
                                                 
                                                 <a href="{{ url_for('doctor.patient_details', visit_id=patient.id) }}" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-eye me-1"></i>{{ _(_('عرض')) }}
+                                                    <i class="fas fa-eye me-1"></i>{{ _('عرض') }}
                                                 </a>
                                                 
                                                 {% if patient.status == 'IN_PROGRESS' %}
                                                     <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=patient.id) }}" class="d-inline">
                                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                         <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmSubmit(event, {{ _('هل أنت متأكد من إنهاء العلاج؟')|tojson }})">
-                                                            <i class="fas fa-stop me-1"></i>{{ _(_('إنهاء')) }}
+                                                            <i class="fas fa-stop me-1"></i>{{ _('إنهاء') }}
                                                         </button>
                                                     </form>
                                                 {% endif %}
@@ -230,20 +293,26 @@
                         <div class="d-flex justify-content-between align-items-center mt-3">
                             <div class="text-muted small">{{ _('عرض') }} {{ total }} {{ _('مريض') }}</div>
                             <div class="btn-group">
-                                <a class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}"
-                                   href="{{ url_for('doctor.patient_queue', page=page-1) }}">{{ _(_('السابق')) }}</a>
-                                <span class="btn btn-outline-secondary">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}</span>
-                                <a class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}"
-                                   href="{{ url_for('doctor.patient_queue', page=page+1) }}">{{ _(_('التالي')) }}</a>
+                                {% if page > 1 %}
+                                <a class="btn btn-outline-secondary" href="{{ url_for('doctor.patient_queue', page=page-1) }}">{{ _('السابق') }}</a>
+                                {% else %}
+                                <span class="btn btn-outline-secondary disabled">{{ _('السابق') }}</span>
+                                {% endif %}
+                                <span class="btn btn-outline-secondary" aria-current="page">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages if pages > 0 else 1 }}</span>
+                                {% if page < pages %}
+                                <a class="btn btn-outline-secondary" href="{{ url_for('doctor.patient_queue', page=page+1) }}">{{ _('التالي') }}</a>
+                                {% else %}
+                                <span class="btn btn-outline-secondary disabled">{{ _('التالي') }}</span>
+                                {% endif %}
                             </div>
                         </div>
                     {% else %}
                         {{ empty_state(
                             icon='fas fa-user-clock',
                             title=_('لا مرضى بالانتظار حالياً'),
-                            description=_('جميع المرضى المخصصين لك قد تم علاجهم أو لا توجد زيارات جديدة.'),
-                            action_url=url_for('doctor.dashboard'),
-                            action_label=_('العودة للوحة التحكم')
+                            message=_('جميع المرضى المخصصين لك قد تم علاجهم أو لا توجد زيارات جديدة.'),
+                            action_url=(url_for('doctor.patient_queue') ~ '#walkin-form') if not reception_enabled else url_for('doctor.dashboard'),
+                            action_label=(_('إدخال مريض جديد') if not reception_enabled else _('العودة للوحة التحكم'))
                         ) }}
                     {% endif %}
                 </div>
@@ -257,29 +326,29 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-bolt me-2"></i>{{ _(_('إجراءات سريعة')) }}
+                        <i class="fas fa-bolt me-2"></i>{{ _('إجراءات سريعة') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-primary w-100">
-                                <i class="fas fa-tachometer-alt me-2"></i>{{ _(_('لوحة التحكم')) }}
+                                <i class="fas fa-tachometer-alt me-2"></i>{{ _('لوحة التحكم') }}
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
-                            <button class="btn btn-info w-100" onclick="refreshQueue()">
-                                <i class="fas fa-sync me-2"></i>{{ _(_('تحديث الطابور')) }}
-                            </button>
+                            <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-info w-100">
+                                <i class="fas fa-sync me-2"></i>{{ _('تحديث الطابور') }}
+                            </a>
                         </div>
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.patients') }}" class="btn btn-warning w-100">
-                                <i class="fas fa-users me-2"></i>{{ _(_('بحث المرضى')) }}
+                                <i class="fas fa-users me-2"></i>{{ _('بحث المرضى') }}
                             </a>
                         </div>
                         <div class="col-md-3 mb-2">
                             <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-secondary w-100">
-                                <i class="fas fa-prescription me-2"></i>{{ _(_('الوصفات الطبية')) }}
+                                <i class="fas fa-prescription me-2"></i>{{ _('الوصفات الطبية') }}
                             </a>
                         </div>
                     </div>
@@ -294,7 +363,7 @@
             <div class="card shadow">
                 <div class="card-header">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-vials me-2"></i>{{ _(_('طلبات الفحوصات المرتبطة بزيارات اليوم')) }}
+                        <i class="fas fa-vials me-2"></i>{{ _('طلبات الفحوصات المرتبطة بزيارات اليوم') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -303,11 +372,11 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>{{ _(_('الزيارة')) }}</th>
-                                        <th>{{ _(_('المريض')) }}</th>
-                                        <th>{{ _(_('مختبر (معلق)')) }}</th>
-                                        <th>{{ _(_('أشعة (معلق)')) }}</th>
-                                        <th>{{ _(_('إجراءات سريعة')) }}</th>
+                                        <th>{{ _('الزيارة') }}</th>
+                                        <th>{{ _('المريض') }}</th>
+                                        {% if module_active('lab') %}<th>{{ _('مختبر (معلق)') }}</th>{% endif %}
+                                        {% if module_active('radiology') %}<th>{{ _('أشعة (معلق)') }}</th>{% endif %}
+                                        <th>{{ _('إجراءات سريعة') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -315,6 +384,7 @@
                                     <tr>
                                         <td>#{{ r.visit_id }}</td>
                                         <td>{{ r.patient_name }}</td>
+                                        {% if module_active('lab') %}
                                         <td>
                                             {% if r.lab_pending > 0 %}
                                                 <span class="badge bg-danger">{{ r.lab_pending }}</span>
@@ -322,6 +392,8 @@
                                                 <span class="badge bg-success">0</span>
                                             {% endif %}
                                         </td>
+                                        {% endif %}
+                                        {% if module_active('radiology') %}
                                         <td>
                                             {% if r.rad_pending > 0 %}
                                                 <span class="badge bg-warning">{{ r.rad_pending }}</span>
@@ -329,29 +401,30 @@
                                                 <span class="badge bg-success">0</span>
                                             {% endif %}
                                         </td>
+                                        {% endif %}
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='general') }}" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-sticky-note me-1"></i>{{ _(_('مذكرة عامة')) }}
+                                                    <i class="fas fa-sticky-note me-1"></i>{{ _('مذكرة عامة') }}
                                                 </a>
                                                 {% if module_active('lab') %}
                                                 <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='lab') }}" class="btn btn-outline-warning btn-sm">
-                                                    <i class="fas fa-sticky-note me-1"></i>{{ _(_('مذكرة تحاليل')) }}
+                                                    <i class="fas fa-sticky-note me-1"></i>{{ _('مذكرة تحاليل') }}
                                                 </a>
                                                 <a href="{{ url_for('doctor.lab_request', visit_id=r.visit_id) }}" class="btn btn-outline-warning btn-sm">
-                                                    <i class="fas fa-flask me-1"></i>{{ _(_('طلب مختبر')) }}
+                                                    <i class="fas fa-flask me-1"></i>{{ _('طلب مختبر') }}
                                                 </a>
                                                 {% endif %}
                                                 {% if module_active('radiology') %}
                                                 <a href="{{ url_for('doctor.notes', visit_id=r.visit_id, type='radiology') }}" class="btn btn-outline-info btn-sm">
-                                                    <i class="fas fa-sticky-note me-1"></i>{{ _(_('مذكرة تصوير')) }}
+                                                    <i class="fas fa-sticky-note me-1"></i>{{ _('مذكرة تصوير') }}
                                                 </a>
                                                 <a href="{{ url_for('doctor.radiology_request', visit_id=r.visit_id) }}" class="btn btn-outline-info btn-sm">
-                                                    <i class="fas fa-x-ray me-1"></i>{{ _(_('طلب أشعة')) }}
+                                                    <i class="fas fa-x-ray me-1"></i>{{ _('طلب أشعة') }}
                                                 </a>
                                                 {% endif %}
                                                 <a href="{{ url_for('doctor.patient_details', visit_id=r.visit_id) }}" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-eye me-1"></i>{{ _(_('عرض')) }}
+                                                    <i class="fas fa-eye me-1"></i>{{ _('عرض') }}
                                                 </a>
                                             </div>
                                         </td>
@@ -363,7 +436,7 @@
                     {% else %}
                         <div class="text-center text-muted">
                             <i class="fas fa-info-circle fa-2x mb-2"></i>
-                            <p>{{ _(_('لا توجد طلبات مرتبطة حالياً')) }}</p>
+                            <p>{{ _('لا توجد طلبات مرتبطة حالياً') }}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -374,7 +447,14 @@
 
 <script nonce="{{ g.csp_nonce if g.csp_nonce is defined else '' }}">
         window.__M = window.__M || [];
-        __M0__='{{ url_for("doctor.api_patient_search") }}'; {% if module_active('reception') %}__M1__='{{ url_for("reception.view_patient", patient_id=0) }}';{% endif %} __M2__='{{ current_user.id }}';
+        window.__RECEPTION_ENABLED__ = {{ 'true' if module_active('reception') else 'false' }};
+        __M0__='{{ url_for("doctor.api_patient_search") }}';
+        {% if module_active('reception') %}
+        __M1__='{{ url_for("reception.view_patient", patient_id=0) }}';
+        {% else %}
+        __M1__='{{ url_for("doctor.patient_timeline", patient_id=0) }}';
+        {% endif %}
+        __M2__='{{ current_user.id }}';
         </script>
 <script type="module" src="{{ url_for('static', filename='js/pages/doctor/patient_queue.js') }}"></script>
 {% endblock %}

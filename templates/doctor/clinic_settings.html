@@ -12,38 +12,38 @@
   <div class="row">
     <div class="col-lg-8">
       <div class="card border-0 shadow-sm">
-        <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-building me-2"></i>{{ _(_('معلومات العيادة')) }}</h6></div>
+        <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-building me-2"></i>{{ _('معلومات العيادة') }}</h6></div>
         <div class="card-body">
           <form method="POST" action="{{ url_for('doctor.clinic_settings') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label" for="clinic_name">{{ _(_('اسم العيادة')) }}</label>
+                <label class="form-label" for="clinic_name">{{ _('اسم العيادة') }}</label>
                 <input class="form-control" id="clinic_name" name="clinic_name" value="{{ general.get('clinic_name', tenant.name_ar or tenant.name or '') }}">
               </div>
               <div class="col-md-6">
-                <label class="form-label" for="phone">{{ _(_('هاتف العيادة')) }}</label>
+                <label class="form-label" for="phone">{{ _('هاتف العيادة') }}</label>
                 <input class="form-control" id="phone" name="phone" value="{{ general.get('phone', tenant.contact_phone or '') }}">
               </div>
               <div class="col-md-6">
-                <label class="form-label" for="email">{{ _(_('البريد الإلكتروني')) }}</label>
+                <label class="form-label" for="email">{{ _('البريد الإلكتروني') }}</label>
                 <input class="form-control" id="email" name="email" value="{{ general.get('email', tenant.contact_email or '') }}">
               </div>
               <div class="col-md-6">
-                <label class="form-label" for="consultation_fee">{{ _(_('رسوم الكشف الافتراضية')) }}</label>
+                <label class="form-label" for="consultation_fee">{{ _('رسوم الكشف الافتراضية') }}</label>
                 <input class="form-control" type="number" min="0" step="0.01" id="consultation_fee" name="consultation_fee" value="{{ general.get('consultation_fee', '') }}">
               </div>
               <div class="col-12">
-                <label class="form-label" for="address">{{ _(_('العنوان')) }}</label>
+                <label class="form-label" for="address">{{ _('العنوان') }}</label>
                 <input class="form-control" id="address" name="address" value="{{ general.get('address', (tenant.address if tenant.address is defined else '') or '') }}">
               </div>
               <div class="col-12">
-                <label class="form-label" for="working_hours">{{ _(_('ساعات العمل')) }}</label>
+                <label class="form-label" for="working_hours">{{ _('ساعات العمل') }}</label>
                 <input class="form-control" id="working_hours" name="working_hours" value="{{ general.get('working_hours', '') }}" placeholder="08:00 - 16:00">
               </div>
             </div>
             <div class="mt-4">
-              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _(_('حفظ الإعدادات')) }}</button>
+              <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _('حفظ الإعدادات') }}</button>
             </div>
           </form>
         </div>
@@ -51,12 +51,12 @@
     </div>
     <div class="col-lg-4">
       <div class="card border-0 shadow-sm">
-        <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>{{ _(_('معلومات النظام')) }}</h6></div>
+        <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>{{ _('معلومات النظام') }}</h6></div>
         <div class="card-body">
-          <p class="mb-2"><strong>{{ _(_('المعرّف:')) }}</strong> {{ tenant.slug }}</p>
-          <p class="mb-2"><strong>{{ _(_('المنتج:')) }}</strong> {{ tenant.product_profile_code or '-' }}</p>
-          <p class="mb-2"><strong>{{ _(_('الحالة:')) }}</strong> {{ tenant.status.value if tenant.status else '-' }}</p>
-          <p class="mb-0 text-muted">{{ _(_('تُستخدم رسوم الكشف عند إصدار فاتورة تلقائية للزيارة في عيادة بلا استقبال.')) }}</p>
+          <p class="mb-2"><strong>{{ _('المعرّف:') }}</strong> {{ tenant.slug }}</p>
+          <p class="mb-2"><strong>{{ _('المنتج:') }}</strong> {{ tenant.product_profile_code or '-' }}</p>
+          <p class="mb-2"><strong>{{ _('الحالة:') }}</strong> {{ tenant.status.value if tenant.status else '-' }}</p>
+          <p class="mb-0 text-muted">{{ _('تُستخدم رسوم الكشف عند إصدار فاتورة تلقائية للزيارة في عيادة بلا استقبال.') }}</p>
         </div>
       </div>
     </div>

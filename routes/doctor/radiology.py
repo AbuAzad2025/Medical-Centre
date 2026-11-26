@@ -191,6 +191,9 @@ def radiology_request(visit_id):
 @role_required('doctor', 'admin', 'manager')
 def radiology_results(patient_id):
     """عرض نتائج الأشعة للطبيب — للإطلاع فقط"""
+    if 'radiology' not in getattr(g, 'enabled_modules', set()):
+        flash('وحدة الأشعة غير مفعّلة في باقتك الحالية', 'warning')
+        return redirect(url_for('doctor.patient_queue'))
     try:
         patient = (
             db.session.execute(

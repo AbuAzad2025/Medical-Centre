@@ -15,28 +15,28 @@
         <div class="col-md-3">
             <div class="card card-stat bg-primary text-white">
                 <div class="icon-bg"><i class="fas fa-prescription"></i></div>
-                <h6 class="text-white-50">{{ _(_('وصفات اليوم')) }}</h6>
+                <h6 class="text-white-50">{{ _('وصفات اليوم') }}</h6>
                 <h3>{{ today_count or 0 }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card card-stat bg-success text-white">
                 <div class="icon-bg"><i class="fas fa-calendar-week"></i></div>
-                <h6 class="text-white-50">{{ _(_('وصفات الأسبوع')) }}</h6>
+                <h6 class="text-white-50">{{ _('وصفات الأسبوع') }}</h6>
                 <h3>{{ week_count or 0 }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card card-stat bg-info text-white">
                 <div class="icon-bg"><i class="fas fa-database"></i></div>
-                <h6 class="text-white-50">{{ _(_('إجمالي الوصفات')) }}</h6>
+                <h6 class="text-white-50">{{ _('إجمالي الوصفات') }}</h6>
                 <h3>{{ total or 0 }}</h3>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card card-stat bg-warning text-white">
                 <div class="icon-bg"><i class="fas fa-user-md"></i></div>
-                <h6 class="text-white-50">{{ _(_('الطبيب')) }}</h6>
+                <h6 class="text-white-50">{{ _('الطبيب') }}</h6>
                 <h3><bdi>{{ current_user.full_name or current_user.username }}</bdi></h3>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="card shadow">
                 <div class="card-header py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 fw-bold text-primary">
-                        <i class="fas fa-list me-2"></i>{{ _(_('قائمة الوصفات الطبية')) }}
+                        <i class="fas fa-list me-2"></i>{{ _('قائمة الوصفات الطبية') }}
                     </h6>
                     <span class="badge bg-secondary">{{ total }} {{ _('وصفة') }}</span>
                 </div>
@@ -58,11 +58,11 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
-                                    <th>{{ _(_('رقم الوصفة')) }}</th>
-                                    <th>{{ _(_('المريض')) }}</th>
-                                    <th>{{ _(_('عدد الأدوية')) }}</th>
-                                    <th>{{ _(_('التاريخ')) }}</th>
-                                    <th>{{ _(_('الإجراءات')) }}</th>
+                                    <th>{{ _('رقم الوصفة') }}</th>
+                                    <th>{{ _('المريض') }}</th>
+                                    <th>{{ _('عدد الأدوية') }}</th>
+                                    <th>{{ _('التاريخ') }}</th>
+                                    <th>{{ _('الإجراءات') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -83,7 +83,7 @@
                                                 </div>
                                             </div>
                                         {% else %}
-                                            <span class="text-muted">{{ _(_('غير محدد')) }}</span>
+                                            <span class="text-muted">{{ _('غير محدد') }}</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -117,18 +117,18 @@
                     <div class="d-flex justify-content-between align-items-center p-3 border-top">
                         <div class="text-muted small">{{ _('صفحة') }} {{ page }} {{ _('من') }} {{ pages }}</div>
                         <div class="btn-group btn-group-sm">
-                            <a href="{{ url_for('doctor.prescriptions', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">{{ _(_('السابق')) }}</a>
-                            <a href="{{ url_for('doctor.prescriptions', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">{{ _(_('التالي')) }}</a>
+                            <a href="{{ url_for('doctor.prescriptions', page=page-1) }}" class="btn btn-outline-secondary {% if page <= 1 %}disabled{% endif %}">{{ _('السابق') }}</a>
+                            <a href="{{ url_for('doctor.prescriptions', page=page+1) }}" class="btn btn-outline-secondary {% if page >= pages %}disabled{% endif %}">{{ _('التالي') }}</a>
                         </div>
                     </div>
                     {% endif %}
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-prescription fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ _(_('لا توجد وصفات طبية')) }}</h5>
-                        <p class="text-muted">{{ _(_('ستظهر الوصفات هنا بعد كتابتها للمرضى')) }}</p>
+                        <h5 class="text-muted">{{ _('لا توجد وصفات طبية') }}</h5>
+                        <p class="text-muted">{{ _('ستظهر الوصفات هنا بعد كتابتها للمرضى') }}</p>
                         <a href="{{ url_for('doctor.patient_queue') }}" class="btn btn-primary">
-                            <i class="fas fa-list-ol me-2"></i>{{ _(_('الذهاب لطابور المرضى')) }}
+                            <i class="fas fa-list-ol me-2"></i>{{ _('الذهاب لطابور المرضى') }}
                         </a>
                     </div>
                     {% endif %}

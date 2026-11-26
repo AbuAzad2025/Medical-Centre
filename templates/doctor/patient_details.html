@@ -4,21 +4,22 @@
 {% block title %}{{ _('تفاصيل المريض') }} - {{ visit.patient.full_name }}{% endblock %}
 
 {% from 'partials/_patient_context_bar.html' import patient_context_bar %}
-{% from 'partials/_patient_context_panel.html' import patient_context_panel %}
 {% from 'partials/_workflow_next_actions.html' import workflow_next_actions with context %}
 
 {% block content %}
 <div class="container-fluid">
     {{ patient_context_bar(visit.patient, visit, patient_allergies) }}
-    {{ patient_context_panel(visit.patient) }}
     {{ workflow_next_actions(visit) }}
 
-    {{ page_header(_('شاشة الزيارة'), subtitle=(visit.patient.full_name ~ ' - ' ~ _('رقم الزيارة:') ~ ' ' ~ (visit.visit_number or visit.id)), icon='fas fa-user-injured', actions=[
+    {% set actions = [
         {'label': _('العودة للطابور'), 'icon': 'fas fa-arrow-right', 'url': url_for('doctor.patient_queue'), 'style': 'secondary'},
         {'label': _('الخط الزمني'), 'icon': 'fas fa-stream', 'url': url_for('doctor.patient_timeline', patient_id=visit.patient_id), 'style': 'outline-primary'},
-        {'label': _('التشخيص'), 'icon': 'fas fa-stethoscope', 'url': url_for('doctor.diagnosis', visit_id=visit.id), 'style': 'primary'},
-        {'label': _('خريطة الأسنان'), 'icon': 'fas fa-tooth', 'url': url_for('doctor.dental_chart', patient_id=visit.patient_id), 'style': 'info'}
-    ]) }}
+        {'label': _('التشخيص'), 'icon': 'fas fa-stethoscope', 'url': url_for('doctor.diagnosis', visit_id=visit.id), 'style': 'primary'}
+    ] %}
+    {% if module_active('dental') %}
+        {% set actions = actions + [{'label': _('خريطة الأسنان'), 'icon': 'fas fa-tooth', 'url': url_for('doctor.dental_chart', patient_id=visit.patient_id), 'style': 'info'}] %}
+    {% endif %}
+    {{ page_header(_('شاشة الزيارة'), subtitle=(visit.patient.full_name ~ ' - ' ~ _('رقم الزيارة:') ~ ' ' ~ (visit.visit_number or visit.id)), icon='fas fa-user-injured', actions=actions) }}
 
     {% if patient_allergies and patient_allergies|length > 0 %}
     <div class="row mb-4">
@@ -194,7 +195,7 @@
                         {% if visit.status == 'IN_PROGRESS' %}
                             <form method="POST" action="{{ url_for('doctor.end_treatment', visit_id=visit.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirmSubmit(event, '{{ _('هل أنت متأكد من إنهاء العلاج؟') }}')">
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirmSubmit(event, {{ _('هل أنت متأكد من إنهاء العلاج؟')|tojson }})">
                                     <i class="fas fa-stop me-2"></i>{{ _('إنهاء العلاج') }}
                                 </button>
                             </form>

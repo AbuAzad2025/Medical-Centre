@@ -54,6 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 export function refreshQueue() {
+    // A solo clinic has no reception API; queue stats come from the server render.
+    if (window.__RECEPTION_ENABLED__ === false) return;
     const container = document.querySelector('.container-fluid');
     const dept = parseInt((container && container.getAttribute('data-dept')) || '0');
     if (!dept) return;
@@ -81,18 +83,20 @@ export function refreshQueue() {
         });
 }
 
-setInterval(function() {
-    refreshQueue();
-}, 30000);
+if (window.__RECEPTION_ENABLED__ !== false) {
+    setInterval(function() {
+        refreshQueue();
+    }, 30000);
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const rows = document.querySelectorAll('table tbody tr');
     rows.forEach(row => {
         row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
+            this.classList.add('row-hover');
         });
         row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
+            this.classList.remove('row-hover');
         });
     });
 
