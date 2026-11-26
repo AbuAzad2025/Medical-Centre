@@ -24,6 +24,16 @@ def dashboard():
     is_entitled = _resolve_is_entitled()
     filter_type = (request.args.get('type') or '').strip().lower()
     items = WorkInboxService.get_inbox_items(current_user, is_entitled=is_entitled)
+    enabled = set(getattr(g, 'enabled_modules', set()) or ())
+    type_modules = {
+        'visit': 'doctor',
+        'appointment': 'appointments',
+        'lab': 'lab',
+        'radiology': 'radiology',
+        'invoice': 'billing',
+    }
+    if enabled:
+        items = [i for i in items if type_modules.get(i.get('item_type'), '') in enabled]
     if filter_type:
         items = [i for i in items if i.get('item_type') == filter_type]
     type_counts = WorkInboxService.get_type_counts(items)
