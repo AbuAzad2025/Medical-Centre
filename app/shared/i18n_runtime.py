@@ -282,6 +282,11 @@ AR_TO_EN: dict[str, str] = {
     'احجز في هذه العيادة': 'Book at this clinic',
     'لا توجد عيادات متاحة للحجز حالياً': 'No clinics available for booking right now',
     'اختر عيادة أخرى': 'Choose another clinic',
+    'تعديل بيانات المريض': 'Edit patient details',
+    'حفظ بيانات المريض': 'Save patient details',
+    'تم تحديث بيانات المريض': 'Patient details updated',
+    'الاسم الأول واسم العائلة ورقم هاتف صحيح مطلوبة': 'First name, last name and a valid phone are required',
+    'يوجد مريض آخر بنفس رقم الهاتف': 'Another patient already uses this phone number',
 }
 
 

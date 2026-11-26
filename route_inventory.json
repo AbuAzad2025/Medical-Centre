@@ -2794,7 +2794,8 @@
       "methods": [
         "GET",
         "HEAD",
-        "OPTIONS"
+        "OPTIONS",
+        "POST"
       ],
       "classification": "authenticated"
     },

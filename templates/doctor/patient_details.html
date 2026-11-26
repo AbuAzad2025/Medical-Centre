@@ -148,6 +148,20 @@
                     </div>
                 </div>
             </div>
+            <div class="card shadow mt-4">
+                <div class="card-header"><h6 class="m-0 fw-bold text-primary"><i class="fas fa-user-edit me-2"></i>{{ _('تعديل بيانات المريض') }}</h6></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctor.patient_details', visit_id=visit.id) }}" class="row g-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="patient_edit" value="1">
+                        <div class="col-md-6"><label class="form-label" for="patient_first">{{ _('الاسم الأول') }}</label><input class="form-control" id="patient_first" name="first_name" value="{{ visit.patient.first_name or '' }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="patient_last">{{ _('اسم العائلة') }}</label><input class="form-control" id="patient_last" name="last_name" value="{{ visit.patient.last_name or '' }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="patient_phone">{{ _('الهاتف') }}</label><input class="form-control" id="patient_phone" name="phone" value="{{ visit.patient.phone or '' }}" required></div>
+                        <div class="col-md-6"><label class="form-label" for="patient_nid">{{ _('رقم الهوية') }}</label><input class="form-control" id="patient_nid" name="national_id" value="{{ visit.patient.national_id or '' }}"></div>
+                        <div class="col-12"><button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>{{ _('حفظ بيانات المريض') }}</button></div>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-4">

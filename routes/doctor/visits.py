@@ -376,7 +376,7 @@ def _get_current_prescriptions(visit_id):
         return []
 
 
-@doctor_bp.route('/patient-details/<int:visit_id>')
+@doctor_bp.route('/patient-details/<int:visit_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('doctor', 'manager')
 def patient_details(visit_id):
@@ -397,6 +397,36 @@ def patient_details(visit_id):
         if not visit:
             flash('الزيارة غير موجودة', 'error')
             return redirect(url_for('doctor.patient_queue'))
+
+        if request.method == 'POST' and request.form.get('patient_edit') == '1':
+            from models.patient import Patient
+
+            patient = db.session.get(Patient, visit.patient_id)
+            first_name = (request.form.get('first_name') or '').strip()
+            last_name = (request.form.get('last_name') or '').strip()
+            phone = ''.join(ch for ch in (request.form.get('phone') or '').strip() if ch.isdigit())
+            national_id = (
+                ''.join(
+                    ch for ch in (request.form.get('national_id') or '').strip() if ch.isdigit()
+                )
+                or None
+            )
+            if not first_name or not last_name or not (7 <= len(phone) <= 20):
+                flash('الاسم الأول واسم العائلة ورقم هاتف صحيح مطلوبة', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+            duplicate = Patient.find_by_phone(phone)
+            if duplicate and duplicate.id != patient.id:
+                flash('يوجد مريض آخر بنفس رقم الهاتف', 'warning')
+                return redirect(url_for('doctor.patient_details', visit_id=visit_id))
+            patient.first_name = first_name
+            patient.last_name = last_name
+            patient.phone = phone
+            patient.national_id = national_id
+            if not safe_commit(db.session, error_message='Failed to update patient'):
+                flash('تعذر حفظ بيانات المريض', 'error')
+            else:
+                flash('تم تحديث بيانات المريض', 'success')
+            return redirect(url_for('doctor.patient_details', visit_id=visit_id))
 
         medical_records = _get_patient_medical_records(visit.patient_id)
         previous_prescriptions = _get_patient_prescriptions(visit.patient_id)
