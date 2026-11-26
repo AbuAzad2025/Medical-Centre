@@ -759,7 +759,12 @@ def end_treatment(visit_id):
                 if not existing:
                     tenant = db.session.get(Tenant, g.tenant_id)
                     general = dict((getattr(tenant, 'settings', None) or {}).get('general') or {})
-                    fee = float(general.get('consultation_fee') or 0)
+                    is_follow_up = str(getattr(visit, 'visit_type', '') or '').lower() in {
+                        'follow_up',
+                        'follow-up',
+                    }
+                    fee_key = 'follow_up_fee' if is_follow_up else 'consultation_fee'
+                    fee = float(general.get(fee_key) or 0)
                     amount = float(visit.total_amount or 0) or fee
                     if amount and not visit.total_amount:
                         visit.total_amount = amount
@@ -782,7 +787,7 @@ def end_treatment(visit_id):
                                 department_id=visit.department_id,
                                 visit_id=visit.id,
                                 service_code='VISIT',
-                                service_name='كشف طبي',
+                                service_name='مراجعة طبية' if is_follow_up else 'كشف طبي',
                                 quantity=1,
                                 unit_price=amount,
                                 total_price=amount,
@@ -791,6 +796,7 @@ def end_treatment(visit_id):
                         )
         except Exception:
             logging.exception('Error issuing invoice for a simple clinic')
+            flash('تعذر إصدار الفاتورة تلقائياً — راجع رسوم العيادة في الإعدادات', 'warning')
 
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,

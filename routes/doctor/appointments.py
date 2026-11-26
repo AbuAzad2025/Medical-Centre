@@ -70,6 +70,49 @@ def appointments():
             )
         ).scalar()
 
+        # A solo clinic has no reception to convert public bookings into
+        # Appointment rows, so show the tenant's online bookings here instead.
+        if not appointments and 'reception' not in getattr(g, 'enabled_modules', set()):
+            from datetime import datetime
+            from types import SimpleNamespace
+
+            from models.online_booking import OnlineBooking
+
+            bookings = (
+                db.session.execute(
+                    select(OnlineBooking)
+                    .filter_by(tenant_id=g.tenant_id)
+                    .order_by(OnlineBooking.appointment_date.desc())
+                    .limit(per_page)
+                )
+                .scalars()
+                .all()
+            )
+            appointments = [
+                SimpleNamespace(
+                    id=b.id,
+                    patient=SimpleNamespace(
+                        full_name=f'{b.first_name or ""} {b.last_name or ""}'.strip() or '—',
+                        phone=b.phone,
+                    ),
+                    starts_at=datetime.combine(b.appointment_date, b.appointment_time)
+                    if b.appointment_date and b.appointment_time
+                    else None,
+                    status={
+                        'pending': 'SCHEDULED',
+                        'cancelled': 'CANCELLED',
+                        'confirmed': 'CONFIRMED',
+                    }.get((b.status or '').lower(), 'SCHEDULED'),
+                    visit_id=None,
+                )
+                for b in bookings
+            ]
+            total = len(appointments)
+            pages = 1
+            today_count = len([b for b in bookings if b.appointment_date == today])
+            upcoming_count = len([b for b in bookings if b.appointment_date >= today])
+            confirmed_count = len([b for b in bookings if (b.status or '').lower() == 'confirmed'])
+
         return render_template(
             'doctor/appointments.html',
             appointments=appointments,

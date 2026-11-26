@@ -151,6 +151,12 @@ def create_user():
             flash('تم إنشاء المستخدم بنجاح', 'success')
             return redirect(url_for('super_admin.users'))
 
+        except ValueError as exc:
+            # Package seat limits raise ValueError in the tenant filter; show
+            # the real reason instead of hiding it behind a generic message.
+            safe_rollback(db.session, error_message='database rollback')
+            logging.warning('Create user rejected: %s', exc)
+            flash(str(exc), 'error')
         except Exception:
             safe_rollback(db.session, error_message='database rollback')
             # A stray '%s' with no argument made logging raise while reporting

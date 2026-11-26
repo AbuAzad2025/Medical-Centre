@@ -253,6 +253,23 @@ AR_TO_EN: dict[str, str] = {
     'التصنيف': 'Category',
     'المفتاح': 'Key',
     'القيمة': 'Value',
+    'إعدادات العيادة': 'Clinic settings',
+    '🇸🇦 العربية': '🇸🇦 Arabic',
+    '🇬🇧 English': '🇬🇧 English',
+    'رسوم الكشف': 'Consultation fee',
+    'رسوم المراجعة': 'Follow-up fee',
+    'زيارة جديدة': 'New visit',
+    'إدخال مريض وزيارة جديدة': 'Register patient and new visit',
+    'admin': 'Admin',
+    'doctor': 'Doctor',
+    'patient': 'Patient',
+    'super_admin': 'Super admin',
+    'manager': 'Manager',
+    'المستخدمون:': 'Users:',
+    'معلومات النظام': 'System information',
+    'الحد الأقصى لمستخدمي الباقة مكتمل. لتعيين طبيب ثانٍ، احذف حساب مستخدم غير مطلوب أولاً.': 'The package user limit is full. To assign a second doctor, remove an unneeded user account first.',
+    'تستطيع الباقة تعيين مستخدم إضافي ضمن حد المقاعد.': 'The package can assign one more user within its seat limit.',
+    'إضافة مستخدم / طبيب': 'Add user / doctor',
 }
 
 

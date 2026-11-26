@@ -25,7 +25,7 @@
                     </span>
                     <input type="text" class="form-control border-start-0" id="globalSearchInput"
                            placeholder="ابحث عن مريض، موعد، وصفة..."
-                           aria-label="البحث في النظام"
+                           aria-label="{{ _('البحث في النظام') }}"
                            style="border-color:var(--color-border);border-radius:50px 0 0 50px;background:var(--color-bg);font-size:0.8rem;"
                            autocomplete="off">
                     <div class="search-results-dropdown d-none position-absolute w-100 bg-white border rounded shadow-lg p-0"
@@ -57,7 +57,7 @@
             {% if current_user.is_authenticated %}
             <!-- Notification bell with count badge -->
             <div class="dropdown" id="notificationDropdown">
-                <button type="button" class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="الإشعارات" title="الإشعارات">
+                <button type="button" class="btn btn-light btn-sm position-relative" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('الإشعارات') }}" title="{{ _('الإشعارات') }}">
                     <i class="fas fa-bell"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notificationCount" style="font-size: 0.6rem; display: none;">
                         0
@@ -74,22 +74,22 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="تبديل الوضع الليلي" title="وضع ليلي / نهاري">
+            <button type="button" class="btn btn-light btn-sm" id="themeToggleBtn" aria-label="{{ _('تبديل الوضع الليلي') }}" title="وضع ليلي / نهاري">
                 <i class="fas fa-moon" data-theme-icon></i>
             </button>
             <div class="dropdown">
-                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="مظهر الواجهة" aria-label="إعدادات الواجهة">
+                <button type="button" class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="{{ _('مظهر الواجهة') }}" aria-label="{{ _('إعدادات الواجهة') }}">
                     <i class="fas fa-sliders-h"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end p-3 ui-prefs-menu" style="min-width: 220px;">
                     <label class="form-label small mb-1" for="uiDensitySelect">{{ _(_('الكثافة')) }}</label>
-                    <select class="form-select form-select-sm mb-2" id="uiDensitySelect" title="كثافة الواجهة">
+                    <select class="form-select form-select-sm mb-2" id="uiDensitySelect" title="{{ _('كثافة الواجهة') }}">
                         <option value="compact">{{ _(_('مضغوط')) }}</option>
                         <option value="normal">{{ _(_('عادي')) }}</option>
                         <option value="comfortable">{{ _(_('مريح')) }}</option>
                     </select>
                     <label class="form-label small mb-1" for="uiRadiusSelect">{{ _(_('انحناء الحواف')) }}</label>
-                    <select class="form-select form-select-sm" id="uiRadiusSelect" title="انحناء الحواف">
+                    <select class="form-select form-select-sm" id="uiRadiusSelect" title="{{ _('انحناء الحواف') }}">
                         <option value="sm">{{ _(_('صغير')) }}</option>
                         <option value="md">{{ _(_('متوسط')) }}</option>
                         <option value="lg">{{ _(_('كبير')) }}</option>
@@ -97,12 +97,12 @@
                 </div>
             </div>
             <div class="dropdown">
-                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="قائمة المستخدم">
+                <button class="btn btn-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="{{ _('قائمة المستخدم') }}">
                     <i class="fas fa-user-circle"></i>
                     <span class="d-none d-md-inline">{{ current_user.full_name or current_user.username }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><span class="dropdown-item-text text-muted small">{{ current_user.role }}</span></li>
+                    <li><span class="dropdown-item-text text-muted small">{{ _(current_user.role) }}</span></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-2"></i>{{ _(_('الملف الشخصي')) }}</a></li>
                     <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-2"></i>{{ _(_('تسجيل الخروج')) }}</a></li>
@@ -147,7 +147,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (!data || !data.results || !data.results.length) {
-                        searchResults.innerHTML = '<div class="p-3 text-center text-muted small">لا توجد نتائج</div>';
+                        searchResults.innerHTML = '<div class="p-3 text-center text-muted small">' + {{ _('لا توجد نتائج')|tojson }} + '</div>';
                     } else {
                         searchResults.innerHTML = data.results.map(function(r) {
                             return '<a href="' + window.escHtml(r.url || '#') + '" class="dropdown-item d-flex align-items-center gap-2 py-2">' +

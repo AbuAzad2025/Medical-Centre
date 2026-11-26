@@ -30,8 +30,12 @@
                 <input class="form-control" id="email" name="email" value="{{ general.get('email', tenant.contact_email or '') }}">
               </div>
               <div class="col-md-6">
-                <label class="form-label" for="consultation_fee">{{ _('رسوم الكشف الافتراضية') }}</label>
+                <label class="form-label" for="consultation_fee">{{ _('رسوم الكشف') }}</label>
                 <input class="form-control" type="number" min="0" step="0.01" id="consultation_fee" name="consultation_fee" value="{{ general.get('consultation_fee', '') }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="follow_up_fee">{{ _('رسوم المراجعة') }}</label>
+                <input class="form-control" type="number" min="0" step="0.01" id="follow_up_fee" name="follow_up_fee" value="{{ general.get('follow_up_fee', '') }}">
               </div>
               <div class="col-12">
                 <label class="form-label" for="address">{{ _('العنوان') }}</label>
@@ -56,7 +60,16 @@
           <p class="mb-2"><strong>{{ _('المعرّف:') }}</strong> {{ tenant.slug }}</p>
           <p class="mb-2"><strong>{{ _('المنتج:') }}</strong> {{ tenant.product_profile_code or '-' }}</p>
           <p class="mb-2"><strong>{{ _('الحالة:') }}</strong> {{ tenant.status.value if tenant.status else '-' }}</p>
-          <p class="mb-0 text-muted">{{ _('تُستخدم رسوم الكشف عند إصدار فاتورة تلقائية للزيارة في عيادة بلا استقبال.') }}</p>
+          <p class="mb-2"><strong>{{ _('المستخدمون:') }}</strong> {{ seat_used }} / {{ seat_limit if seat_limit is not none else '∞' }}</p>
+          {% if seat_limit is not none and seat_used >= seat_limit %}
+          <p class="mb-2 text-warning-emphasis small">{{ _('الحد الأقصى لمستخدمي الباقة مكتمل. لتعيين طبيب ثانٍ، احذف حساب مستخدم غير مطلوب أولاً.') }}</p>
+          {% else %}
+          <p class="mb-2 text-muted small">{{ _('تستطيع الباقة تعيين مستخدم إضافي ضمن حد المقاعد.') }}</p>
+          {% endif %}
+          {% if can_manage_users %}
+          <a href="{{ url_for('super_admin.create_user') }}" class="btn btn-sm btn-outline-primary mb-2">{{ _('إضافة مستخدم / طبيب') }}</a>
+          {% endif %}
+          <p class="mb-0 text-muted">{{ _('تُستخدم رسوم الكشف أو المراجعة عند إصدار فاتورة تلقائية للزيارة في عيادة بلا استقبال.') }}</p>
         </div>
       </div>
     </div>

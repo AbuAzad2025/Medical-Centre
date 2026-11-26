@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flask import request, url_for
+from flask import g, request, url_for
 
 _ROLE_MOBILE_NAV = {
     'reception': [
@@ -100,7 +100,12 @@ def resolve_mobile_nav_items(user) -> list[dict]:
     if role == 'er_doctor' and 'er_doctor' not in _ROLE_MOBILE_NAV:
         role = 'emergency'
     items = []
+    enabled = set(getattr(g, 'enabled_modules', set()) or ())
     for ep, icon, label in _ROLE_MOBILE_NAV.get(role, [('main.dashboard', 'fa-home', 'الرئيسية')]):
+        # Manager nav is gated by reporting in the sidebar; apply the same
+        # package boundary to the mobile bottom bar.
+        if ep.startswith('manager.') and enabled and 'reporting' not in enabled:
+            continue
         try:
             href = url_for(ep)
             active = request.endpoint == ep

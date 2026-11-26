@@ -85,12 +85,12 @@
                                     <div class="mb-2">
                                         <strong>{{ _('حاجة إلى متابعة:') }}</strong>
                                         {% if visit.follow_up_required %}
-                                            نعم
+                                            {{ _('نعم') }}
                                             {% if visit.follow_up_date %}
                                                 - {{ visit.follow_up_date.strftime('%Y-%m-%d') }}
                                             {% endif %}
                                         {% else %}
-                                            لا
+                                            {{ _('لا') }}
                                         {% endif %}
                                     </div>
                                 </div>

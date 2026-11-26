@@ -191,7 +191,7 @@ def dashboard_portal():
     )
     patient = db.session.get(Patient, link.patient_id) if link else None
 
-    is_staff_view = current_user.role in ('admin', 'manager', 'super_admin', 'reception')
+    is_staff_view = current_user.role in ('admin', 'manager', 'super_admin', 'reception', 'doctor')
     bookings = []
     if is_staff_view:
         # Clinics without reception still need to see the bookings their

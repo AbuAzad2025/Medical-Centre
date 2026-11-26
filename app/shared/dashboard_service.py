@@ -710,7 +710,13 @@ def build_command_center_context(user, role: str | None = None, **extra: Any) ->
     quick = ROLE_QUICK_ACTIONS.get(role, [])
     quick_actions: list[dict[str, Any]] = []
     enabled = set(getattr(g, 'enabled_modules', set()) or ())
+    module_by_endpoint = {
+        'doctor.lab_requests': 'lab',
+        'doctor.radiology_requests': 'radiology',
+    }
     for ep, icon, label in quick:
+        if module_by_endpoint.get(ep) and module_by_endpoint[ep] not in enabled:
+            continue
         try:
             href = url_for(ep)
         except Exception:
