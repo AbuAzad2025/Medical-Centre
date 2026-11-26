@@ -2728,6 +2728,17 @@
       "classification": "authenticated"
     },
     {
+      "endpoint": "doctor.clinic_settings",
+      "path": "/doctor/settings",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
       "endpoint": "doctor.medical_history",
       "path": "/doctor/medical-history/<int:patient_id>",
       "methods": [

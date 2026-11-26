@@ -191,8 +191,22 @@ def dashboard_portal():
     )
     patient = db.session.get(Patient, link.patient_id) if link else None
 
+    is_staff_view = current_user.role in ('admin', 'manager', 'super_admin', 'reception')
     bookings = []
-    if patient:
+    if is_staff_view:
+        # Clinics without reception still need to see the bookings their
+        # appointments module collected.
+        bookings = (
+            db.session.execute(
+                select(OnlineBooking)
+                .filter(OnlineBooking.tenant_id == g.tenant_id)
+                .order_by(OnlineBooking.created_at.desc())
+                .limit(100)
+            )
+            .scalars()
+            .all()
+        )
+    elif patient:
         bookings = (
             db.session.execute(
                 select(OnlineBooking)
@@ -204,7 +218,12 @@ def dashboard_portal():
             .all()
         )
 
-    return render_template('booking/dashboard.html', patient=patient, bookings=bookings)
+    return render_template(
+        'booking/dashboard.html',
+        patient=patient,
+        bookings=bookings,
+        is_staff_view=is_staff_view,
+    )
 
 
 @booking_bp.route('/cancel/<int:booking_id>', methods=['POST'])

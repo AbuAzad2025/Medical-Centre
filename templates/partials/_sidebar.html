@@ -35,9 +35,11 @@
                 <span class="nav-section-title">{{ _(_('الإدارة')) }}</span>
             </li>
             <li class="nav-item">
-                <a class="nav-link {{ 'active' if request.path.startswith('/super-admin') }}" href="{{ url_for('super_admin.dashboard') }}">
+                {% set is_clinic_user = current_user.role not in ('super_admin', 'owner', 'platform_owner') %}
+                {% set clinic_settings_url = url_for('doctor.clinic_settings') if is_clinic_user else url_for('super_admin.dashboard') %}
+                <a class="nav-link {{ 'active' if request.path.startswith('/super-admin') or request.path.endswith('/settings') }}" href="{{ clinic_settings_url }}">
                     <i class="fas fa-cogs nav-icon"></i>
-                    <span>{{ _(_('إعدادات المركز')) }}</span>
+                    <span>{{ _(_('إعدادات العيادة')) if is_clinic_user else _(_('إعدادات المركز')) }}</span>
                 </a>
             </li>
             {% endif %}

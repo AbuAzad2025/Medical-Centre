@@ -330,4 +330,5 @@ from . import patients as patients
 from . import prescriptions as prescriptions
 from . import queue as queue
 from . import radiology as radiology
+from . import settings as settings
 from . import visits as visits

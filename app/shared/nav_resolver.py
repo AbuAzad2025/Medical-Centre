@@ -220,15 +220,28 @@ def resolve_nav_for_user(user) -> list[NavSection]:
 
     if role in ('super_admin', 'admin'):
         admin = NavSection(id='admin', title_ar='الإدارة')
-        admin.items.append(
-            NavItem(
-                id='super_admin',
-                label_ar='إعدادات المركز',
-                icon='fas fa-cogs',
-                href=_tenant_path('/super-admin/dashboard'),
-                active_prefix='/super-admin',
+        if role == 'admin':
+            # A clinic admin manages the clinic itself; the super-admin
+            # dashboard is not part of a solo clinic's package.
+            admin.items.append(
+                NavItem(
+                    id='clinic_settings',
+                    label_ar='إعدادات العيادة',
+                    icon='fas fa-cogs',
+                    href=_tenant_path('/doctor/settings'),
+                    active_prefix='/doctor/settings',
+                )
             )
-        )
+        else:
+            admin.items.append(
+                NavItem(
+                    id='super_admin',
+                    label_ar='إعدادات المركز',
+                    icon='fas fa-cogs',
+                    href=_tenant_path('/super-admin/dashboard'),
+                    active_prefix='/super-admin',
+                )
+            )
         sections.append(admin)
     elif role == 'owner':
         platform = NavSection(id='platform', title_ar='المنصة')

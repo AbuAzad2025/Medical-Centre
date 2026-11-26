@@ -730,6 +730,60 @@ def end_treatment(visit_id):
             VisitStateMachineService.transition(visit, VisitState.COMPLETED, actor=current_user)
         visit.completed_by = visit.completed_by or current_user.id
         visit.completed_at = visit.completed_at or datetime.now(UTC)
+
+        # A simple clinic has no reception desk to settle the visit, so the
+        # doctor's completion is also the financial hand-off.
+        try:
+            from app.core.module.validators import get_module_scope_for_tenant
+            from app.core.tenant.models import Tenant
+            from models.invoice import Invoice
+            from models.invoice import InvoiceService as InvoiceLine
+
+            restricted, active_modules = (
+                get_module_scope_for_tenant(g.tenant_id) if g.tenant_id else (False, frozenset())
+            )
+            if restricted and 'reception' not in active_modules:
+                existing = (
+                    db.session.execute(select(Invoice).filter_by(visit_id=visit.id))
+                    .scalars()
+                    .first()
+                )
+                if not existing:
+                    tenant = db.session.get(Tenant, g.tenant_id)
+                    general = dict((getattr(tenant, 'settings', None) or {}).get('general') or {})
+                    fee = float(general.get('consultation_fee') or 0)
+                    amount = float(visit.total_amount or 0) or fee
+                    if amount and not visit.total_amount:
+                        visit.total_amount = amount
+                        visit.paid_amount = visit.paid_amount or amount
+                    invoice = Invoice(
+                        invoice_number=f'INV-{visit.id}-{int(datetime.now(UTC).timestamp())}',
+                        visit_id=visit.id,
+                        created_by=current_user.id,
+                        status='ISSUED',
+                        currency=getattr(visit, 'currency', None) or 'ILS',
+                        total_amount=amount,
+                        paid_amount=float(visit.paid_amount or 0),
+                    )
+                    db.session.add(invoice)
+                    db.session.flush()
+                    if amount:
+                        db.session.add(
+                            InvoiceLine(
+                                invoice_id=invoice.id,
+                                department_id=visit.department_id,
+                                visit_id=visit.id,
+                                service_code='VISIT',
+                                service_name='كشف طبي',
+                                quantity=1,
+                                unit_price=amount,
+                                total_price=amount,
+                                created_by=current_user.id,
+                            )
+                        )
+        except Exception:
+            logging.exception('Error issuing invoice for a simple clinic')
+
         medical_record = MedicalRecord(
             patient_id=visit.patient_id,
             visit_id=visit_id,

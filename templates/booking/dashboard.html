@@ -5,12 +5,12 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-  {{ page_header(_('حجوزاتي'), subtitle=(patient.full_name if patient else _('غير مرتبط بمريض')), icon='fas fa-calendar-alt', actions=[
+  {{ page_header(_('حجوزات العيادة') if is_staff_view else _('حجوزاتي'), subtitle=(patient.full_name if patient else (_('كل الحجوزات') if is_staff_view else _('غير مرتبط بمريض'))), icon='fas fa-calendar-alt', actions=[
       {'label': _('حجز جديد'), 'url': url_for('booking.index'), 'style': 'primary'},
       {'label': _('تسجيل الخروج'), 'url': url_for('auth.logout'), 'style': 'outline-secondary'}
   ]) }}
 
-  {% if not patient %}
+  {% if not patient and not is_staff_view %}
     <div class="alert alert-warning">{{ _(_('لا يوجد ربط بمريض. راجع الإدارة.')) }}</div>
   {% endif %}
 
@@ -21,6 +21,7 @@
           <thead>
             <tr>
               <th>{{ _(_('المرجع')) }}</th>
+              {% if is_staff_view %}<th>{{ _(_('المريض')) }}</th>{% endif %}
               <th>{{ _(_('القسم')) }}</th>
               <th>{{ _(_('الطبيب')) }}</th>
               <th>{{ _(_('التاريخ')) }}</th>
@@ -33,6 +34,7 @@
             {% for b in bookings or [] %}
               <tr>
                 <td>{{ b.booking_reference }}</td>
+                {% if is_staff_view %}<td>{{ (b.first_name or '') ~ ' ' ~ (b.last_name or '') }}</td>{% endif %}
                 <td>{{ b.department.name_ar if b.department else '-' }}</td>
                 <td>{{ b.doctor.full_name if b.doctor else '-' }}</td>
                 <td>{{ b.appointment_date }}</td>
@@ -49,7 +51,7 @@
               </tr>
             {% else %}
               <tr>
-                <td colspan="7" class="text-center text-muted py-4">{{ _(_('لا توجد حجوزات')) }}</td>
+                <td colspan="{{ 8 if is_staff_view else 7 }}" class="text-center text-muted py-4">{{ _(_('لا توجد حجوزات')) }}</td>
               </tr>
             {% endfor %}
           </tbody>
