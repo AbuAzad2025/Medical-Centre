@@ -13,6 +13,7 @@ from flask_login import current_user, login_required, login_user
 from sqlalchemy import select
 
 from app.core.rate_limiter import rate_limit
+from app.core.tenant.models import Tenant
 from app.extensions import db
 from models.appointment import Appointment
 from models.department import Department
@@ -371,6 +372,23 @@ def convert_booking_to_visit(booking_id):
 
     flash('تم تحويل الحجز وبدء العلاج مباشرة', 'success')
     return redirect(url_for('doctor.patient_details', visit_id=result['visit_id']))
+
+
+@booking_bp.route('/clinics')
+def clinic_directory():
+    """Public clinic picker: choose the centre, then its departments/doctors."""
+    from app.shared.enums import TenantStatus
+
+    tenants = (
+        db.session.execute(
+            select(Tenant)
+            .filter(Tenant.status.in_([TenantStatus.ACTIVE, TenantStatus.TRIAL]))
+            .order_by(Tenant.name_ar.asc(), Tenant.name.asc())
+        )
+        .scalars()
+        .all()
+    )
+    return render_template('booking/clinics.html', tenants=tenants)
 
 
 @booking_bp.route('/')

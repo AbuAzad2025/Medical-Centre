@@ -14,6 +14,7 @@ from app.shared.enums import OrderState, PaymentStatus, VisitState
 from models.department import Department
 from models.lab_request import LabRequest
 from models.medical_record import MedicalRecord
+from models.online_booking import OnlineBooking
 from models.patient import Patient
 from models.radiology_request import RadiologyRequest
 from models.visit import Visit
@@ -249,6 +250,18 @@ def patient_queue():
                     .filter_by(tenant_id=g.tenant_id)
                     .order_by(Patient.id.desc())
                     .limit(50)
+                )
+                .scalars()
+                .all()
+            ),
+            pending_bookings=(
+                []
+                if reception_enabled
+                else db.session.execute(
+                    select(OnlineBooking)
+                    .filter_by(tenant_id=g.tenant_id, status='pending')
+                    .order_by(OnlineBooking.appointment_date.asc())
+                    .limit(20)
                 )
                 .scalars()
                 .all()

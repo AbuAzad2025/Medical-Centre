@@ -1,5 +1,5 @@
 {
-  "total_routes": 969,
+  "total_routes": 970,
   "routes": [
     {
       "endpoint": "main.index",
@@ -1596,6 +1596,16 @@
       "methods": [
         "OPTIONS",
         "POST"
+      ],
+      "classification": "authenticated"
+    },
+    {
+      "endpoint": "booking.clinic_directory",
+      "path": "/booking/clinics",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
       ],
       "classification": "authenticated"
     },

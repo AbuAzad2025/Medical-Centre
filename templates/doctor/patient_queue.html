@@ -80,6 +80,41 @@
             </div>
         </div>
     </div>
+
+    {% if pending_bookings %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card card-modern">
+                <div class="card-header py-3"><h6 class="mb-0"><i class="fas fa-calendar-check me-2"></i>{{ _('حجوزات تنتظر التحويل لزيارة') }}</h6></div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr>
+                                <th>{{ _('المريض') }}</th><th>{{ _('الهاتف') }}</th><th>{{ _('الموعد') }}</th><th>{{ _('القسم') }}</th><th class="text-end">{{ _('إجراء') }}</th>
+                            </tr></thead>
+                            <tbody>
+                                {% for b in pending_bookings %}
+                                <tr>
+                                    <td class="fw-bold">{{ b.first_name }} {{ b.last_name }}</td>
+                                    <td>{{ b.phone }}</td>
+                                    <td>{{ b.appointment_date }} {{ b.appointment_time.strftime('%H:%M') if b.appointment_time else '' }}</td>
+                                    <td>{{ b.department.name_ar if b.department else '-' }}</td>
+                                    <td class="text-end">
+                                        <form method="POST" action="{{ url_for('booking.convert_booking_to_visit', booking_id=b.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-stethoscope me-1"></i>{{ _('تحويل وبدء العلاج') }}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% endif %}
 
     <!-- Doctor Patient Search -->

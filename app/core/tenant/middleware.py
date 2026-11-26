@@ -426,6 +426,7 @@ def set_tenant_context():
         '/medication/sales/',
         '/medication/print/',
         '/test/',
+        '/booking/clinics',
     ]
 
     is_exempt = any(request.path.startswith(p) for p in exempt_paths) or request.path == '/'

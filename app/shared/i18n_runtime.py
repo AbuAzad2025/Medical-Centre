@@ -275,6 +275,13 @@ AR_TO_EN: dict[str, str] = {
     'تم تحويل الحجز إلى زيارة — يمكنك بدء العلاج': 'Booking converted to a visit — treatment can start now',
     'تم تسجيل المريض وبدء العلاج مباشرة': 'Patient registered and treatment started',
     'تم تحويل الحجز وبدء العلاج مباشرة': 'Booking converted and treatment started',
+    'حجوزات تنتظر التحويل لزيارة': 'Bookings awaiting conversion to a visit',
+    'تحويل وبدء العلاج': 'Convert and start treatment',
+    'اختر العيادة': 'Choose a clinic',
+    'اختر المركز الطبي ثم القسم والطبيب لإتمام الحجز': 'Choose the medical centre, then the department and doctor to book',
+    'احجز في هذه العيادة': 'Book at this clinic',
+    'لا توجد عيادات متاحة للحجز حالياً': 'No clinics available for booking right now',
+    'اختر عيادة أخرى': 'Choose another clinic',
 }
 
 
