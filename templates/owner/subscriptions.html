@@ -35,6 +35,7 @@
             <tbody>
                 {% for t in tenants %}
                 {% set base_line = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.BASE)|selectattr('status', 'equalto', SubscriptionLineStatus.ACTIVE)|first %}
+                {% set status_key = t.status.value|lower %}
                 {% set addons = t.subscription_lines|selectattr('line_type', 'equalto', SubscriptionLineType.ADDON)|list %}
                 <tr>
                     <td>
@@ -65,14 +66,14 @@
                         </div>
                     </td>
                     <td>
-                        {% if t.status.value == 'active' %}
+                        {% if status_key == 'active' %}
                             <span class="owner-badge owner-badge-live">{{ _(_('نشط')) }}</span>
-                        {% elif t.status.value == 'trial' %}
+                        {% elif status_key == 'trial' %}
                             <span class="owner-badge owner-badge-trial">{{ _(_('تجريبي')) }}</span>
-                        {% elif t.status.value == 'suspended' %}
+                        {% elif status_key == 'suspended' %}
                             <span class="owner-badge owner-badge-suspended">{{ _(_('موقوف')) }}</span>
                         {% else %}
-                            <span class="owner-badge owner-badge-expired">{{ t.status.value }}</span>
+                            <span class="owner-badge owner-badge-expired">{{ status_key }}</span>
                         {% endif %}
                     </td>
                     <td>
@@ -85,42 +86,42 @@
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-1">
-                            {% if t.status.value != 'cancelled' %}
+                            {% if status_key != 'cancelled' %}
                                 <!-- Upgrade -->
-                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#upgradeModal{{ t.id }}" title="ترقية الباقة">
+                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#upgradeModal{{ t.id }}" title="{{ _('ترقية الباقة') }}" aria-label="{{ _('ترقية الباقة') }}">
                                     <i class="fas fa-arrow-up"></i>
                                 </button>
                                 
                                 <!-- Addon -->
-                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#addonModal{{ t.id }}" title="إضافة ميزة">
+                                <button class="owner-btn owner-btn-sm owner-btn-outline" data-bs-toggle="modal" data-bs-target="#addonModal{{ t.id }}" title="{{ _('إضافة ميزة') }}" aria-label="{{ _('إضافة ميزة') }}">
                                     <i class="fas fa-plus"></i>
                                 </button>
 
                                 <!-- Renew -->
-                                <form method="post" action="{{ url_for('owner.owner_renew_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من تجديد هذا الاشتراك؟'));">
+                                <form method="post" action="{{ url_for('owner.owner_renew_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm({{ _('هل أنت متأكد من تجديد هذا الاشتراك؟')|tojson }});">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تجديد الاشتراك">
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="{{ _('تجديد الاشتراك') }}" aria-label="{{ _('تجديد الاشتراك') }}">
                                         <i class="fas fa-redo"></i>
                                     </button>
                                 </form>
 
-                                {% if t.status.value == 'suspended' %}
+                                {% if status_key == 'suspended' %}
                                     <form method="post" action="{{ url_for('owner.owner_activate_tenant', tenant_id=t.id) }}" class="d-inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="تفعيل">
+                                        <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-success" title="{{ _('تفعيل') }}" aria-label="{{ _('تفعيل') }}">
                                             <i class="fas fa-play"></i>
                                         </button>
                                     </form>
                                 {% else %}
-                                    <button class="owner-btn owner-btn-sm owner-btn-outline-warning" data-bs-toggle="modal" data-bs-target="#suspendModal{{ t.id }}" title="إيقاف">
+                                    <button class="owner-btn owner-btn-sm owner-btn-outline-warning" data-bs-toggle="modal" data-bs-target="#suspendModal{{ t.id }}" title="{{ _('إيقاف') }}" aria-label="{{ _('إيقاف') }}">
                                         <i class="fas fa-pause"></i>
                                     </button>
                                 {% endif %}
 
                                 <!-- Cancel -->
-                                <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm('هل أنت متأكد من إلغاء اشتراك {{ t.name }}؟');">
+                                <form method="post" action="{{ url_for('owner.owner_cancel_subscription', tenant_id=t.id) }}" class="d-inline" onsubmit="return confirm({{ (_('هل أنت متأكد من إلغاء اشتراك') ~ ' ' ~ t.name ~ '؟')|tojson }});">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="إلغاء الاشتراك">
+                                    <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="{{ _('إلغاء الاشتراك') }}" aria-label="{{ _('إلغاء الاشتراك') }}">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </form>
@@ -129,6 +130,13 @@
                     </td>
                 </tr>
 
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Row modals live outside the table body. #}
+    {% for t in tenants %}
                 {# --- MODALS --- #}
 
                 <!-- Upgrade Modal -->
@@ -206,7 +214,7 @@
                 </div>
 
                 <!-- Suspend Confirmation Modal -->
-                {% if t.status.value != 'suspended' %}
+                {% if status_key != 'suspended' %}
                 <div class="modal fade owner-modal" id="suspendModal{{ t.id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -229,10 +237,6 @@
                     </div>
                 </div>
                 {% endif %}
-
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+    {% endfor %}
 </div>
 {% endblock %}

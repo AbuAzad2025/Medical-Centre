@@ -214,6 +214,67 @@ body:has(aside.owner-sidebar) {
   height: calc(100vh - var(--shell-navbar-h)) !important;
 }
 
+@media (width <= 1199px) {
+  .owner-sidebar {
+    transform: translateX(100%) !important;
+  }
+
+  .owner-sidebar.open {
+    transform: translateX(0) !important;
+  }
+}
+
+/* Bootstrap dropdowns live inside the navbar (z 1020) but must paint above
+   the sidebar (1040) and the owner header (1030). */
+
+.platform-navbar .dropdown-menu,
+.clinical-navbar .dropdown-menu,
+.owner-header .dropdown-menu {
+  z-index: 2000 !important;
+}
+
+/* Filled owner buttons had blue text on a blue background (invisible label). */
+
+.owner-btn-primary,
+.owner-btn-success,
+.owner-btn-danger,
+.owner-btn-primary:hover,
+.owner-btn-success:hover,
+.owner-btn-danger:hover {
+  color: #fff !important;
+}
+
+/* One brand mark per screen: the sidebar owns it on owner pages. */
+
+body:has(.owner-shell) .platform-navbar {
+  min-height: 56px !important;
+  padding-block: 0.25rem !important;
+}
+
+body:has(.owner-shell) .platform-navbar .navbar-brand img,
+body:has(.owner-shell) .platform-navbar .brand-text small {
+  display: none !important;
+}
+
+/* One form-control palette inside the owner form cards. */
+
+body:has(.owner-shell) .owner-input,
+body:has(.owner-shell) .owner-select,
+body:has(.owner-shell) .form-control,
+body:has(.owner-shell) .form-select,
+body:has(.owner-shell) textarea {
+  color: var(--color-text) !important;
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-border) !important;
+}
+
+body:has(.owner-shell) .owner-input::placeholder,
+body:has(.owner-shell) .form-control::placeholder,
+body:has(.owner-shell) textarea::placeholder {
+  color: var(--color-text-muted) !important;
+  opacity: 0.8;
+}
+
 .main-container {
   margin-inline: var(--shell-sidebar-w) 0 !important;
 }
