@@ -1,19 +1,21 @@
 """Seed package 1 appointments via the real booking endpoint (no extra users)."""
 
 import os
+import time
 from datetime import date, timedelta
 
 from playwright.sync_api import sync_playwright
 
 BASE = 'http://localhost:8000'
 TENANT = 'dr-ahmed-clinic'
+PHONES = ['05' + str(int(time.time()) + i)[-9:] for i in range(3)]
 SHOTS = 'docs/PAGE_AUDIT/package1_seed'
 os.makedirs(SHOTS, exist_ok=True)
 
 PEOPLE = [
-    ('سارة', 'العتيبي', '0551110001'),
-    ('خالد', 'الحربي', '0551110002'),
-    ('منى', 'القحطاني', '0551110003'),
+    ('سارة', 'العتيبي', PHONES[0]),
+    ('خالد', 'الحربي', PHONES[1]),
+    ('منى', 'القحطاني', PHONES[2]),
 ]
 
 

@@ -29,8 +29,10 @@ with sync_playwright() as pw:
             pg.wait_for_timeout(400)
         pg.goto(f'{BASE}/t/platform/owner/system-config', wait_until='domcontentloaded')
         pg.wait_for_timeout(400)
-        print(lang, pg.evaluate(
-            """() => ({
+        print(
+            lang,
+            pg.evaluate(
+                """() => ({
               head:document.querySelector('.owner-header-title')?.innerText.trim(),
               headers:Array.from(document.querySelectorAll('table thead th')).map(e=>e.innerText.trim()),
               types:Array.from(document.querySelectorAll('.owner-table .badge.bg-info-light')).slice(0,4).map(e=>e.innerText.trim()),
@@ -38,6 +40,7 @@ with sync_playwright() as pw:
               typeOptions:Array.from(document.querySelectorAll('[name="new_config_type"] option')).map(e=>e.text),
               catOptions:Array.from(document.querySelectorAll('[name="new_config_category"] option')).map(e=>e.text)
             })"""
-        ))
+            ),
+        )
         pg.screenshot(path=f'docs/PAGE_AUDIT/owner_proof/system_config_{lang}.png')
     b.close()

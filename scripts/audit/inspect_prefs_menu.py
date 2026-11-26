@@ -20,8 +20,9 @@ with sync_playwright() as pw:
     pg.goto(f'{BASE}/t/platform/owner/dashboard')
     pg.locator('button[aria-label="إعدادات الواجهة"]').first.click()
     pg.wait_for_timeout(250)
-    print(pg.evaluate(
-        """() => {
+    print(
+        pg.evaluate(
+            """() => {
           const m=document.querySelector('.ui-prefs-menu');
           const s=document.querySelector('#uiDensitySelect');
           const r=e=>{const b=e.getBoundingClientRect();return [Math.round(b.left),Math.round(b.top),Math.round(b.width),Math.round(b.height)];};
@@ -31,5 +32,6 @@ with sync_playwright() as pw:
                   optionCount:s.options.length,
                   options:Array.from(s.options).map(o=>o.text)};
         }"""
-    ))
+        )
+    )
     b.close()

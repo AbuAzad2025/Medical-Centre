@@ -9,13 +9,14 @@ from playwright.sync_api import sync_playwright
 BASE = 'http://localhost:8000'
 TENANT = 'dr-ahmed-clinic'
 ADMIN = ('admin', 'Clinic@2026')
+PHONES = ['05' + str(int(time.time()) + i)[-9:] for i in range(3)]
 SHOTS = 'docs/PAGE_AUDIT/package1_seed'
 os.makedirs(SHOTS, exist_ok=True)
 
 PATIENTS = [
-    ('سارة العتيبي', '0551110001', 'sara.otaibi@example.local'),
-    ('خالد الحربي', '0551110002', 'khaled.harbi@example.local'),
-    ('منى القحطاني', '0551110003', 'mona.qahtani@example.local'),
+    ('سارة العتيبي', PHONES[0], 'sara.otaibi@example.local'),
+    ('خالد الحربي', PHONES[1], 'khaled.harbi@example.local'),
+    ('منى القحطاني', PHONES[2], 'mona.qahtani@example.local'),
 ]
 
 
@@ -89,7 +90,9 @@ with sync_playwright() as pw:
         ]
         if doc_values:
             admin.select_option('select[name="doctor_id"]', doc_values[0])
-        admin.fill('input[name="appointment_date"]', (date.today() + timedelta(days=idx)).isoformat())
+        admin.fill(
+            'input[name="appointment_date"]', (date.today() + timedelta(days=idx)).isoformat()
+        )
         times = [
             o.get_attribute('value')
             for o in admin.locator('select[name="appointment_time"] option').all()

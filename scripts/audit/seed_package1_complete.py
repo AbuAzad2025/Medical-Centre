@@ -1,6 +1,7 @@
 """Finish package-1 seeding: doctor user, third patient, real appointments."""
 
 import os
+import time
 from datetime import date, timedelta
 
 from playwright.sync_api import sync_playwright
@@ -9,6 +10,7 @@ BASE = 'http://localhost:8000'
 TENANT = 'dr-ahmed-clinic'
 ADMIN_PASSWORD = 'Clinic@2026'
 SUPER_PASSWORD = os.environ.get('PLATFORM_ADMIN_PASSWORD', 'Azad@1983@2026@11@26')
+PHONES = ['05' + str(int(time.time()) + i)[-9:] for i in range(3)]
 SHOTS = 'docs/PAGE_AUDIT/package1_seed'
 os.makedirs(SHOTS, exist_ok=True)
 
@@ -53,7 +55,7 @@ with sync_playwright() as pw:
     pg = pctx.new_page()
     pg.goto(f'{BASE}/t/{TENANT}/booking/register', wait_until='domcontentloaded')
     pg.fill('input[name="full_name"]', 'منى القحطاني')
-    pg.fill('input[name="phone"]', '0551110003')
+    pg.fill('input[name="phone"]', PHONES[2])
     pg.fill('input[name="email"]', 'mona.qahtani@example.local')
     pg.fill('input[name="password"]', 'Patient@2026Pass')
     pg.locator('form').filter(has=pg.locator('input[name="full_name"]')).evaluate('f => f.submit()')
@@ -66,9 +68,9 @@ with sync_playwright() as pw:
     admin = actx.new_page()
     print('admin login', login(admin, 'admin', ADMIN_PASSWORD))
     people = [
-        ('سارة', 'العتيبي', '0551110001'),
-        ('خالد', 'حربي', '0551110002'),
-        ('منى', 'القحطاني', '0551110003'),
+        ('سارة', 'العتيبي', PHONES[0]),
+        ('خالد', 'حربي', PHONES[1]),
+        ('منى', 'القحطاني', PHONES[2]),
     ]
     for idx, (first, last, phone) in enumerate(people, 1):
         admin.goto(f'{BASE}/t/{TENANT}/booking/create', wait_until='domcontentloaded')
@@ -91,7 +93,9 @@ with sync_playwright() as pw:
         ]
         if docs:
             admin.select_option('select[name="doctor_id"]', docs[0])
-        admin.fill('input[name="appointment_date"]', (date.today() + timedelta(days=idx)).isoformat())
+        admin.fill(
+            'input[name="appointment_date"]', (date.today() + timedelta(days=idx)).isoformat()
+        )
         times = [
             o.get_attribute('value')
             for o in admin.locator('select[name="appointment_time"] option').all()
@@ -99,7 +103,9 @@ with sync_playwright() as pw:
         ]
         if times:
             admin.select_option('select[name="appointment_time"]', times[0])
-        admin.locator('form').filter(has=admin.locator('input[name="first_name"]')).evaluate('f => f.submit()')
+        admin.locator('form').filter(has=admin.locator('input[name="first_name"]')).evaluate(
+            'f => f.submit()'
+        )
         admin.wait_for_timeout(900)
         admin.wait_for_load_state('domcontentloaded')
         print('booking', first, admin.url.split('/')[-1])
