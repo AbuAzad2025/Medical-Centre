@@ -185,6 +185,25 @@ body.clinical-theme {
   overflow-x: hidden;
 }
 
+/* A flex child defaults to min-width:auto, so wide grid/table content pushed
+   .main-container past the fixed sidebar and hid its left edge underneath it. */
+
+.main-container {
+  min-width: 0 !important;
+}
+
+/* The platform shell pins .owner-sidebar with inset-inline-end, so the main
+   area must be offset on the same logical side (not the opposite one). */
+
+body.platform-theme .main-container {
+  margin-inline: 0 var(--owner-sidebar-width, 280px) !important;
+}
+
+.main-container > [class*='container'],
+.main-container > .row > [class*='col'] {
+  min-width: 0;
+}
+
 @media (width <= 991.98px) {
   body.clinical-theme .clinical-sidebar:not(.show) {
     display: none;
