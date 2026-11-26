@@ -11,6 +11,8 @@
 {% endblock %}
 
 {% block content_modern %}
+{% set type_labels = {'string': _('نص'), 'integer': _('رقم صحيح'), 'boolean': _('منطقي'), 'json': _('JSON'), 'password': _('كلمة مرور')} %}
+{% set category_labels = {'general': _('عام'), 'security': _('أمان'), 'notification': _('إشعارات'), 'backup': _('نسخ احتياطي'), 'system': _('نظام'), 'database': _('قاعدة بيانات'), 'email': _('بريد إلكتروني'), 'sms': _('رسائل قصيرة')} %}
 <!-- Filter Card -->
 <div class="owner-card animate-fadeInUp delay-1 owner-card-glass mb-4">
     <div class="owner-card-body">
@@ -21,7 +23,7 @@
                     <select name="category" class="owner-select" onchange="this.form.submit()">
                         <option value="">{{ _(_('كل التصنيفات')) }}</option>
                         {% for c in categories %}
-                        <option value="{{ c }}" {{ 'selected' if category_filter == c else '' }}>{{ c }}</option>
+                        <option value="{{ c }}" {{ 'selected' if category_filter == c else '' }}>{{ category_labels.get(c, c) }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -65,10 +67,10 @@
                             <div class="x-small text-muted">{{ cfg.description or _('لا يوجد وصف') }}</div>
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark border">{{ cfg.category or 'general' }}</span>
+                            <span class="badge bg-light text-dark border">{{ category_labels.get(cfg.category or 'general', cfg.category) }}</span>
                         </td>
                         <td>
-                            <span class="badge bg-info-light text-info x-small">{{ cfg.config_type }}</span>
+                            <span class="badge bg-info-light text-info x-small">{{ type_labels.get(cfg.config_type, cfg.config_type) }}</span>
                         </td>
                         <td>
                             {% if cfg.config_type == 'boolean' %}
@@ -84,9 +86,9 @@
                         </td>
                         <td class="text-end">
                             {% if not cfg.is_system %}
-                            <form method="post" action="{{ url_for('owner.owner_delete_system_config', config_key=cfg.config_key) }}" class="d-inline" onsubmit="return confirm(_('هل أنت متأكد من حذف هذا الإعداد؟'));">
+                            <form method="post" action="{{ url_for('owner.owner_delete_system_config', config_key=cfg.config_key) }}" class="d-inline" onsubmit="return confirm({{ _('هل أنت متأكد من حذف هذا الإعداد؟')|tojson }});">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="حذف الإعداد">
+                                <button type="submit" class="owner-btn owner-btn-sm owner-btn-outline-danger" title="{{ _('حذف الإعداد') }}" aria-label="{{ _('حذف الإعداد') }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -126,11 +128,11 @@
                     <div class="owner-form-group">
                         <label class="owner-form-label">{{ _(_('النوع (Type)')) }}</label>
                         <select name="new_config_type" class="owner-select">
-                            <option value="string">String</option>
-                            <option value="integer">Integer</option>
-                            <option value="boolean">Boolean</option>
+                            <option value="string">{{ _('نص') }}</option>
+                            <option value="integer">{{ _('رقم صحيح') }}</option>
+                            <option value="boolean">{{ _('منطقي') }}</option>
                             <option value="json">JSON</option>
-                            <option value="password">Password</option>
+                            <option value="password">{{ _('كلمة مرور') }}</option>
                         </select>
                     </div>
                 </div>
@@ -138,14 +140,14 @@
                     <div class="owner-form-group">
                         <label class="owner-form-label">{{ _(_('التصنيف (Category)')) }}</label>
                         <select name="new_config_category" class="owner-select">
-                            <option value="general">General</option>
-                            <option value="security">Security</option>
-                            <option value="notification">Notification</option>
-                            <option value="backup">Backup</option>
-                            <option value="system">System</option>
-                            <option value="database">Database</option>
-                            <option value="email">Email</option>
-                            <option value="sms">SMS</option>
+                            <option value="general">{{ _('عام') }}</option>
+                            <option value="security">{{ _('أمان') }}</option>
+                            <option value="notification">{{ _('إشعارات') }}</option>
+                            <option value="backup">{{ _('نسخ احتياطي') }}</option>
+                            <option value="system">{{ _('نظام') }}</option>
+                            <option value="database">{{ _('قاعدة بيانات') }}</option>
+                            <option value="email">{{ _('بريد إلكتروني') }}</option>
+                            <option value="sms">{{ _('رسائل قصيرة') }}</option>
                         </select>
                     </div>
                 </div>

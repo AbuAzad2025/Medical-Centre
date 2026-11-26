@@ -224,6 +224,30 @@ body:has(aside.owner-sidebar) {
   }
 }
 
+/* UI preferences menu: readable labels and roomy selects. */
+
+.ui-prefs-menu {
+  min-width: 260px !important;
+  padding: 1rem !important;
+}
+
+.ui-prefs-menu .form-label {
+  margin-bottom: 0.35rem !important;
+  font-weight: 600;
+  font-size: 0.85rem !important;
+}
+
+.ui-prefs-menu .form-select {
+  min-height: 42px;
+  padding-block: 0.5rem;
+  padding-inline-end: 2.25rem;
+  width: 100%;
+}
+
+.ui-prefs-menu .form-select + .form-label {
+  margin-top: 0.85rem !important;
+}
+
 /* Bootstrap dropdowns live inside the navbar (z 1020) but must paint above
    the sidebar (1040) and the owner header (1030). */
 

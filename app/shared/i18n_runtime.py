@@ -229,6 +229,30 @@ AR_TO_EN: dict[str, str] = {
     'خطة العلاج والمتابعة': 'Treatment & Follow-up Plan',
     'لم يتم إدخالها': 'Not recorded',
     'مسار التنقل': 'Breadcrumb',
+    # UI preference labels (machine translations were wrong here)
+    'مضغوط': 'Compact',
+    'عادي': 'Normal',
+    'مريح': 'Comfortable',
+    'صغير': 'Small',
+    'كبير': 'Large',
+    'الكثافة': 'Density',
+    'انحناء الحواف': 'Corner radius',
+    # system-config labels
+    'نص': 'Text',
+    'رقم صحيح': 'Integer',
+    'منطقي': 'Boolean',
+    'كلمة مرور': 'Password',
+    'أمان': 'Security',
+    'إشعارات': 'Notifications',
+    'نسخ احتياطي': 'Backup',
+    'نظام': 'System',
+    'قاعدة بيانات': 'Database',
+    'بريد إلكتروني': 'Email',
+    'رسائل قصيرة': 'SMS',
+    'عام': 'General',
+    'التصنيف': 'Category',
+    'المفتاح': 'Key',
+    'القيمة': 'Value',
 }
 
 
