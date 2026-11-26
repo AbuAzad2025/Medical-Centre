@@ -25,9 +25,8 @@ from utils.decorators import role_required
 @role_required('doctor', 'admin', 'manager')
 def lab_request(visit_id):
     try:
-        if 'lab' not in getattr(g, 'enabled_modules', set()):
-            flash('وحدة المختبر غير مفعلة لهذه المنشأة', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        # A doctor may always record a lab request on their own visit. When the
+        # lab module is off it stays a referral memo instead of a structured order.
         visit = (
             db.session.execute(
                 select(Visit).filter(

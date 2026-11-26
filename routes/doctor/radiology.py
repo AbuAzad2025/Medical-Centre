@@ -25,9 +25,8 @@ from utils.decorators import role_required
 @role_required('doctor', 'admin', 'manager')
 def radiology_request(visit_id):
     try:
-        if 'radiology' not in getattr(g, 'enabled_modules', set()):
-            flash('وحدة الأشعة غير مفعلة لهذه المنشأة', 'error')
-            return redirect(url_for('doctor.patient_queue'))
+        # A doctor may always record an imaging request on their own visit.
+        # Without the radiology module it stays a referral memo.
         visit = (
             db.session.execute(
                 select(Visit).filter(

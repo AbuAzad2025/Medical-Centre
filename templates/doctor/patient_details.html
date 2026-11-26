@@ -255,6 +255,41 @@
         </div>
     </div>
 
+    {% if visit.status == 'IN_PROGRESS' %}
+    <div class="row mb-4" id="clinical-requests">
+        <div class="col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-header"><h6 class="m-0 fw-bold text-primary"><i class="fas fa-flask me-2"></i>{{ _('طلب فحص مختبر') }}</h6></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctor.lab_request', visit_id=visit.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label class="form-label" for="lab_test_description">{{ _('التحليل المطلوب') }}</label>
+                        <textarea class="form-control mb-2" id="lab_test_description" name="test_description" rows="2" placeholder="{{ _('مثال: صورة دم كاملة، سكر صيامي') }}" required></textarea>
+                        <button type="submit" class="btn btn-outline-warning"><i class="fas fa-plus me-1"></i>{{ _('إضافة طلب المختبر') }}</button>
+                    </form>
+                    {% if not module_active('lab') %}<div class="form-text">{{ _('يُسجَّل كإحالة مختبرية؛ لا توجد وحدة مختبر مفعّلة في هذه الباقة.') }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-header"><h6 class="m-0 fw-bold text-primary"><i class="fas fa-x-ray me-2"></i>{{ _('طلب تصوير أشعة') }}</h6></div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('doctor.radiology_request', visit_id=visit.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label class="form-label" for="rad_test_name">{{ _('نوع التصوير') }}</label>
+                        <input class="form-control mb-2" id="rad_test_name" name="test_name" placeholder="{{ _('مثال: أشعة صدر، تخطيط قلب') }}" required>
+                        <label class="form-label" for="rad_notes">{{ _('ملاحظات') }}</label>
+                        <textarea class="form-control mb-2" id="rad_notes" name="notes" rows="1"></textarea>
+                        <button type="submit" class="btn btn-outline-secondary"><i class="fas fa-plus me-1"></i>{{ _('إضافة طلب الأشعة') }}</button>
+                    </form>
+                    {% if not module_active('radiology') %}<div class="form-text">{{ _('يُسجَّل كإحالة تصوير؛ لا توجد وحدة أشعة مفعّلة في هذه الباقة.') }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Medical Information Tabs -->
     <div class="row">
         <div class="col-12">
