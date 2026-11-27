@@ -1,0 +1,173 @@
+{
+  "report": "owner_phi_audit",
+  "generated_at_utc": "2026-11-27T07:31:00+00:00",
+  "scope": {
+    "policy": "Owner/superadmin surfaces must contain only tenant/system management and control. No patient names, phones, national IDs, diagnoses, visits, prescriptions, lab/radiology results, patient invoices, queue rows, or clinical counts tied to individuals. Aggregate tenant/system operational counters are allowed.",
+    "application_code_edited": false,
+    "files_reviewed": [
+      "app/modules/owner/routes.py",
+      "app/modules/owner/decorators.py",
+      "routes/super_admin/*.py",
+      "templates/owner/*.html",
+      "templates/super_admin/*.html",
+      "templates/layouts/platform_shell.html",
+      "templates/partials/_owner_navbar.html",
+      "templates/partials/_owner_sidebar.html",
+      "app/shared/dashboard_service.py",
+      "app/shared/dashboard_registry.py",
+      "services/data_warehouse_service.py"
+    ]
+  },
+  "live_verification": {
+    "base_url": "http://localhost:8010",
+    "login": "superadmin / Azad@1983@2026@11@26 (server boot date is 2026-11-26, so the 2026-11-27 password is rejected) / tenant_slug=platform / mode=owner",
+    "pages_fetched": [
+      "/owner/dashboard", "/owner/subscriptions", "/owner/provision", "/owner/packages",
+      "/owner/reports", "/owner/system-stats", "/owner/tenants/1", "/owner/users",
+      "/owner/audit-logs", "/owner/resource-usage", "/owner/monitoring", "/owner/billing",
+      "/owner/tenant-usage/1", "/owner/notifications", "/owner/control", "/owner/tasks",
+      "/super-admin/dashboard", "/super-admin/users", "/super-admin/analytics",
+      "/super-admin/reports", "/super-admin/audit-trail", "/super-admin/security-logs",
+      "/super-admin/data-warehouse", "/super-admin/performance", "/super-admin/services"
+    ],
+    "all_fetched_status": 200,
+    "visible_patient_phi_on_requested_pages": [],
+    "notes": "All requested owner/superadmin pages render only tenant, subscription, package, user, system-health, security-log and aggregate counter data. No patient name, phone, national ID, diagnosis, prescription, lab/radiology result, patient invoice, or queue row was visible in extracted page text. /api/dashboard/snapshot as super_admin returned only {active_staff, pending_amount, pending_invoices, staff_count, today_revenue, visits_today} - aggregates only."
+  },
+  "summary": {
+    "real_phi_leaks": 2,
+    "role_gate_hardening": 1,
+    "harmless_aggregate_counters": 7,
+    "top_leaks": [
+      "routes/super_admin/data.py:127-141 and :148-160 - bulk export of every Patient (name, national_id, phone, birth_date) and Visit (patient_id) to a downloadable JSON file, reachable from the super-admin dashboard",
+      "templates/super_admin/audit_trail.html:234,238,247 with routes/super_admin/security.py:113-115 - PHI audit page renders patient target_id and raw change JSON"
+    ]
+  },
+  "findings": [
+    {
+      "id": "PHI-1",
+      "classification": "real_phi_leak",
+      "severity": "high",
+      "location": "routes/super_admin/data.py:90-177 (Patient block 127-141; Visit block 148-160)",
+      "endpoint": "POST /super-admin/export-data -> /super-admin/download-export/<filename>",
+      "what": "export_system_data() runs select(Patient) and select(Visit) with no filter and writes every row into instance/medical_system_export_<ts>.json. Patient records include id, tenant_id, name, national_id, phone, birth_date; Visit records include patient_id, doctor_id, department_id, visit_type, status. The generated file is downloadable by the superadmin.",
+      "reachable_from": "templates/super_admin/dashboard.html:34-36 ('تصدير البيانات' button) -> static/js/pages/super_admin/dashboard.js",
+      "visible_on_rendered_page": "Not rendered inline, but a one-click bulk PHI export/download is exposed on the super-admin dashboard; this is tenant medical data leaving the platform console.",
+      "minimal_fix": "Delete the patient export block (lines 124-141) and visit export block (143-161) so the endpoint exports only system-management data (users, tenants, config). Remove or hide the 'تصدير البيانات' button at templates/super_admin/dashboard.html:34-36. If bulk clinical export is ever required, gate it behind a separate break-glass role with explicit justification and audit, never the platform dashboard."
+    },
+    {
+      "id": "PHI-2",
+      "classification": "real_phi_leak",
+      "severity": "medium",
+      "location": "routes/super_admin/security.py:45,64-66,106-119; templates/super_admin/audit_trail.html:133-134,234,238,247",
+      "endpoint": "GET /super-admin/audit-trail",
+      "what": "The PHI audit page accepts patient_id_filter, passes PHIAuditLog.target_id (a patient ID when target_model is Patient) and raw PHIAuditLog.changes to the template, which prints log.target_id in the table, serialises log.changes into showChangesModal(), and serialises the whole log into showLogDetails(). The change JSON can contain before/after patient field values (names, IDs, phones).",
+      "visible_on_rendered_page": "Live page currently shows 'عرض 0 من 153' with an empty table (template expects log.created_at but the view model supplies timestamp, so rows do not render). On a healthy dataset patient IDs / PHI diffs would be displayed.",
+      "minimal_fix": "Redact before rendering: hash/mask target_id when target_model is Patient, strip PHI keys from log.changes (keep action/model/timestamp/IP only), and stop tojson-dumping the full log object into the client. Keep the audit metadata, not the patient identifiers or values."
+    },
+    {
+      "id": "PHI-3",
+      "classification": "role_gate_hardening",
+      "severity": "low",
+      "location": "app/shared/dashboard_registry.py:352,457-463,491-495; app/shared/dashboard_service.py:322-323,648-654; routes/api_dashboard.py:17-31",
+      "what": "ROLE_LAYOUTS['super_admin'] includes queue_live and role inheritance gives super_admin/owner manager-tier widgets; _load_role_data() calls _load_manager_data() for owner/super_admin, which queries Visit/Invoice/Payment/User tables, and build_now_cards() uses visits_today for non-manager roles. /api/dashboard/snapshot is explicitly allowed for super_admin.",
+      "visible_on_rendered_page": "No current leak: no owner/super_admin route calls render_command_center(), and the live /api/dashboard/snapshot returned only aggregate counters (visits_today=0, staff_count=1, pending_invoices=0, revenue=0). All queried values are counts/sums, never row data.",
+      "minimal_fix": "Defensive only: add an explicit platform-role branch in _load_role_data() so owner/super_admin load only tenant/subscription counters, and remove queue_live from ROLE_LAYOUTS['super_admin'] (or exclude platform roles from inheritance at dashboard_registry.py:491). No change needed to stop a current leak."
+    },
+    {
+      "id": "AGG-1",
+      "classification": "harmless_aggregate_counter",
+      "location": "app/modules/owner/routes.py:561-565,566-580; templates/owner/tenant_detail.html:137-138",
+      "what": "Patient count per tenant (count(Patient).filter_by(tenant_id)) shown as 'المرضى <n> / <bundle limit>' on owner tenant detail. Tenant-level capacity counter, no individual data.",
+      "fix": "None - allowed."
+    },
+    {
+      "id": "AGG-2",
+      "classification": "harmless_aggregate_counter",
+      "location": "app/modules/owner/routes.py:3749-3815; templates/owner/reports.html:99-100,198-203",
+      "what": "Platform-wide counts: tenants by status, users by role, revenue sum (PharmacySale), count(Visit) last 30 days, count(Patient). Rendered as aggregate cards only.",
+      "fix": "None - allowed. (If policy is tightened to forbid any clinical totals, drop only the visits/patients cards at templates/owner/reports.html:97-101,196-204.)"
+    },
+    {
+      "id": "AGG-3",
+      "classification": "harmless_aggregate_counter",
+      "location": "app/modules/owner/routes.py:3051-3119; templates/owner/tenant_usage.html:65-84",
+      "what": "ResourceUsage snapshots show per-tenant totals: users, patients, visits, prescriptions, lab requests, radiology requests, appointments, invoices, API calls. No row-level records.",
+      "fix": "None - allowed."
+    },
+    {
+      "id": "AGG-4",
+      "classification": "harmless_aggregate_counter",
+      "location": "app/modules/owner/routes.py:3718-3746; templates/owner/system_stats.html",
+      "what": "System stats: total/active tenants, total/active users, backup counts. No clinical tables.",
+      "fix": "None - allowed."
+    },
+    {
+      "id": "AGG-5",
+      "classification": "harmless_aggregate_counter",
+      "location": "routes/super_admin/analytics.py:246-262,273-289,312-331; templates/super_admin/analytics.html:26-42,108",
+      "what": "Total users/patients/visits, visits_today, payments_today, prescriptions_today, 7-day visit series, user-role distribution, recent audit events (staff names/actions only). All aggregates.",
+      "fix": "None - allowed."
+    },
+    {
+      "id": "AGG-6",
+      "classification": "harmless_aggregate_counter",
+      "location": "routes/super_admin/analytics.py:44-55 (raw SQL count on visits/prescriptions); services/data_warehouse_service.py:17-31; templates/super_admin/data_warehouse.html:12-24; templates/super_admin/performance.html:67,84",
+      "what": "COUNT(*) over visits/prescriptions and aggregate snapshot counters (visits, appointments, payments_total, new_patients). No selected rows.",
+      "fix": "None - allowed."
+    },
+    {
+      "id": "AGG-7",
+      "classification": "harmless_aggregate_counter",
+      "location": "app/shared/dashboard_service.py:146-209,302-326,697-755; app/shared/dashboard_registry.py:28-307,328-356,358-454",
+      "what": "For role owner/super_admin only aggregate loads occur (Payment/Invoice/User/Visit counts and sums via _load_manager_data). Quick actions are owner.dashboard/super_admin.dashboard for owner and manager/system endpoints for super_admin - links only, no PHI in the rendered owner page.",
+      "fix": "None - allowed; see PHI-3 for optional hardening."
+    }
+  ],
+  "phi_table_queries_in_owner_code": [
+    {
+      "file_line": "app/modules/owner/routes.py:561-565",
+      "query": "select(func.count()).select_from(Patient).filter_by(tenant_id=tenant_id)",
+      "displayed_as": "patient_count vs bundle max_patients on /owner/tenants/<id>",
+      "verdict": "aggregate - allowed"
+    },
+    {
+      "file_line": "app/modules/owner/routes.py:3760,3801-3803",
+      "query": "select(func.count()).select_from(Visit).filter(Visit.created_at >= thirty_days_ago)",
+      "displayed_as": "'الزيارات (30 يوماً)' count on /owner/reports",
+      "verdict": "aggregate - allowed"
+    },
+    {
+      "file_line": "app/modules/owner/routes.py:3760,3806",
+      "query": "select(func.count()).select_from(Patient)",
+      "displayed_as": "'المرضى' count on /owner/reports",
+      "verdict": "aggregate - allowed"
+    },
+    {
+      "file_line": "routes/super_admin/data.py:127-141,146-160",
+      "query": "select(Patient) and select(Visit) - full rows",
+      "displayed_as": "exported JSON file, not inline page",
+      "verdict": "REAL PHI LEAK - see PHI-1"
+    },
+    {
+      "file_line": "routes/super_admin/security.py:52-66,86-87,106-119",
+      "query": "select(PHIAuditLog) with patient_id filter; target_id and changes forwarded to template",
+      "displayed_as": "patient ID and change diff on /super-admin/audit-trail",
+      "verdict": "REAL PHI LEAK when rows render - see PHI-2"
+    },
+    {
+      "file_line": "app/shared/dashboard_service.py:153-207 (via :322)",
+      "query": "count/sum on Payment, Invoice, User, Visit for owner/super_admin",
+      "displayed_as": "/api/dashboard/snapshot metrics and potential command-center cards",
+      "verdict": "aggregate - allowed; hardening PHI-3"
+    }
+  ],
+  "clean_surfaces": [
+    "templates/layouts/platform_shell.html - no PHI; only branding/nav/flash",
+    "templates/partials/_owner_navbar.html - only current_user (staff) name/role",
+    "templates/partials/_owner_sidebar.html - navigation driven by owner_nav_sections",
+    "templates/owner/dashboard.html, subscriptions.html, provision.html, packages.html, users.html, billing.html, monitoring.html, control.html - tenant/subscription/package/system management only",
+    "templates/super_admin/dashboard.html - system health/security counters and management links only (aside from the export button, PHI-1)",
+    "templates/super_admin/users.html - staff user management; phone shown is staff contact, not patient PHI"
+  ]
+}

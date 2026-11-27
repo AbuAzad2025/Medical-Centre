@@ -349,8 +349,10 @@ ROLE_LAYOUTS: dict[str, list[str]] = {
     ],
     'technician': ['worklist_urgent', 'lab_pending'],
     'admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
-    'super_admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
-    'owner': ['kpi_strip', 'manager_finance', 'manager_hr'],
+    # Platform roles see only system/tenant counters — never tenant queues or
+    # patient-linked financial widgets.
+    'super_admin': ['kpi_strip', 'manager_hr'],
+    'owner': ['kpi_strip', 'manager_hr'],
     'tenant_admin': ['kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'],
     'patient': ['appointments_pending', 'visits_today'],
 }

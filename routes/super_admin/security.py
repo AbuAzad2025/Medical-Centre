@@ -1,5 +1,6 @@
 """security routes - extracted from monolithic super_admin.py"""
 
+import hashlib
 import logging
 from datetime import UTC, datetime, timedelta
 
@@ -42,7 +43,6 @@ def audit_trail():
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
     model_filter = request.args.get('model_filter', '')
-    patient_id_filter = request.args.get('patient_id_filter', '')
 
     try:
         from datetime import datetime
@@ -61,9 +61,6 @@ def audit_trail():
             query = query.filter(PHIAuditLog.actor_id == int(user_filter))
         if model_filter:
             query = query.filter(PHIAuditLog.target_model == model_filter)
-        if patient_id_filter:
-            # Join with target_id for patient-specific logs
-            query = query.filter(PHIAuditLog.target_id == int(patient_id_filter))
         if date_from:
             try:
                 dt_from = datetime.strptime(date_from, '%Y-%m-%d')
@@ -103,6 +100,47 @@ def audit_trail():
         actions = []
         models = []
 
+    def _safe_target(log):
+        # The owner console audits access, it does not disclose tenant PHI.
+        # Keep a stable pseudonym so correlations remain possible.
+        if log.target_id is None:
+            return None
+        return (
+            'OBJ-' + hashlib.sha256(f'{log.target_model}:{log.target_id}'.encode()).hexdigest()[:10]
+        )
+
+    def _safe_changes(raw):
+        if not raw:
+            return {}
+        import json as _json
+
+        try:
+            value = _json.loads(raw) if isinstance(raw, str) else raw
+        except (TypeError, ValueError):
+            return {}
+        if not isinstance(value, dict):
+            return {}
+        sensitive = {
+            'phone',
+            'national_id',
+            'name',
+            'full_name',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'address',
+            'email',
+            'diagnosis',
+            'notes',
+            'patient_name',
+            'patient_id',
+            'medical_record_no',
+        }
+        return {
+            key: ('[REDACTED]' if str(key).lower() in sensitive else val)
+            for key, val in value.items()
+        }
+
     audit_logs_json = [
         {
             'id': log.id,
@@ -110,9 +148,9 @@ def audit_trail():
             'actor': {'full_name': log.actor.full_name, 'id': log.actor.id} if log.actor else None,
             'action': log.action,
             'target_model': log.target_model,
-            'target_id': log.target_id,
+            'target_id': _safe_target(log),
             'ip_address': log.ip_address,
-            'changes': log.changes,
+            'changes': _safe_changes(log.changes),
             'request_id': log.request_id,
         }
         for log in audit_logs
@@ -134,7 +172,6 @@ def audit_trail():
             'date_from': date_from,
             'date_to': date_to,
             'model_filter': model_filter,
-            'patient_id_filter': patient_id_filter,
         },
     )
 

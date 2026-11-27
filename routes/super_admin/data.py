@@ -121,44 +121,9 @@ def export_system_data():
             for user in users
         ]
 
-        # تصدير المرضى
-        # NOTE: This query intentionally runs cross-tenant for super_admin data export.
-        # Super admin has access to all tenant data by design.
-        from models.patient import Patient
-
-        patients = db.session.execute(select(Patient)).scalars().all()
-        export_data['data']['patients'] = [
-            {
-                'id': patient.id,
-                'tenant_id': getattr(patient, 'tenant_id', None),
-                'name': patient.name,
-                'national_id': patient.national_id,
-                'phone': patient.phone,
-                'birth_date': patient.birth_date.isoformat() if patient.birth_date else None,
-                'created_at': patient.created_at.isoformat() if patient.created_at else None,
-            }
-            for patient in patients
-        ]
-
-        # تصدير الزيارات
-        # NOTE: This query intentionally runs cross-tenant for super_admin data export.
-        # Super admin has access to all tenant data by design.
-        from models.visit import Visit
-
-        visits = db.session.execute(select(Visit)).scalars().all()
-        export_data['data']['visits'] = [
-            {
-                'id': visit.id,
-                'tenant_id': getattr(visit, 'tenant_id', None),
-                'patient_id': visit.patient_id,
-                'doctor_id': visit.doctor_id,
-                'department_id': visit.department_id,
-                'visit_type': visit.visit_type,
-                'status': visit.status,
-                'created_at': visit.created_at.isoformat() if visit.created_at else None,
-            }
-            for visit in visits
-        ]
+        # Platform export is strictly system-management data (users/tenants).
+        # Patient, visit and other clinical rows are tenant-owned PHI and must
+        # never be exported from the owner console.
 
         # حفظ الملف
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
