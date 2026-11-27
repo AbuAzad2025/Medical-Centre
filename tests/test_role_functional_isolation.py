@@ -40,9 +40,11 @@ ALL_ROLES = [
 # Expected widgets per role after strict isolation (no leakage)
 EXPECTED_WIDGETS = {
     'platform_owner': {'kpi_strip', 'manager_finance', 'manager_hr'},  # no queue_live
-    'super_admin': {'kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'},
+    # Platform roles must not get tenant queue or patient-linked finance
+    # widgets — the owner console is management/control only.
+    'super_admin': {'kpi_strip', 'manager_hr'},
     'admin': {'kpi_strip', 'manager_finance', 'manager_hr', 'queue_live'},
-    'owner': {'kpi_strip', 'manager_finance', 'manager_hr'},
+    'owner': {'kpi_strip', 'manager_hr'},
     'doctor': {
         'my_queue',
         'patients_waiting',
